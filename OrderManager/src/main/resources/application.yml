@@ -1,0 +1,78 @@
+spring:
+    mvc:
+        pathmatch:
+            matching-strategy: ant_path_matcher
+    main:
+        banner-mode: off
+    data:
+        mongodb:
+            host: localhost
+            port: 27017
+            database: fno
+
+logging:
+    level:
+        root: ERROR
+        org.springframework.web: ERROR
+        com.vish.fno: DEBUG
+        okhttp3.OkHttpClient: ERROR
+    file:
+        path: logs
+        name: logs/kr.log
+    pattern:
+        file: "%d{yyyy-MM-dd HH:mm:ss.SSSZ} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } [%8.8t] %-30.30logger{30} : %m%n"
+        console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:%5p})\
+              {magenta}%clr(-){faint}%clr([%6.6t]){faint}%clr(%-30.30logger{30}){cyan} %clr(:){faint} %m%n"
+    logback:
+        rollingpolicy:
+            max-file-size: 5MB
+            file-name-pattern: "${LOG_FILE}.%d{yyyy-MM-dd}.%i.log"
+
+# configs for actuator endpoints
+management:
+    server.port: 8081
+    endpoint:
+        info.cache.time-to-live: 5s
+        health:
+            show-details: always
+            cache.time-to-live: 5s
+        metrics.enabled: true
+        prometheus.enabled: true
+    endpoints.web:
+            exposure.include: health,info,logfile,metrics,loggers
+            base-path: /actuator
+    prometheus.metrics.export:
+                enabled: true
+                step: 30s
+server:
+    port: 8080
+    ssl:
+        enabled: true
+        key-store-password:
+        key-store:
+        key-store-type: PKCS12
+
+kite:
+    baseuri: https://kite.trade
+    apiKey:
+    userId:
+    apiSecret:
+    liveData:
+    authenticationUrl: ${kite.baseuri}/connect/login?api_key=${kite.apiKey}&v=3
+    serviceInCloud:
+
+order:
+    symbolsPath: ind_nifty100list.csv
+    additionalSymbols: NIFTY, NIFTY 50, BANKNIFTY, NIFTY BANK, FINNIFTY, NIFTY FIN SERVICE
+    maximumOrderCount: 1
+    availableCash: 15000
+    placeOrders: false
+    putOrders: true
+    callOrders: true
+    tradeInLastHour: false
+    orderSize: 25
+    maximumBuyPrice: 500
+    minimumBuyPrice: 225
+    slmDeltaPrice: 4
+
+
