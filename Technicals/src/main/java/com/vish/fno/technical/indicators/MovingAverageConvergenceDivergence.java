@@ -1,8 +1,7 @@
 package com.vish.fno.technical.indicators;
 
-import com.vish.fno.technical.model.Candlestick;
+import com.vish.fno.technical.model.Candle;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MovingAverageConvergenceDivergence implements Indicator {
@@ -16,7 +15,7 @@ public class MovingAverageConvergenceDivergence implements Indicator {
     }
 
     @Override
-    public List<Double> calculate(List<Candlestick> candles) {
+    public List<Double> calculate(List<Candle> candles) {
         // TODO
         return null;
     }

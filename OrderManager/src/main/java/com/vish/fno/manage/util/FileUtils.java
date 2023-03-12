@@ -3,8 +3,6 @@ package com.vish.fno.manage.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vish.fno.reader.util.TimeUtils;
-import com.vish.fno.reader.util.Utils;
-import com.zerodhatech.models.HistoricalData;
 import com.zerodhatech.models.Instrument;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -12,26 +10,22 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @Slf4j
 @Component
+@SuppressWarnings("PMD.UnusedPrivateMethod")
 public class FileUtils implements Constants {
     protected ObjectMapper mapper;
-    private Map<String, StringBuilder> tickerBuffer;
     int bufferLength;
 
     @PostConstruct
     public void initialise() {
         mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        tickerBuffer = new HashMap<>();
         bufferLength = 0;
         createDirectoryIfNotExist(filePath);
     }

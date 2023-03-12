@@ -42,8 +42,8 @@ public class KiteService {
             kiteSdk.setPublicToken(user.publicToken);
 
             Margin margins = kiteSdk.getMargins("equity");
-            log.info("Available cash : {}", margins.available.cash);
-            log.info("Utilised Debits : {}", margins.utilised.debits);
+            log.info("available_cash={}", margins.available.cash);
+            log.info("utilised_debits={}", margins.utilised.debits);
             initialised = true;
         } catch (Exception | KiteException e) {
             log.error("Error while Initialising KiteService", e);

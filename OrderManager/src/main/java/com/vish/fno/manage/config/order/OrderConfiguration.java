@@ -5,6 +5,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+
+@SuppressWarnings("PMD.UnusedPrivateField")
 @EnableConfigurationProperties(OrderProperties.class)
 public class OrderConfiguration {
 

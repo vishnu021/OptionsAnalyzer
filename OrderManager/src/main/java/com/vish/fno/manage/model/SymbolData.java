@@ -1,4 +1,4 @@
-package com.vish.fno.technical.model;
+package com.vish.fno.manage.model;
 
 import com.vish.fno.reader.util.TimeUtils;
 import lombok.Getter;

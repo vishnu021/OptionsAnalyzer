@@ -2,9 +2,9 @@ package com.vish.fno.manage.service;
 
 import com.vish.fno.manage.dao.CandlestickRepository;
 import com.vish.fno.manage.helper.DataCache;
+import com.vish.fno.manage.model.CandleStick;
 import com.vish.fno.manage.util.FileUtils;
 import com.vish.fno.reader.service.HistoricalDataService;
-import com.vish.fno.technical.model.Candlestick;
 import com.zerodhatech.models.HistoricalData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,38 +33,37 @@ public class CandlestickService {
         return String.valueOf(instrument);
     }
 
-    public List<Candlestick> getEntireDayHistoryData(String date, String symbol) {
+    public List<CandleStick> getEntireDayHistoryData(String date, String symbol) {
         return getEntireDayHistoryData(date, symbol, "minute");
     }
 
-    public List<Candlestick> getEntireDayHistoryData(String date, String symbolVal,  String interval) {
+    public List<CandleStick> getEntireDayHistoryData(String date, String symbolVal, String interval) {
         final String symbol = symbolVal.toUpperCase();
 
-        List<Candlestick> candles = getCandlestickData(date, symbol, interval);
+        List<CandleStick> candles = getCandlestickData(date, symbol, interval);
         if (candles == null) return null;
         candlestickRepository.saveAll(candles);
         return candles;
     }
 
-    private List<Candlestick> getCandlestickData(String date, String symbol,  String interval) {
+    private List<CandleStick> getCandlestickData(String date, String symbol, String interval) {
         String instrument = getInstrumentForSymbol(symbol);
         if(instrument==null) {
             log.warn("Symbol {} not available in instrument cache", symbol);
             return null;
         }
 
-        List<Candlestick> candles = candlestickRepository.findByRecordDateAndRecordSymbol(date, symbol);
+        List<CandleStick> candles = candlestickRepository.findByRecordDateAndRecordSymbol(date, symbol);
 
         if(candles==null || candles.size()==0) {
             log.debug("Getting candle data from broker as no data available for symbol: {}, date: {}", symbol, date);
             candles = getCandlesticksFromBroker(symbol, date, interval, instrument);
         }
-        fileUtils.saveJson(candles, "mongo.json");
         return candles;
     }
 
     @Nullable
-    private List<Candlestick> getCandlesticksFromBroker(String symbol, String date, String interval, String instrument) {
+    private List<CandleStick> getCandlesticksFromBroker(String symbol, String date, String interval, String instrument) {
         log.info("Returning data for symbol : {}, instrument : {}, date : {}, interval : {}",
                 symbol, instrument, date, interval);
         HistoricalData data = historicalDataService.getEntireDayHistoricalData(date, instrument, interval);
@@ -80,7 +79,7 @@ public class CandlestickService {
 
         return data.dataArrayList.stream().map(h -> {
             try {
-                return new Candlestick(h, symbol);
+                return new CandleStick(h, symbol);
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }

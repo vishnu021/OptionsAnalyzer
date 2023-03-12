@@ -182,6 +182,16 @@ public class TimeUtils {
         return null;
     }
 
+    public static Date getDateTimeObjectMinute(String date) {
+        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        try {
+            return formatterMilliSecond.parse(date);
+        } catch (ParseException e) {
+            log.error("Failed to parse date",e);
+        }
+        return null;
+    }
+
     public static Date getDateObject(String date) {
         SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("yyyy-MM-dd");
         try {
@@ -250,12 +260,12 @@ public class TimeUtils {
 
     public static float diffInMinutesSinceSessionStart(Date date) {
         long timeDifference = date.getTime() - appendOpeningTimeToDate(date).getTime();
-        return ((float) timeDifference / (1000 * 60));
+        return (float) timeDifference / (1000 * 60);
     }
 
     public static float getDifferenceInSeconds(Date d1, Date d2) {
         long timeDifference = d2.getTime() - d1.getTime();
-        return ((float) timeDifference / 1000);
+        return (float) timeDifference / 1000;
     }
 
     public static int getDifferenceInDays(Date d1, Date d2) {

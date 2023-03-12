@@ -44,7 +44,7 @@ public class DataCache {
         List<String> nifty100Symbols = getNifty100Stocks();
 
         symbolMap = allInstruments.stream()
-                .filter(i -> (i.getExchange().contentEquals(NSE)) || (i.getExchange().contentEquals(NFO) && i.expiry != null))
+                .filter(i -> i.getExchange().contentEquals(NSE) || i.getExchange().contentEquals(NFO) && i.expiry != null)
                 .filter(i -> nifty100Symbols.contains(i.getTradingsymbol())
                         || nifty100Symbols.contains(i.getName()))
                 .collect(Collectors.toMap(Instrument::getTradingsymbol,

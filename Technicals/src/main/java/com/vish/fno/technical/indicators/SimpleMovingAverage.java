@@ -1,6 +1,6 @@
 package com.vish.fno.technical.indicators;
 
-import com.vish.fno.technical.model.Candlestick;
+import com.vish.fno.technical.model.Candle;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +18,7 @@ public class SimpleMovingAverage implements Indicator {
     }
 
     @Override
-    public List<Double> calculate(List<Candlestick> candles) {
+    public List<Double> calculate(List<Candle> candles) {
         List<Double> sma = new ArrayList<>();
         for (int i = 0; i < candles.size(); i++) {
             sma.add(movingAverage(candles, i));
@@ -26,7 +26,7 @@ public class SimpleMovingAverage implements Indicator {
         return sma;
     }
 
-    private Double movingAverage(List<Candlestick> candles, int i) {
+    private Double movingAverage(List<Candle> candles, int i) {
         int startIndex = i >= duration ? i - duration + 1 : 0;
         return IntStream.rangeClosed(startIndex, i)
                 .mapToDouble(k -> candles.get(k).getClose())

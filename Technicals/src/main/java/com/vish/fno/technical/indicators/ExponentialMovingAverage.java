@@ -1,6 +1,6 @@
 package com.vish.fno.technical.indicators;
 
-import com.vish.fno.technical.model.Candlestick;
+import com.vish.fno.technical.model.Candle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ public class ExponentialMovingAverage implements Indicator {
     }
 
     @Override
-    public List<Double> calculate(List<Candlestick> candles) {
+    public List<Double> calculate(List<Candle> candles) {
         List<Double> ema = new ArrayList<>();
         for (int i = 0; i < candles.size(); i++) {
             ema.add(exponentialMovingAverage(candles, i, ema, duration));
@@ -20,7 +20,7 @@ public class ExponentialMovingAverage implements Indicator {
         return ema;
     }
 
-    private Double exponentialMovingAverage(List<Candlestick> candles, int i, List<Double> emaList, int n) {
+    private Double exponentialMovingAverage(List<Candle> candles, int i, List<Double> emaList, int n) {
         double close = candles.get(i).getClose();
         int emaListSize = emaList.size();
         if (emaListSize == 0)

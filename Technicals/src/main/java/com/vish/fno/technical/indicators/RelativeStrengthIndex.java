@@ -1,6 +1,6 @@
 package com.vish.fno.technical.indicators;
 
-import com.vish.fno.technical.model.Candlestick;
+import com.vish.fno.technical.model.Candle;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ public class RelativeStrengthIndex implements Indicator {
         this.duration = duration;
     }
 
-    public List<Double> calculateRsi(List<Candlestick> candles) {
+    public List<Double> calculateRsi(List<Candle> candles) {
         avgU = new ArrayList<>();
         avgD = new ArrayList<>();
         rsi = new ArrayList<>();
@@ -37,7 +37,7 @@ public class RelativeStrengthIndex implements Indicator {
     }
 
     @Override
-    public List<Double> calculate(List<Candlestick> candles) {
+    public List<Double> calculate(List<Candle> candles) {
         avgU = new ArrayList<>();
         avgD = new ArrayList<>();
         rsi = new ArrayList<>();

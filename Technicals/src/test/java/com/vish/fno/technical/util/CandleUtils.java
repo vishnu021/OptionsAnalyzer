@@ -2,13 +2,10 @@ package com.vish.fno.technical.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vish.fno.technical.model.Candlestick;
+import com.vish.fno.technical.model.Candle;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,10 +17,11 @@ import java.util.stream.Stream;
 public class CandleUtils {
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static List<Candlestick> getCandleData() {
+    public static List<Candle> getCandleData() {
         try {
+            // Getting data for full day of RELIANCE for date 2023-02-17
             String candles = readFile(".//src//test//resources//sample_candles.json");
-            return mapper.readValue(candles,  new TypeReference<List<Candlestick>>(){});
+            return mapper.readValue(candles,  new TypeReference<List<Candle>>(){});
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

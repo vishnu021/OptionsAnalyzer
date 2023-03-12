@@ -1,4 +1,4 @@
-package com.vish.fno.technical.model;
+package com.vish.fno.manage.model;
 
 import com.zerodhatech.models.HistoricalData;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import java.text.ParseException;
 @ToString
 @NoArgsConstructor
 @Document(collection = "minute_history_data")
-public class Candlestick {
+public class CandleStick {
     @Id
     private SymbolData record;
     private double open;
@@ -25,7 +25,7 @@ public class Candlestick {
     private long volume;
     private long oi;
 
-    public Candlestick(HistoricalData hd, String symbol) throws ParseException {
+    public CandleStick(HistoricalData hd, String symbol) throws ParseException {
         this.record = new SymbolData(symbol, hd.timeStamp);
         this.open = hd.open;
         this.high = hd.high;

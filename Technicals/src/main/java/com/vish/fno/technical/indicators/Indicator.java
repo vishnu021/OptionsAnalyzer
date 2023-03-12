@@ -1,9 +1,9 @@
 package com.vish.fno.technical.indicators;
 
-import com.vish.fno.technical.model.Candlestick;
+import com.vish.fno.technical.model.Candle;
 
 import java.util.List;
 
 public interface Indicator {
-    List<Double> calculate(List<Candlestick> candles);
+    List<Double> calculate(List<Candle> candles);
 }
