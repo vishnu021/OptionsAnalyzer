@@ -1,75 +1,59 @@
 package com.vish.fno.technical.indicators;
 
+import com.vish.fno.technical.indicators.ma.SmoothedMovingAverage;
 import com.vish.fno.technical.model.Candle;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Slf4j
 @NoArgsConstructor
-public class RelativeStrengthIndex implements Indicator {
-
+@AllArgsConstructor
+public class RelativeStrengthIndex extends AbstractIndicator {
 
     private int duration = 14;
-    private List<Double> avgU;
-    private List<Double> avgD;
-    @Getter
-    private List<Double> rsi;
 
-    public RelativeStrengthIndex(int duration) {
-        this.duration = duration;
-    }
-
-    public List<Double> calculateRsi(List<Candle> candles) {
-        avgU = new ArrayList<>();
-        avgD = new ArrayList<>();
-        rsi = new ArrayList<>();
-        for (int i = 1; i < candles.size(); i++) {
-            avgU.add(calculateAvgMovememnt(candles.get(i).getClose() - candles.get(i - 1).getClose(), avgU, 14));
-            avgD.add(calculateAvgMovememnt(candles.get(i - 1).getClose() - candles.get(i).getClose(), avgD, 14));
-            double rsiValue = getRsiFromAvg(avgU.get(avgU.size() - 1), avgD.get(avgD.size() - 1));
-            rsi.add(((double) Math.round(rsiValue * 100)) / 100);
-        }
-        return rsi;
+    public List<Double> getClosedPrices(List<Candle> candles) {
+        return candles.stream().map(Candle::getClose).collect(Collectors.toList());
     }
 
     @Override
-    public List<Double> calculate(List<Candle> candles) {
-        avgU = new ArrayList<>();
-        avgD = new ArrayList<>();
-        rsi = new ArrayList<>();
-        for (int i = 1; i < candles.size(); i++) {
-            avgU.add(calculateAvgMovememnt(candles.get(i).getClose() - candles.get(i - 1).getClose(), avgU, duration));
-            avgD.add(calculateAvgMovememnt(candles.get(i - 1).getClose() - candles.get(i).getClose(), avgD, duration));
-            double rsiValue = getRsiFromAvg(avgU.get(avgU.size() - 1), avgD.get(avgD.size() - 1));
-            rsi.add(((double) Math.round(rsiValue * 100)) / 100);
-        }
-        return rsi;
+    public List<Double> calculateFromClosedPrice(List<Double> closedPrice) {
+        List<Double> gains = calculateAverageDifference(closedPrice, (i) -> {
+            double diff = closedPrice.get(i) - closedPrice.get(i - 1);
+            return diff > 0 ? diff : 0;
+        });
+
+        List<Double> losses = calculateAverageDifference(closedPrice, (i) -> {
+            double diff = closedPrice.get(i - 1) - closedPrice.get(i);
+            return diff > 0 ? diff : 0;
+        });
+
+        SmoothedMovingAverage sma = new SmoothedMovingAverage(duration);
+
+        List<Double> averageGains = sma.calculateFromClosedPrice(gains);
+        List<Double> averageLosses = sma.calculateFromClosedPrice(losses);
+
+        return IntStream.range(0, averageGains.size()).boxed()
+                .map(i -> {
+                    double rs = averageLosses.get(i) == 0 ? 100 : averageGains.get(i)/averageLosses.get(i);
+                    return 100 - 100 / (1 + rs);
+                }).toList();
     }
 
-    private double calculateAvgMovememnt(double closeDifference, List<Double> avg, int n) {
-        closeDifference = closeDifference > 0 ? closeDifference : 0;
-        int avgSize = avg.size();
-        if (avgSize == 0) {
-            return closeDifference;
-        }
-        double previousAvg = avg.get(avgSize - 1);
-
-        if (avgSize < n) {
-            return (previousAvg * (avgSize) + closeDifference) / (avgSize + 1);
-        }
-        return (closeDifference - previousAvg) * 2 / (n + 1) + previousAvg;
+    public List<Double> calculateFromClosedPrice(List<Double> closedPrices, List<Double> prevDaysClosedPrices) {
+        int startIndex = closedPrices.size();
+        prevDaysClosedPrices.addAll(closedPrices);
+        return calculateFromClosedPrice(prevDaysClosedPrices).subList(startIndex-1, prevDaysClosedPrices.size()-1);
     }
 
-    private double getRsiFromAvg(double avgU, double avgD) {
-        if (avgD == 0d)
-            return 100;
-        double rs = avgU / avgD;
-        double rsi = 100 - 100 / (1 + rs);
-        return ((double) Math.round(rsi * 100)) / 100;
+    private List<Double> calculateAverageDifference(List<Double> closedPrice, Function<Integer, Double> function) {
+        return IntStream.range(1, closedPrice.size()).boxed().map(function).collect(Collectors.toList());
     }
 }
 
