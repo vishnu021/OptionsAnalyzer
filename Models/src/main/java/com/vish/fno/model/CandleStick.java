@@ -1,4 +1,4 @@
-package com.vish.fno.manage.model;
+package com.vish.fno.model;
 
 import com.zerodhatech.models.HistoricalData;
 import lombok.Getter;

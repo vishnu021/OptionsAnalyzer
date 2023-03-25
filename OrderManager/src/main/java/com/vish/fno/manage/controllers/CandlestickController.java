@@ -1,7 +1,7 @@
 package com.vish.fno.manage.controllers;
 
-import com.vish.fno.manage.model.CandleStick;
 import com.vish.fno.manage.service.CandlestickService;
+import com.vish.fno.model.CandleStick;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class CandlestickController {
     @GetMapping("/historicalData/{date}/{symbol}")
     @ApiOperation(value = "Returns the historical candle data for 1 minute interval")
     public ResponseEntity<List<CandleStick>> historicalData(@ApiParam(DATE_DESCRIPTION) @PathVariable String date,
-                                                       @ApiParam(SYMBOL_DESCRIPTION) @PathVariable String symbol) {
+                                                            @ApiParam(SYMBOL_DESCRIPTION) @PathVariable String symbol) {
         List<CandleStick> historicalDataList = candlestickService.getEntireDayHistoryData(date, symbol);
 
         if(historicalDataList==null) {

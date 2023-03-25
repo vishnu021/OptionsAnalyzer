@@ -9,26 +9,24 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.vish.fno.technicals</groupId>
-    <artifactId>Technicals</artifactId>
+    <artifactId>Models</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>com.vish.fno.reader</groupId>
+            <artifactId>KiteReader</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+    </dependencies>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <dependencies>
-        <!-- https://mvnrepository.com/artifact/org.ta4j/ta4j-core -->
-        <dependency>
-            <groupId>org.ta4j</groupId>
-            <artifactId>ta4j-core</artifactId>
-            <version>0.12</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-json</artifactId>
-        </dependency>
-    </dependencies>
 
 </project>

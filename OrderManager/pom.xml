@@ -41,6 +41,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>com.vish.fno</groupId>
+            <artifactId>Models</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>com.vish.fno.technicals</groupId>
             <artifactId>Technicals</artifactId>
             <version>0.0.1-SNAPSHOT</version>

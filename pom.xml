@@ -14,7 +14,9 @@
 		<module>KiteReader</module>
         <module>OrderManager</module>
 		<module>Technicals</module>
-	</modules>
+<!--		<module>Simulator</module>-->
+        <module>Models</module>
+    </modules>
 
 	<groupId>com.vish.fno</groupId>
 	<artifactId>OptionsAnalyzer</artifactId>

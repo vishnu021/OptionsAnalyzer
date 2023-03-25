@@ -1,6 +1,6 @@
 package com.vish.fno.manage.dao;
 
-import com.vish.fno.manage.model.CandleStick;
+import com.vish.fno.model.CandleStick;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

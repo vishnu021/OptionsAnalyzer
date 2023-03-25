@@ -36,3 +36,8 @@ build/
 .mvn
 logs
 OrderManager/src/main/resources/instrument_cache
+instrument_cache/
+*.p12
+Technicals/src/test/resources/RELIANCE_2023_03_10/
+Simulator/
+OrderManager/src/main/resources/RELIANCE_*
