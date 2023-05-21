@@ -1,7 +1,7 @@
 package com.vish.fno.technical.indicators;
 
+import com.vish.fno.model.Candle;
 import com.vish.fno.technical.indicators.ma.SimpleMovingAverage;
-import com.vish.fno.technical.model.Candle;
 import com.vish.fno.technical.util.CandleUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;

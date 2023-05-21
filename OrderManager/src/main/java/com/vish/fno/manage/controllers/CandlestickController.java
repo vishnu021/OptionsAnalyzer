@@ -1,7 +1,8 @@
 package com.vish.fno.manage.controllers;
 
+import com.vish.fno.manage.model.ApexChart;
 import com.vish.fno.manage.service.CandlestickService;
-import com.vish.fno.model.CandleStick;
+import com.vish.fno.model.SymbolData;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
@@ -9,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -26,9 +25,9 @@ public class CandlestickController {
 
     @GetMapping("/historicalData/{date}/{symbol}")
     @ApiOperation(value = "Returns the historical candle data for 1 minute interval")
-    public ResponseEntity<List<CandleStick>> historicalData(@ApiParam(DATE_DESCRIPTION) @PathVariable String date,
-                                                            @ApiParam(SYMBOL_DESCRIPTION) @PathVariable String symbol) {
-        List<CandleStick> historicalDataList = candlestickService.getEntireDayHistoryData(date, symbol);
+    public ResponseEntity<SymbolData> historicalData(@ApiParam(DATE_DESCRIPTION) @PathVariable String date,
+                                                     @ApiParam(SYMBOL_DESCRIPTION) @PathVariable String symbol) {
+        SymbolData historicalDataList = candlestickService.getEntireDayHistoryData(date, symbol);
 
         if(historicalDataList==null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -38,10 +37,10 @@ public class CandlestickController {
 
     @GetMapping("/historicalData/{date}/{symbol}/{interval}")
     @ApiOperation(value = "Returns the historical candle data for specified interval")
-    public ResponseEntity<List<CandleStick>> historicalData(@ApiParam(DATE_DESCRIPTION) @PathVariable String date,
-                                                       @ApiParam(SYMBOL_DESCRIPTION) @PathVariable String symbol,
-                                                       @ApiParam(INTERVAL_DESCRIPTION) @PathVariable String interval) {
-        List<CandleStick> historicalDataList = candlestickService.getEntireDayHistoryData(date, symbol, interval);
+    public ResponseEntity<SymbolData> historicalData(@ApiParam(DATE_DESCRIPTION) @PathVariable String date,
+                                                     @ApiParam(SYMBOL_DESCRIPTION) @PathVariable String symbol,
+                                                     @ApiParam(INTERVAL_DESCRIPTION) @PathVariable String interval) {
+        SymbolData historicalDataList = candlestickService.getEntireDayHistoryData(date, symbol, interval);
 
         if(historicalDataList==null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -49,4 +48,15 @@ public class CandlestickController {
         return ResponseEntity.status(HttpStatus.OK).body(historicalDataList);
     }
 
+    @GetMapping("/apexChart/{date}/{symbol}")
+    @ApiOperation(value = "Returns the apex chart candle data for 1 minute interval")
+    public ResponseEntity<ApexChart> apexChart(@ApiParam(DATE_DESCRIPTION) @PathVariable String date,
+                                               @ApiParam(SYMBOL_DESCRIPTION) @PathVariable String symbol) {
+        ApexChart apexChart = candlestickService.getEntireDayHistoryApexChart(date, symbol);
+
+        if(apexChart==null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(apexChart);
+    }
 }

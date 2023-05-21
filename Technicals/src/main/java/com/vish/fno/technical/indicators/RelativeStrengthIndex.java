@@ -1,7 +1,7 @@
 package com.vish.fno.technical.indicators;
 
 import com.vish.fno.technical.indicators.ma.SmoothedMovingAverage;
-import com.vish.fno.technical.model.Candle;
+import com.vish.fno.model.Candle;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

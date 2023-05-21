@@ -2,7 +2,7 @@ package com.vish.fno.technical.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vish.fno.technical.model.Candle;
+import com.vish.fno.model.Candle;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

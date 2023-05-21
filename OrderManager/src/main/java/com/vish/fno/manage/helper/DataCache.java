@@ -82,7 +82,7 @@ public class DataCache {
                 .filter(i -> i.getExchange().contains(filter.toUpperCase()))
                 .filter(i -> i.getName() !=null)
                 .sorted(Comparator.comparing(Instrument::getName))
-                .collect(Collectors.toMap(Instrument::getName, Instrument::getTradingsymbol, (k1, k2) ->  k1, LinkedHashMap::new ));
+                .collect(Collectors.toMap(Instrument::getTradingsymbol, Instrument::getName, (k1, k2) ->  k1, LinkedHashMap::new ));
     }
 
     public Map<String, Long> getFilteredTokens(String filter) {
@@ -91,6 +91,15 @@ public class DataCache {
                 .filter(i -> i.getName() !=null)
                 .sorted(Comparator.comparing(Instrument::getName))
                 .collect(Collectors.toMap(Instrument::getName, Instrument::getInstrument_token, (k1,k2) ->  k1, LinkedHashMap::new ));
+    }
+
+    public String getInstrumentForSymbol(String symbol) {
+        Long instrument = getInstrument(symbol);
+        if(instrument==null) {
+            log.warn("Invalid symbol : {}, not available in cache", symbol);
+            return null;
+        }
+        return String.valueOf(instrument);
     }
 
     private List<String> getNifty100Stocks() {

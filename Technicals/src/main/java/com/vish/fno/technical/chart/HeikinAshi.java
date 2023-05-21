@@ -1,6 +1,6 @@
 package com.vish.fno.technical.chart;
 
-import com.vish.fno.technical.model.Candle;
+import com.vish.fno.model.Candle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ public class HeikinAshi {
             double open = 0.5 * (lastCandle.getOpen() + lastCandle.getClose());
             double high = Math.max(Math.max(candle.getHigh(), open), close);
             double low = Math.min(Math.min(candle.getLow(), open), close);
-            Candle haCandle = new Candle(open, close, high, low, candle.getVolume(), candle.getOi());
+            Candle haCandle = new Candle("", open, close, high, low, candle.getVolume(), candle.getOi());
             haCandles.add(haCandle);
             lastCandle = haCandle;
         }

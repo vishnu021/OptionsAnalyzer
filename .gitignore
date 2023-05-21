@@ -40,4 +40,29 @@ instrument_cache/
 *.p12
 Technicals/src/test/resources/RELIANCE_2023_03_10/
 Simulator/
-OrderManager/src/main/resources/RELIANCE_*
+OrderManager/src/main/resources/data/
+options-analyzer-ui/package-lock.json
+
+
+### UI ###
+# dependencies
+options-analyzer-ui/node_modules
+options-analyzer-ui/.pnp
+options-analyzer-ui/.pnp.js
+
+# testing
+options-analyzer-ui/coverage
+
+# production
+options-analyzer-ui/build
+
+# misc
+options-analyzer-ui/.DS_Store
+options-analyzer-ui/.env.local
+options-analyzer-ui/.env.development.local
+options-analyzer-ui/.env.test.local
+options-analyzer-ui/.env.production.local
+
+options-analyzer-ui/npm-debug.log*
+options-analyzer-ui/yarn-debug.log*
+options-analyzer-ui/yarn-error.log*

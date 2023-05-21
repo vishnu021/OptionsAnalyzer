@@ -1,7 +1,7 @@
 package com.vish.fno.technical.indicators.ma;
 
+import com.vish.fno.model.Candle;
 import com.vish.fno.technical.indicators.AbstractIndicator;
-import com.vish.fno.technical.model.Candle;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
