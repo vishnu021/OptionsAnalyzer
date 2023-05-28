@@ -2,6 +2,7 @@ package com.vish.fno.manage.helper;
 
 import com.vish.fno.manage.util.FileUtils;
 import com.vish.fno.reader.service.KiteService;
+import com.vish.fno.reader.util.TimeUtils;
 import com.zerodhatech.models.Instrument;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
+/*Only focusing on the 100 stocks of nifty 100 and indices*/
 @Slf4j
 @RequiredArgsConstructor
 public class DataCache {
@@ -26,34 +29,41 @@ public class DataCache {
     private static final String DELIMITER = ",";
     private final FileUtils fileUtils;
     private final KiteService kiteService;
-
-    private List<Instrument> instruments;
+    private List<Instrument> filteredInstruments;
     private Map<String, Long> symbolMap;
     private Map<Long, String> instrumentMap;
 
-    public  List<Instrument> getInstruments() {
+    public synchronized List<Instrument> getInstruments() {
 
-        if (instruments != null)
-            return instruments;
+        if (filteredInstruments != null)
+            return filteredInstruments;
 
-        instruments = kiteService.getAllInstruments();
-        fileUtils.saveInstrumentCache(instruments);
-
-        List<Instrument> allInstruments = getInstruments();
+        List<Instrument> allInstruments = kiteService.getAllInstruments();
+        fileUtils.saveInstrumentCache(allInstruments);
 
         List<String> nifty100Symbols = getNifty100Stocks();
 
-        symbolMap = allInstruments.stream()
+        filteredInstruments = allInstruments.stream()
                 .filter(i -> i.getExchange().contentEquals(NSE) || i.getExchange().contentEquals(NFO) && i.expiry != null)
                 .filter(i -> nifty100Symbols.contains(i.getTradingsymbol())
-                        || nifty100Symbols.contains(i.getName()))
+                        || nifty100Symbols.contains(i.getName())).toList();
+
+        symbolMap = filteredInstruments.stream()
                 .collect(Collectors.toMap(Instrument::getTradingsymbol,
                         Instrument::getInstrument_token, (token, symbol) -> token, TreeMap::new));
 
         fileUtils.saveFilteredInstrumentCache(symbolMap);
         log.info("Filtered instrument count : {}", symbolMap.size());
+        log.info("Filtered instrument expiry dates: {}", getExpiryDates());
         instrumentMap = symbolMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-        return instruments;
+        return filteredInstruments;
+    }
+
+    public Set<String> getExpiryDates() {
+        return getInstruments().stream()
+                .map(Instrument::getExpiry)
+                .filter(Objects::nonNull)
+                .map(TimeUtils::getStringDate).collect(Collectors.toSet());
     }
 
     public Long getInstrument(String script) {
@@ -77,21 +87,26 @@ public class DataCache {
                 .collect(Collectors.toSet());
     }
 
+    public List<Map<String, String>> getAllInstruments() {
+        List<Map<String, String>> allInstrumentData = new ArrayList<>();
+        getInstruments().stream()
+                .sorted(Comparator.comparing(Instrument::getName))
+                .forEach( i -> {
+                    allInstrumentData.add(
+                            Map.of(
+                                    "exchange", i.getExchange(),
+                                    "symbol", i.getTradingsymbol(),
+                                    "expiry", TimeUtils.getStringDate(i.getExpiry())));
+                });
+        return allInstrumentData;
+    }
+
     public Map<String, String> getFilteredSymbols(String filter) {
         return getInstruments().stream()
-                .filter(i -> i.getExchange().contains(filter.toUpperCase()))
-                .filter(i -> i.getName() !=null)
                 .sorted(Comparator.comparing(Instrument::getName))
                 .collect(Collectors.toMap(Instrument::getTradingsymbol, Instrument::getName, (k1, k2) ->  k1, LinkedHashMap::new ));
     }
 
-    public Map<String, Long> getFilteredTokens(String filter) {
-        return getInstruments().stream()
-                .filter(i -> i.getExchange().contains(filter.toUpperCase()))
-                .filter(i -> i.getName() !=null)
-                .sorted(Comparator.comparing(Instrument::getName))
-                .collect(Collectors.toMap(Instrument::getName, Instrument::getInstrument_token, (k1,k2) ->  k1, LinkedHashMap::new ));
-    }
 
     public String getInstrumentForSymbol(String symbol) {
         Long instrument = getInstrument(symbol);

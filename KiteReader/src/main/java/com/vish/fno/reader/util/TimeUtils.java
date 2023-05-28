@@ -230,6 +230,8 @@ public class TimeUtils {
     }
 
     public static String getStringDate(Date date) {
+        if(date==null)
+            return "";
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
         return dateFormatter.format(date);
     }

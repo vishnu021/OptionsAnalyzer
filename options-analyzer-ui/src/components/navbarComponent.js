@@ -1,11 +1,54 @@
-import React from 'react';
+import React, {useContext} from 'react';
+import AutoSuggestComponent from "./autoSuggestComponent";
+import {InstrumentsContext} from "./App";
 
-function NavbarComponent({handleExchangeChange, onSymbolUpdate, symbol, handleSymbolChange, filteredOptions, handleOptionClick, date, handleDateChange}) {
+const intervals = ["3minute", "5minute", "10minute", "15minute", "30minute", "60minute", "day"];
 
-    const intervals = ["3minute", "5minute", "10minute", "15minute", "30minute", "60minute", "day"];
+function NavbarComponent({exchange, setExchange,
+                             expiry, setExpiry,
+                             symbol, setSymbol,
+                             date, setDate,
+                             onFormSubmit}) {
+
+    const {instruments} = useContext(InstrumentsContext);
+
+
     const getIntervalOptions = () => {
         return intervals.map(i => <option className="form-control" key={i} value={i}>{i}</option>)
     }
+
+    const handleDateChange = ({currentTarget:input}) => {
+        setDate(input.value);
+    };
+
+    const handleExchangeChange = ({currentTarget:input}) => {
+        setExchange(input.value);
+    };
+
+    const getExpiryDates = () => {
+        const expiryDates = instruments
+            .filter(obj => obj.exchange === 'NFO')
+            .map(obj => obj.expiry);
+
+        return sortAndCreateArray(expiryDates);
+    }
+
+    const getSymbols = () => {
+        let symbols = instruments.filter(obj => obj.exchange === exchange)
+
+        if(exchange==='NFO') {
+            symbols = symbols.filter(obj => obj.expiry === expiry)
+        }
+
+        symbols = symbols.map(obj => obj.symbol);
+        return sortAndCreateArray(symbols);
+    }
+
+    const sortAndCreateArray = (elements) => {
+        elements.sort((a, b) => a.localeCompare(b));
+        return Array.from(new Set(elements));
+    }
+
     return (
         <nav className="navbar navbar-expand-lg navbar-fixed-top" style={{ zIndex: 1 }}>
             <h4 className="m-1 p-1">Options Analyzer</h4>
@@ -18,33 +61,18 @@ function NavbarComponent({handleExchangeChange, onSymbolUpdate, symbol, handleSy
                     style={{backgroundColor: "#cfe2ef"}}
                 >
                     <option value="NSE" defaultValue="NSE">NSE</option>
-                    <option value="BSE">BSE</option>
                     <option value="NFO">NFO</option>
                 </select>
-                <div className="dropdown form-control">
-                    <input
-                        type="text"
-                        value={symbol}
-                        onChange={handleSymbolChange}
-                        className="form-control"
-                        data-bs-toggle="dropdown"
-                        style={{backgroundColor: "#cfe2ef", width: "200px"}}
-                    />
-                    {filteredOptions.length > 0 && (
-                        <div className="dropdown-menu show">
-                            {filteredOptions.map((option) => (
-                                <button
-                                    key={option}
-                                    className="dropdown-item"
-                                    type="button"
-                                    onClick={() => handleOptionClick(option)}
-                                >
-                                    {option}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                <AutoSuggestComponent
+                    value={expiry}
+                    setValue={setExpiry}
+                    allValues={getExpiryDates()}
+                />
+                <AutoSuggestComponent
+                    value={symbol}
+                    setValue={setSymbol}
+                    allValues={getSymbols()}
+                />
                 <input
                     className="form-control"
                     type="search"
@@ -65,7 +93,7 @@ function NavbarComponent({handleExchangeChange, onSymbolUpdate, symbol, handleSy
                 <button
                     className="form-control btn"
                     type="submit"
-                    onClick={onSymbolUpdate}
+                    onClick={onFormSubmit}
                     style={{backgroundColor: "blue", color: "white"}} >
                     Update
                 </button>

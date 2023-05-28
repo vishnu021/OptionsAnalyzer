@@ -16,9 +16,13 @@ export const getCandleStickOptions = (series) => {
     };
 
     const getYAxisOptions = () => {
-        // Calculate min and max values with some padding
-        const min = Math.min(...series[0].data.map((d) => Math.min(...d.y))) - 5;
-        const max = Math.max(...series[0].data.map((d) => Math.max(...d.y))) + 5;
+        let min = 0;
+        let max = 0;
+
+        if(series && series.length > 0) {
+            min = Math.min(...series[0].data.map((d) => Math.min(...d.y))) - 5;
+            max = Math.max(...series[0].data.map((d) => Math.max(...d.y))) + 5;
+        }
 
         return {
             tooltip: {

@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.vish.fno.manage.util.Constants.*;
@@ -33,34 +34,41 @@ public class CandlestickService {
         return getEntireDayHistoryData(date, symbol, "minute");
     }
 
-    public SymbolData getEntireDayHistoryData(String date, String symbolVal, String interval) {
-        final String symbol = symbolVal.toUpperCase();
-
-        SymbolData candles = getCandlestickData(date, symbol, interval);
-        if (candles == null) return null;
-        candlestickRepository.save(candles);
-        return candles;
+    public SymbolData getEntireDayHistoryData(String date, String symbol, String interval) {
+        return getCandlestickData(date, symbol, interval);
     }
 
     public ApexChart getEntireDayHistoryApexChart(String date, String symbol) {
         SymbolData symbolData = getEntireDayHistoryData(date, symbol, MINUTE);
-        List<Double> ema = new ExponentialMovingAverage().calculate(symbolData.getData());
+
+        if(symbolData ==null || symbolData.getData()==null || symbolData.getData().size()==0)
+            return null;
+
+        return createChartData(symbolData);
+    }
+
+    private ApexChart createChartData(SymbolData symbolData) {
+        List<ApexChartSeries> seriesCharts = new ArrayList<>();
+        seriesCharts.add(new ApexChartSeries(STOCK_PRICE, CANDLESTICK, symbolData));
+
+        try{
+            List<Double> ema = new ExponentialMovingAverage().calculate(symbolData.getData());
+            seriesCharts.add(new ApexChartSeries(EMA14, LINE, ema, symbolData.getData()));
+        } catch (Exception e) {
+            log.warn("Unable to calculate EMA {}", e.getMessage());
+        }
+
+        return new ApexChart(seriesCharts, getBarCharts(symbolData));
+    }
+
+    private List<ApexChartSeries> getBarCharts(SymbolData symbolData) {
         List<Long> volume = symbolData.getData().stream().map(Candle::getVolume).toList();
-
-        ApexChart chart = new ApexChart();
-        List<ApexChartSeries> series = List.of(
-                new ApexChartSeries(STOCK_PRICE, CANDLESTICK, symbolData),
-                new ApexChartSeries(EMA14, LINE, ema, symbolData.getData()));
-        List<ApexChartSeries> seriesBar = List.of(
+        return List.of(
                 new ApexChartSeries(VOLUME, BAR, volume.stream().map(Long::doubleValue).toList(), symbolData.getData()));
-
-        chart.setSeries(series);
-        chart.setSeriesBar(seriesBar);
-
-        return chart;
     }
 
     private SymbolData getCandlestickData(String date, String symbol, String interval) {
+        symbol = symbol.toUpperCase();
         String instrument = cache.getInstrumentForSymbol(symbol);
 
         if(instrument==null) {
@@ -69,14 +77,14 @@ public class CandlestickService {
 
         SymbolData candle = candlestickRepository.findByRecordDateAndRecordSymbol(date, symbol);
 
-        if(candle==null || candle.getData().size()==0) {
+        if(candle==null || candle.getData().size()==0 || candle.getData().size() < 375) {
             log.debug("Getting candle data from broker as no data available for symbol: {}, date: {}", symbol, date);
             candle = getCandlesticksFromBroker(symbol, date, interval, instrument);
         }
 
         assert candle != null;
         fileUtils.saveJson(candle.getData(), String.format("data/%s_%s.json", symbol, date));
-
+        candlestickRepository.save(candle);
         return candle;
     }
 
