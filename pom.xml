@@ -6,15 +6,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.9</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<version>3.1.2</version>
+		<relativePath/>
 	</parent>
 
 	<modules>
 		<module>KiteReader</module>
         <module>OrderManager</module>
 		<module>Technicals</module>
-<!--		<module>Simulator</module>-->
         <module>Models</module>
     </modules>
 
@@ -85,7 +84,6 @@
 
 	<build>
 		<plugins>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>

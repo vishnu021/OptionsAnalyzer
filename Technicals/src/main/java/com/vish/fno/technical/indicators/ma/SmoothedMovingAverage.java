@@ -17,6 +17,7 @@ public class SmoothedMovingAverage extends MovingAverage {
     public SmoothedMovingAverage(int duration) {
         super(duration);
     }
+
     protected double getMultiplier() {
         return ((double) 1) / (duration);
     }

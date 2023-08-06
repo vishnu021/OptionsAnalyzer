@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-function AutoSuggestComponent({value, setValue, allValues}) {
+function AutoSuggestComponent({value, setValue, allValues, width}) {
 
     const [filteredValues, setFilteredValues] = useState([]);
     const [showAutoSuggest, setShowAutoSuggest] = useState(false);
@@ -36,7 +36,7 @@ function AutoSuggestComponent({value, setValue, allValues}) {
                    onClick={onClickHandler}
                    className="form-control"
                    data-bs-toggle="dropdown"
-                   style={{backgroundColor: "#cfe2ef", width: "200px"}}
+                   style={{backgroundColor: "#cfe2ef", width: width}}
                />
                {filteredValues.length > 0 && showAutoSuggest && (
                    <div

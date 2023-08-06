@@ -1,3 +1,5 @@
+import {volumeBarPx} from "./windowHeightService";
+
 export const getBarOptions = () => {
 
     const getXAxisOptions = () => {
@@ -23,14 +25,23 @@ export const getBarOptions = () => {
                 enabled: true,
             },
             labels: {
-                show: true
+                show: true,
+                formatter: (value) => {
+                    if(value> 1000_000) {
+                        return `${value/1000000} M`;
+                    }
+                    if(value> 1000) {
+                        return `${value/1000} K`;
+                    }
+                    return value;
+                },
             }
         };
     };
 
     return {
         chart: {
-            height: 200,
+            height: volumeBarPx(window.innerHeight),
             type: 'bar',
             brush: {
                 // enabled: true,

@@ -1,5 +1,7 @@
 package com.vish.fno.reader.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.ParseException;
@@ -14,7 +16,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class TimeUtils {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class TimeUtils {
     public static final ArrayList<String> timeArray = new ArrayList<>();
 
     static {
@@ -197,7 +200,7 @@ public class TimeUtils {
         try {
             return formatterMilliSecond.parse(date);
         } catch (ParseException e) {
-            log.error("",e);
+            log.error("Failed to parse to date of format yyyy-MM-dd",e);
         }
         return null;
     }

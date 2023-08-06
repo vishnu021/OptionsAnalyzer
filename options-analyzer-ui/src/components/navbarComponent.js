@@ -1,6 +1,7 @@
 import React, {useContext} from 'react';
 import AutoSuggestComponent from "./autoSuggestComponent";
 import {InstrumentsContext} from "./App";
+import {navbarPx} from "../services/windowHeightService";
 
 const intervals = ["3minute", "5minute", "10minute", "15minute", "30minute", "60minute", "day"];
 
@@ -50,7 +51,7 @@ function NavbarComponent({exchange, setExchange,
     }
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-fixed-top" style={{ zIndex: 1 }}>
+        <nav className="navbar navbar-expand-lg navbar-fixed-top" style={{/* zIndex: 1,*/ height: navbarPx(window.innerHeight) }}>
             <h4 className="m-1 p-1">Options Analyzer</h4>
             <form className="d-flex" >
                 <select
@@ -67,11 +68,13 @@ function NavbarComponent({exchange, setExchange,
                     value={expiry}
                     setValue={setExpiry}
                     allValues={getExpiryDates()}
+                    width={"120px"}
                 />
                 <AutoSuggestComponent
                     value={symbol}
                     setValue={setSymbol}
                     allValues={getSymbols()}
+                    width={"220px"}
                 />
                 <input
                     className="form-control"

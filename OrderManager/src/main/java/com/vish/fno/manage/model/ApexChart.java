@@ -10,6 +10,10 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class ApexChart {
+    private String date;
+    private String symbol;
+    private String instrument;
+    private int dataPoints;
     private List<ApexChartSeries> series;
     private List<ApexChartSeries> seriesBar;
 }

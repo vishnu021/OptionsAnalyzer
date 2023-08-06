@@ -18,19 +18,6 @@ public class HistoricalDataService {
         this.kiteSdk = KiteService.getKiteSdk();
     }
 
-    public HistoricalData getLastDayHistoricalData(String date, String token) {
-        Date lastTradingDay = TimeUtils.getLastTradingDay(TimeUtils.getDateObject(date));
-        Date fromDate = TimeUtils.appendOpeningTimeToDate(lastTradingDay);
-        Date toDate = TimeUtils.appendClosingTimeToDate(lastTradingDay);
-        return getHistoricalData(fromDate, toDate, token, "60minute", false);
-    }
-    public HistoricalData getLastDayHistoricalData(String date, String token, String interval) {
-        Date lastTradingDay = TimeUtils.getLastTradingDay(TimeUtils.getDateObject(date));
-        Date fromDate = TimeUtils.appendOpeningTimeToDate(lastTradingDay);
-        Date toDate = TimeUtils.appendClosingTimeToDate(lastTradingDay);
-        return getHistoricalData(fromDate, toDate, token, interval, false);
-    }
-
     public HistoricalData getEntireDayHistoricalData(String date, String token, String interval) {
         Date lastTradingDay = TimeUtils.getDateObject(date);
         Date fromDate = TimeUtils.appendOpeningTimeToDate(lastTradingDay);

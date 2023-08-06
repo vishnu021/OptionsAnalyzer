@@ -1,3 +1,5 @@
+import {candleStickPx} from "./windowHeightService";
+
 export const getCandleStickOptions = (series) => {
 
     const getXAxisOptions = () => {
@@ -39,7 +41,7 @@ export const getCandleStickOptions = (series) => {
     return  {
         chart: {
             type: 'candlestick',
-            height: 350,
+            height: candleStickPx(window.innerHeight),
             id: 'candles',
             toolbar: {
                 autoSelected: 'pan',

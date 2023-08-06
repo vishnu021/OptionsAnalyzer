@@ -1,6 +1,11 @@
 package com.vish.fno.reader.util;
 
-public class Utils {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class Utils {
+
     public static String getStringRoundedPrice(double price) {
         boolean signed = price < 0;
         price = Math.abs(price);

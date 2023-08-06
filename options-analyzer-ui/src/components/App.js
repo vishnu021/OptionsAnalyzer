@@ -7,7 +7,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles/App.css';
 
-const allInstrumentUrl = "https://127.0.0.1:8080/api/v1/allInstruments/";
+const allInstrumentUrl = "https://127.0.0.1:8080/api/v1/allInstruments";
 
 export const InstrumentsContext = createContext(null);
 

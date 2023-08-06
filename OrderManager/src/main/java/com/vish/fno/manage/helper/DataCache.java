@@ -68,7 +68,10 @@ public class DataCache {
 
     public Long getInstrument(String script) {
         getInstruments();
-        return this.symbolMap.get(script);
+        if(script == null)
+            return null;
+
+        return this.symbolMap.get(script.toUpperCase());
     }
 
     public String getSymbol(String instrument) {
@@ -91,17 +94,15 @@ public class DataCache {
         List<Map<String, String>> allInstrumentData = new ArrayList<>();
         getInstruments().stream()
                 .sorted(Comparator.comparing(Instrument::getName))
-                .forEach( i -> {
-                    allInstrumentData.add(
-                            Map.of(
-                                    "exchange", i.getExchange(),
-                                    "symbol", i.getTradingsymbol(),
-                                    "expiry", TimeUtils.getStringDate(i.getExpiry())));
-                });
+                .forEach( i -> allInstrumentData.add(
+                        Map.of(
+                                "exchange", i.getExchange(),
+                                "symbol", i.getTradingsymbol(),
+                                "expiry", TimeUtils.getStringDate(i.getExpiry()))));
         return allInstrumentData;
     }
 
-    public Map<String, String> getFilteredSymbols(String filter) {
+    public Map<String, String> getFilteredSymbols() {
         return getInstruments().stream()
                 .sorted(Comparator.comparing(Instrument::getName))
                 .collect(Collectors.toMap(Instrument::getTradingsymbol, Instrument::getName, (k1, k2) ->  k1, LinkedHashMap::new ));
@@ -110,7 +111,7 @@ public class DataCache {
 
     public String getInstrumentForSymbol(String symbol) {
         Long instrument = getInstrument(symbol);
-        if(instrument==null) {
+        if(instrument == null) {
             log.warn("Invalid symbol : {}, not available in cache", symbol);
             return null;
         }

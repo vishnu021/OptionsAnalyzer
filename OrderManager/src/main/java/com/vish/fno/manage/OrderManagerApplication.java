@@ -1,8 +1,21 @@
 package com.vish.fno.manage;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@OpenAPIDefinition(
+        info = @Info(
+                title = "Options Analyzer",
+                description = "Project to analyze the technicals of stock options available in National Stock Exchange - India",
+                contact = @Contact(
+                        name = "Vishnu Shankar",
+                        email = "vish045@gmail.com"
+                )
+        )
+)
 @SpringBootApplication
 public class OrderManagerApplication {
 

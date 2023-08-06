@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -86,10 +85,6 @@ public class KiteService {
             return false;
         }
         return true;
-    }
-
-    public HistoricalData getHistoricalData(Date from, Date to, String token, String interval, boolean continuous, boolean oi) throws IOException, KiteException {
-        return kiteSdk.getHistoricalData(from, to, token, interval, continuous, oi);
     }
 
     private OrderParams createOrderWithParameters(String symbol, double price, int orderSize,

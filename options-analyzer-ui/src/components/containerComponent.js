@@ -5,6 +5,7 @@ import {toast, ToastContainer} from "react-toastify";
 import NavbarComponent from "./navbarComponent";
 import {getBarOptions} from "../services/barOptions";
 import ChartComponent from "./chartComponent";
+import ChartDetailsComponent from "./chartDetailsComponent";
 
 function ContainerComponent(props) {
 
@@ -17,6 +18,7 @@ function ContainerComponent(props) {
     const [chartOptions, setChartOptions] = useState({});
     const [chartSeries, setChartSeries] = useState([]);
     const [barSeries, setBarSeries] = useState([]);
+    const [chartData, setChartData] = useState({});
 
 
     const onFormSubmit = async (event) => {
@@ -26,11 +28,13 @@ function ContainerComponent(props) {
 
     const updateGraph = async () => {
         try {
-            const {series, seriesBar} = await getApexSeries(date, symbol);
-            setChartSeries(series);
-            setChartOptions(getCandleStickOptions(series));
+            const chartData = await getApexSeries(date, symbol);
+            setChartData(chartData);
+            // const {series, seriesBar} = chartData;
+            setChartSeries(chartData.series);
+            setChartOptions(getCandleStickOptions(chartData.series));
             setBarOptions(getBarOptions());
-            setBarSeries(seriesBar);
+            setBarSeries(chartData.seriesBar);
         } catch (e) {
             console.error("Failed with error : ", e.message);
             toast.error(`Failed : ${e.message}`);
@@ -57,6 +61,9 @@ function ContainerComponent(props) {
                 date={date}
                 setDate={setDate}
                 onFormSubmit={onFormSubmit}
+            />
+            <ChartDetailsComponent
+                chartData = {chartData}
             />
             <ChartComponent
                 series={chartSeries}

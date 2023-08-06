@@ -17,22 +17,21 @@ import java.util.Set;
 public class KiteController {
     private final DataCache dataCache;
 
-    @GetMapping("/exchangeSymbols/{exchange}")
+    @GetMapping("/exchangeSymbols")
     @ResponseStatus(HttpStatus.OK)
-    public Map<String, String> exchangeSymbol(@PathVariable String exchange) {
-        log.info("Returning symbols for {} exchange", exchange);
-        return dataCache.getFilteredSymbols(exchange);
+    public Map<String, String> exchangeSymbol() {
+        return dataCache.getFilteredSymbols();
     }
+
     @GetMapping("/allInstruments")
     @ResponseStatus(HttpStatus.OK)
-    public List<Map<String, String>> allfilteredInstruments() {
+    public List<Map<String, String>> allFilteredInstruments() {
         return dataCache.getAllInstruments();
     }
 
     @GetMapping("/expiryDates")
     @ResponseStatus(HttpStatus.OK)
-    public Set<String> expiryDates(@PathVariable String exchange) {
-        log.info("Returning symbols for {} exchange", exchange);
+    public Set<String> expiryDates() {
         return dataCache.getExpiryDates();
     }
 }
