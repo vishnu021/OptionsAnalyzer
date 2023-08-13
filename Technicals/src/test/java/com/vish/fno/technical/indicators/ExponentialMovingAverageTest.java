@@ -16,6 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 class ExponentialMovingAverageTest {
     private static final int DURATION = 14;
+
+    private static final String resourcePath = ".//src//test//resources//RELIANCE_2023_03_17//";
+    private static final String currentDayFile = "RELIANCE_2023-03-17.json";
+    private static final String prevDayFile = "RELIANCE_2023-03-16.json";
+
     private ExponentialMovingAverage underTest;
 
     @BeforeEach
@@ -27,9 +32,9 @@ class ExponentialMovingAverageTest {
     @Test
     public void testCalculateEMAWithLastEma() {
         //Given
-        List<Candle> candles = CandleUtils.getCandleData();
-        List<Candle> prevDayCandles = CandleUtils.getPrevDayCandleData();
-        List<Double> expectedEMA14 = getEmaData("ema14withPrevEma.txt");
+        List<Candle> candles = CandleUtils.getCandleData(resourcePath + currentDayFile);
+        List<Candle> prevDayCandles = CandleUtils.getPrevDayCandleData(resourcePath + prevDayFile);
+        List<Double> expectedEMA14 = getEmaData(resourcePath + "ema14withPrevEma.txt");
         // When
         List<Double> actualEma = underTest.calculate(candles, prevDayCandles);
         // Then
@@ -41,8 +46,8 @@ class ExponentialMovingAverageTest {
     @Test
     public void testCalculateEMA() {
         //Given
-        List<Candle> candles = CandleUtils.getCandleData();
-        List<Double> expectedEMA14 = getEmaData("ema14.txt");
+        List<Candle> candles = CandleUtils.getCandleData(resourcePath + currentDayFile);
+        List<Double> expectedEMA14 = getEmaData(resourcePath + "ema14.txt");
         // When
         List<Double> ema14 = underTest.calculate(candles);
         // Then

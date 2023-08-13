@@ -16,6 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Slf4j
 class SmoothedMovingAverageTest {
     private static final int DURATION = 14;
+
+    private static final String resourcePath = ".//src//test//resources//RELIANCE_2023_03_17//";
+    private static final String currentDayFile = "RELIANCE_2023-03-17.json";
+    private static final String prevDayFile = "RELIANCE_2023-03-16.json";
+
     private SmoothedMovingAverage underTest;
 
     @BeforeEach
@@ -27,8 +32,8 @@ class SmoothedMovingAverageTest {
     @Test
     public void testCalculateSMMA14() {
         //Given
-        List<Candle> candles = CandleUtils.getCandleData();
-        List<Double> expectedEMA14 = getEmaData("smma14.txt");
+        List<Candle> candles = CandleUtils.getCandleData(resourcePath + currentDayFile);
+        List<Double> expectedEMA14 = getEmaData(resourcePath + "smma14.txt");
         // When
         List<Double> ema14 = underTest.calculate(candles);
         // Then
@@ -41,9 +46,9 @@ class SmoothedMovingAverageTest {
     @Test
     public void testCalculateSMMA14withPrevData() {
         //Given
-        List<Candle> candles = CandleUtils.getCandleData();
-        List<Candle> prevDayCandles = CandleUtils.getPrevDayCandleData();
-        List<Double> expectedEMA14 = getEmaData("smma14withPrevSMMA.txt");
+        List<Candle> candles = CandleUtils.getCandleData(resourcePath + currentDayFile);
+        List<Candle> prevDayCandles = CandleUtils.getPrevDayCandleData(resourcePath + prevDayFile);
+        List<Double> expectedEMA14 = getEmaData(resourcePath + "smma14withPrevSMMA.txt");
         // When
         List<Double> ema14 = underTest.calculate(candles, prevDayCandles);
         // Then

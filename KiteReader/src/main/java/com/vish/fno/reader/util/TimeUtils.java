@@ -23,7 +23,7 @@ public final class TimeUtils {
     static {
         int hour = 9;
         int minute = 15;
-        for (int i = 0; i <= 375; i++) {
+        for (int i = 0; i < 375; i++) {
             timeArray.add(toTimeValue(hour) + ":" + toTimeValue(minute));
             minute++;
             if (minute == 60) {

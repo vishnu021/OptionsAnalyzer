@@ -15,6 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Slf4j
 class RelativeStrengthIndexTest {
     private static final int DURATION = 14;
+    private static final String resourcePath = ".//src//test//resources//RELIANCE_2023_03_17//";
+    private static final String currentDayFile = "RELIANCE_2023-03-17.json";
+    private static final String prevDayFile = "RELIANCE_2023-03-16.json";
+
     private RelativeStrengthIndex underTest;
 
     @BeforeEach
@@ -26,8 +30,8 @@ class RelativeStrengthIndexTest {
     @Test
     public void testCalculateRSI() {
         //Given
-        List<Candle> candles = CandleUtils.getCandleData();
-        List<Double> expectedRSI14 = getEmaData("rsi14.txt");
+        List<Candle> candles = CandleUtils.getCandleData(resourcePath + currentDayFile);
+        List<Double> expectedRSI14 = getEmaData(resourcePath + "rsi14.txt");
         // When
         List<Double> rsi = underTest.calculate(candles);
         // Then
@@ -37,11 +41,11 @@ class RelativeStrengthIndexTest {
     }
 
     @Test
-    public void testCalculateRSIfromPrevData() {
+    public void testCalculateRSIFromPrevData() {
         //Given
-        List<Candle> candles = CandleUtils.getCandleData();
-        List<Candle> prevDayCandles = CandleUtils.getPrevDayCandleData();
-        List<Double> expectedRSI14 = getEmaData("rsi14withPrevRSI.txt");
+        List<Candle> candles = CandleUtils.getCandleData(resourcePath + currentDayFile);
+        List<Candle> prevDayCandles = CandleUtils.getPrevDayCandleData(resourcePath + prevDayFile);
+        List<Double> expectedRSI14 = getEmaData(resourcePath + "rsi14withPrevRSI.txt");
         // When
         List<Double> rsi = underTest.calculate(candles, prevDayCandles);
         // Then

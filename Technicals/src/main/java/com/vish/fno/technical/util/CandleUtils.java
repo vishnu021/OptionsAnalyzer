@@ -19,9 +19,6 @@ import java.util.stream.Stream;
 public class CandleUtils {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final String resourcePath = ".//src//test//resources//RELIANCE_2023_03_17//";
-    private static final String currentDayFile = "RELIANCE_2023-03-17.json";
-    private static final String prevDayFile = "RELIANCE_2023-03-16.json";
     public static final ArrayList<String> timeArray = new ArrayList<>();
 
     static {
@@ -37,24 +34,57 @@ public class CandleUtils {
         }
     }
 
+    public static boolean isBullish(Candle candle) {
+        return candle.getClose() > candle.getOpen();
+    }
+
+    public static boolean isBearish(Candle candle) {
+        return candle.getClose() < candle.getOpen();
+    }
+
+    public static double getBodyLength(Candle candle) {
+        if(isBullish(candle)) {
+            return candle.getClose() - candle.getOpen();
+        }
+        return candle.getOpen() - candle.getClose();
+    }
+
+    public static double getTotalLength(Candle candle) {
+        return candle.getHigh() - candle.getLow();
+    }
+
+    public static double getUpperWick(Candle candle) {
+        if(isBullish(candle)) {
+            return candle.getHigh() - candle.getClose();
+        }
+        return candle.getHigh() - candle.getOpen();
+    }
+
+    public static double getLowerWick(Candle candle) {
+        if(isBullish(candle)) {
+            return candle.getOpen() - candle.getLow();
+        }
+        return candle.getClose() - candle.getLow();
+    }
+
     private static String toTimeValue(int timeVal) {
         if (timeVal >= 0 && timeVal <= 9)
             return "0" + timeVal;
         return String.valueOf(timeVal);
     }
 
-    public static List<Candle> getCandleData() {
+    public static List<Candle> getCandleData(String filePath) {
         try {
-            String candles = readFile(currentDayFile);
+            String candles = readFile(filePath);
             return mapper.readValue(candles,  new TypeReference<List<Candle>>(){});
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static List<Candle> getPrevDayCandleData() {
+    public static List<Candle> getPrevDayCandleData(String filePath) {
         try {
-            String candles = readFile(prevDayFile);
+            String candles = readFile(filePath);
             return mapper.readValue(candles,  new TypeReference<List<Candle>>(){});
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -66,6 +96,10 @@ public class CandleUtils {
     }
 
     public static List<Double> getEmaData(String fileName) {
+        return getIndicatorData(fileName);
+    }
+
+    public static List<Double> getBBData(String fileName) {
         return getIndicatorData(fileName);
     }
 
@@ -82,7 +116,7 @@ public class CandleUtils {
     }
 
     public static String readFile(String filename) throws IOException {
-        Path path = Paths.get(resourcePath + filename);
+        Path path = Paths.get(filename);
         log.info("path : {}", path.toAbsolutePath());
         Stream<String> lines = Files.lines(path);
         String content = lines.collect(Collectors.joining("\n"));
