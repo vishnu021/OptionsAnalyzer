@@ -9,6 +9,8 @@ spring:
         port: 27017
         database: fno
 
+
+
 springdoc:
     swagger-ui:
         path: /swagger
@@ -17,9 +19,9 @@ server:
     port: 8080
     ssl:
         enabled: true
-        key-store-password:
-        key-store:
-        key-store-type:
+        key-store-password: Vishnu$021
+        key-store: selfsigned_localhost_sslserver.p12
+        key-store-type: PKCS12
 
 logging:
     level:
@@ -58,12 +60,29 @@ management:
 
 kite:
     baseuri: https://kite.trade
-    apiKey:
+    apiKey: 
     userId:
     apiSecret:
-    liveData:
+    liveData: true
     authenticationUrl: ${kite.baseuri}/connect/login?api_key=${kite.apiKey}&v=3
     serviceInCloud: false
+    holidays2023:
+        - "2023-01-26"
+        - "2023-03-07"
+        - "2023-03-30"
+        - "2023-04-04"
+        - "2023-04-07"
+        - "2023-04-14"
+        - "2023-04-22"
+        - "2023-05-01"
+        - "2023-06-29"
+        - "2023-08-15"
+        - "2023-09-19"
+        - "2023-10-02"
+        - "2023-10-24"
+        - "2023-11-14"
+        - "2023-11-27"
+        - "2023-12-25"
 
 order:
     symbolsPath: ind_nifty100list.csv
@@ -71,6 +90,7 @@ order:
     maximumOrderCount: 1
     availableCash: 15000
     placeOrders: false
+    connectToWebSocket: false
     putOrders: true
     callOrders: true
     tradeInLastHour: false

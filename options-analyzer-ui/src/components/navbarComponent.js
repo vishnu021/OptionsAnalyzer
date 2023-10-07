@@ -3,23 +3,45 @@ import AutoSuggestComponent from "./autoSuggestComponent";
 import {InstrumentsContext} from "./App";
 import {navbarPx} from "../services/windowHeightService";
 
-const intervals = ["3minute", "5minute", "10minute", "15minute", "30minute", "60minute", "day"];
-
 function NavbarComponent({exchange, setExchange,
                              expiry, setExpiry,
                              symbol, setSymbol,
                              date, setDate,
+                             interval, setInterval,
                              onFormSubmit}) {
 
     const {instruments} = useContext(InstrumentsContext);
 
-
     const getIntervalOptions = () => {
-        return intervals.map(i => <option className="form-control" key={i} value={i}>{i}</option>)
-    }
+        // Create a mapping from the original value to the new value
+        const intervalValueMap = {
+            "minute": "1",
+            "3minute": "3",
+            "5minute": "5",
+            "10minute": "10",
+            "15minute": "15",
+            "30minute": "30",
+            "60minute": "60",
+            "day": "375"
+        };
+
+        // Map through the keys in the intervalValueMap and create the option elements
+        return Object.keys(intervalValueMap).map(i => (
+            <option
+                className="form-control"
+                key={i}
+                value={intervalValueMap[i]} >
+                {i}
+            </option>
+        ));
+    };
 
     const handleDateChange = ({currentTarget:input}) => {
         setDate(input.value);
+    };
+
+    const handleIntervalChange = ({currentTarget:input}) => {
+        setInterval(input.value);
     };
 
     const handleExchangeChange = ({currentTarget:input}) => {
@@ -88,8 +110,11 @@ function NavbarComponent({exchange, setExchange,
 
                 <select
                     className="form-select form-control"
-                    placeholder="Interval">
-                    <option className="form-control" value="minute" defaultValue="minute">minute</option>
+                    placeholder="Interval"
+                    onChange={handleIntervalChange}
+                    value={interval}
+                    // defaultValue={interval}
+                >
                     {getIntervalOptions()}
                 </select>
 

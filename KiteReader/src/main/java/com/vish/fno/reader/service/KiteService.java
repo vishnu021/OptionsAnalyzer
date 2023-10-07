@@ -12,19 +12,25 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.List;
 
+import static com.vish.fno.reader.util.OrderUtils.createOrderWithParameters;
+
 @Slf4j
 public class KiteService {
     @Getter(AccessLevel.PACKAGE)
     private final KiteConnect kiteSdk;
     private final String apiSecret;
+    private final boolean placeOrders;
     @Getter
     private boolean initialised = false;
-    private final boolean placeOrders;
+    private boolean connectToWebSocket = false;
+    @Getter
+    private KiteWebSocket kiteWebSocket;
 
-    public KiteService(String apiSecret, String apiKey, String userId, boolean placeOrders) {
+    public KiteService(String apiSecret, String apiKey, String userId, boolean placeOrders, boolean connectToWebSocket) {
         this.kiteSdk = kiteSdk(apiKey, userId);
         this.apiSecret = apiSecret;
         this.placeOrders = placeOrders;
+        this.connectToWebSocket = connectToWebSocket;
     }
 
     private KiteConnect kiteSdk(String apiKey, String userId) {
@@ -39,14 +45,20 @@ public class KiteService {
             User user = kiteSdk.generateSession(requestToken, apiSecret);
             kiteSdk.setAccessToken(user.accessToken);
             kiteSdk.setPublicToken(user.publicToken);
-
+            addSessionExpiryHook();
             Margin margins = kiteSdk.getMargins("equity");
             log.info("available_cash={}", margins.available.cash);
             log.info("utilised_debits={}", margins.utilised.debits);
             initialised = true;
+            if(connectToWebSocket) {
+                this.kiteWebSocket = new KiteWebSocket(kiteSdk);
+            }
         } catch (Exception | KiteException e) {
             log.error("Error while Initialising KiteService", e);
         }
+    }
+    private void addSessionExpiryHook() {
+        kiteSdk.setSessionExpiryHook(() -> log.info("kite session expired"));
     }
 
     public List<Instrument> getAllInstruments() {
@@ -81,25 +93,9 @@ public class KiteService {
             Order order = kiteSdk.placeOrder(orderParams, Constants.VARIETY_REGULAR);
             log.debug("order id : {}", order.orderId);
         } catch (JSONException | IOException | KiteException e) {
-            log.error("Error occurred while placing order",e);
+            log.error("Error occurred while placing order", e);
             return false;
         }
         return true;
-    }
-
-    private OrderParams createOrderWithParameters(String symbol, double price, int orderSize,
-                                                        String transactionType, String tag) {
-        OrderParams orderParams = new OrderParams();
-        orderParams.quantity = orderSize;
-        orderParams.orderType = Constants.ORDER_TYPE_MARKET;
-        orderParams.tradingsymbol = symbol;
-        orderParams.product = Constants.PRODUCT_MIS;
-        orderParams.exchange = Constants.EXCHANGE_NFO;
-        orderParams.validity = Constants.VALIDITY_DAY;
-        orderParams.transactionType = transactionType;
-        orderParams.price = price;
-        orderParams.triggerPrice = 0.0;
-        orderParams.tag = tag;
-        return orderParams;
     }
 }

@@ -9,6 +9,7 @@ import com.vish.fno.model.Candle;
 import com.vish.fno.model.SymbolData;
 import com.vish.fno.reader.service.HistoricalDataService;
 import com.vish.fno.technical.indicators.ma.ExponentialMovingAverage;
+import com.vish.fno.technical.util.CandleUtils;
 import com.zerodhatech.models.HistoricalData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,13 +46,26 @@ public class CandlestickService {
                 .map(symbolData -> createChartData(date, symbol, symbolData));
     }
 
+    public Optional<ApexChart> getEntireDayHistoryApexChart(String date, String symbol, String interval) {
+
+        return getEntireDayHistoryData(date, symbol, MINUTE)
+                .map(c -> {
+                    List<Candle> data = CandleUtils.mergeCandle(c.getData(), Integer.parseInt(interval));
+                    return SymbolData.builder().record(c.getRecord()).data(data).build();
+                })
+                .filter(symbolData -> symbolData.getData() != null && !symbolData.getData().isEmpty())
+                .map(symbolData -> createChartData(date, symbol, symbolData));
+    }
+
     private ApexChart createChartData(String date, String symbol, SymbolData symbolData) {
         List<ApexChartSeries> seriesCharts = new ArrayList<>();
         seriesCharts.add(new ApexChartSeries(STOCK_PRICE, CANDLESTICK, symbolData));
 
         try{
-            List<Double> ema = new ExponentialMovingAverage().calculate(symbolData.getData());
-            seriesCharts.add(new ApexChartSeries(EMA14, LINE, ema, symbolData.getData()));
+            List<Double> ema9 = new ExponentialMovingAverage(9).calculate(symbolData.getData());
+            List<Double> ema15 = new ExponentialMovingAverage(15).calculate(symbolData.getData());
+            seriesCharts.add(new ApexChartSeries("EMA9", LINE, ema9, symbolData.getData()));
+            seriesCharts.add(new ApexChartSeries("EMA15", LINE, ema15, symbolData.getData()));
         } catch (Exception e) {
             log.warn("Unable to calculate EMA {}", e.getMessage());
         }

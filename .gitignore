@@ -66,3 +66,6 @@ options-analyzer-ui/.env.production.local
 options-analyzer-ui/npm-debug.log*
 options-analyzer-ui/yarn-debug.log*
 options-analyzer-ui/yarn-error.log*
+options-analyzer-ui/node/
+OrderManager/options-analyzer-ui/node/
+OrderManager/src/main/resources/static/

@@ -61,4 +61,18 @@ public class CandlestickController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
+
+    @GetMapping("/apexChart/{date}/{symbol}/{interval}")
+    @Operation(summary = "Returns the apex chart candle data for 1 minute interval")
+    public ResponseEntity<ApexChart> apexChartWithInterval(
+            @Parameter(description = DATE_DESCRIPTION, required = true)
+            @PathVariable String date,
+            @Parameter(description = SYMBOL_DESCRIPTION, required = true)
+            @PathVariable String symbol,
+            @Parameter(description = INTERVAL_DESCRIPTION, required = true)
+            @PathVariable String interval) {
+        return candlestickService.getEntireDayHistoryApexChart(date, symbol, interval)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+    }
 }

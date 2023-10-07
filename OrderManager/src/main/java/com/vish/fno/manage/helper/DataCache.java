@@ -30,6 +30,7 @@ public class DataCache {
     private final FileUtils fileUtils;
     private final KiteService kiteService;
     private List<Instrument> filteredInstruments;
+    private List<Instrument> allInstruments;
     private Map<String, Long> symbolMap;
     private Map<Long, String> instrumentMap;
 
@@ -39,6 +40,7 @@ public class DataCache {
             return filteredInstruments;
 
         List<Instrument> allInstruments = kiteService.getAllInstruments();
+        this.allInstruments = allInstruments;
         fileUtils.saveInstrumentCache(allInstruments);
 
         List<String> nifty100Symbols = getNifty100Stocks();

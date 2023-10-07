@@ -123,4 +123,35 @@ public class CandleUtils {
         lines.close();
         return content;
     }
+
+
+    private static Candle combine(List<Candle> candleList) {
+        if (candleList == null || candleList.size() == 0)
+            return null;
+
+        if (candleList.size() == 1) {
+            return candleList.get(0);
+        }
+
+        double open = candleList.get(0).getOpen();
+        double close = candleList.get(candleList.size() - 1).getClose();
+        double high = candleList.stream().mapToDouble(Candle::getHigh).max().getAsDouble();
+        double low = candleList.stream().mapToDouble(Candle::getLow).min().getAsDouble();
+        long volume = candleList.stream().mapToLong(Candle::getVolume).sum();
+
+        return new Candle(candleList.get(0).getTime(), open, high, low, close, volume, 0L);
+    }
+
+    public static List<Candle> mergeCandle(List<Candle> allCandles, int n) {
+        List<Candle> candles = new ArrayList<Candle>();
+
+        for (int i = 0; i < allCandles.size(); i += n) {
+            if (allCandles.size() < i + n){
+                break;
+            }
+            Candle mergedCandle = combine(allCandles.subList(i, i + n));
+            candles.add(mergedCandle);
+        }
+        return candles;
+    }
 }

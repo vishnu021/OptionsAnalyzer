@@ -13,6 +13,7 @@ function ContainerComponent(props) {
     const [expiry, setExpiry] = useState("");
     const [symbol, setSymbol] = useState("tatamotors");
     const [date, setDate] = useState("2023-05-26");
+    const [interval, setInterval] = useState("1");
 
     const [barOptions, setBarOptions] = useState({});
     const [chartOptions, setChartOptions] = useState({});
@@ -28,9 +29,8 @@ function ContainerComponent(props) {
 
     const updateGraph = async () => {
         try {
-            const chartData = await getApexSeries(date, symbol);
+            const chartData = await getApexSeries(date, symbol, interval);
             setChartData(chartData);
-            // const {series, seriesBar} = chartData;
             setChartSeries(chartData.series);
             setChartOptions(getCandleStickOptions(chartData.series));
             setBarOptions(getBarOptions());
@@ -60,6 +60,8 @@ function ContainerComponent(props) {
                 setSymbol={setSymbol}
                 date={date}
                 setDate={setDate}
+                interval={interval}
+                setInterval={setInterval}
                 onFormSubmit={onFormSubmit}
             />
             <ChartDetailsComponent
