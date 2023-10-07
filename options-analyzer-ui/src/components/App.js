@@ -7,8 +7,6 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles/App.css';
 
-const allInstrumentUrl = "https://127.0.0.1:8080/api/v1/allInstruments";
-
 export const InstrumentsContext = createContext(null);
 
 function App() {
@@ -16,7 +14,9 @@ function App() {
 
   useEffect(() => {
     const getAllInstruments = async () => {
-      const symbolData = await http.get(`${allInstrumentUrl}`);
+        const chartEndpoint = `${process.env.REACT_APP_ALL_INSTRUMENT_ENDPOINT}`
+        const symbolData = await http.get(`${chartEndpoint}`);
+
       if(symbolData) {
         const {data} = symbolData;
         setInstruments(data);
@@ -27,7 +27,6 @@ function App() {
 
     getAllInstruments();
   }, []);
-
 
 
   return (

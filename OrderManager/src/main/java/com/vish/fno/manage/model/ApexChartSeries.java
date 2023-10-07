@@ -3,6 +3,7 @@ package com.vish.fno.manage.model;
 import com.vish.fno.model.Candle;
 import com.vish.fno.model.SymbolData;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.ParseException;
@@ -37,6 +38,7 @@ public class ApexChartSeries {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper=false)
     private static class ChartData extends DataField {
         protected List<Double> y;
 
@@ -51,6 +53,7 @@ public class ApexChartSeries {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper=false)
     private static class LineData extends DataField {
         protected Double y;
         public LineData(Double values, Candle candle) {
