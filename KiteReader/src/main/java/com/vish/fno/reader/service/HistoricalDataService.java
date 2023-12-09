@@ -1,6 +1,6 @@
 package com.vish.fno.reader.service;
 
-import com.vish.fno.reader.util.TimeUtils;
+import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.kiteconnect.KiteConnect;
 import com.zerodhatech.kiteconnect.kitehttp.exceptions.KiteException;
 import com.zerodhatech.models.HistoricalData;
@@ -27,7 +27,7 @@ public class HistoricalDataService {
 
     public HistoricalData getHistoricalData(Date from, Date to, String token, String interval, boolean continuous) {
         try {
-            log.debug("Collecting data for {} from: {} to: {}", token, from, to);
+            log.debug("Collecting data for {} from: {}, to: {}, interval: {}", token, from, to, interval);
             return kiteSdk.getHistoricalData(from, to, token, interval, continuous, true);
         } catch (JSONException | IOException | KiteException e) {
             log.error("Error while requesting historical data (from: {}, to: {}, symbol: {})", from, to, token, e);

@@ -2,7 +2,7 @@ package com.vish.fno.manage.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.vish.fno.reader.util.TimeUtils;
+import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.Instrument;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

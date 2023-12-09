@@ -124,7 +124,6 @@ public class CandleUtils {
         return content;
     }
 
-
     private static Candle combine(List<Candle> candleList) {
         if (candleList == null || candleList.size() == 0)
             return null;
@@ -143,7 +142,7 @@ public class CandleUtils {
     }
 
     public static List<Candle> mergeCandle(List<Candle> allCandles, int n) {
-        List<Candle> candles = new ArrayList<Candle>();
+        List<Candle> candles = new ArrayList<>();
 
         for (int i = 0; i < allCandles.size(); i += n) {
             if (allCandles.size() < i + n){
@@ -153,5 +152,9 @@ public class CandleUtils {
             candles.add(mergedCandle);
         }
         return candles;
+    }
+
+    public static boolean contains(Candle candle, double value) {
+        return candle.getHigh() > value && candle.getLow() < value;
     }
 }

@@ -6,7 +6,7 @@ import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.manage.util.BrowserLauncher;
 import com.vish.fno.manage.util.ConsoleAuthenticator;
 import com.vish.fno.manage.util.FileUtils;
-import com.vish.fno.reader.util.TimeUtils;
+import com.vish.fno.util.TimeUtils;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

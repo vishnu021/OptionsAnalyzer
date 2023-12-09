@@ -9,9 +9,15 @@ axios.interceptors.response.use(null, error => {
     return Promise.reject(error);
 });
 
-axios.defaults.baseURL = process.env.NODE_ENV === "development"
-    ? "https://127.0.0.1:8080"
-    : `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
+function getBaseURL() {
+    if (process.env.NODE_ENV === "development") {
+        return "https://127.0.0.1:8080";
+    } else {
+        return `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
+    }
+}
+
+axios.defaults.baseURL = getBaseURL();
 
 function getServiceEndpoint(endpoint) {
     return `${axios.defaults.baseURL}${endpoint}`;

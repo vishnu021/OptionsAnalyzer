@@ -1,35 +1,48 @@
 package com.vish.fno.technical.chart;
 
 import com.vish.fno.model.Candle;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.vish.fno.technical.util.TimeFrameUtils.mergeCandle;
 
-public class HeikinAshi {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
+public final class HeikinAshi {
 
-    public List<Candle> getCandles(List<Candle> allCandles, int timeFrame) {
-        List<Candle> haCandles = new ArrayList<>();
+    public static List<Candle> getCandles(List<Candle> allCandles) {
+        return getCandles(allCandles, 1);
+    }
 
+    public static List<Candle> getCandles(List<Candle> allCandles, int timeFrame) {
         List<Candle> candles = mergeCandle(allCandles, timeFrame);
 
-        if (allCandles.size() < 1)
-            return haCandles;
+        List<Candle> heikinAshiCandles = new ArrayList<>();
 
-        Candle lastCandle = candles.get(0);
-        haCandles.add(lastCandle);
-        for (int i = 1; i < candles.size(); i++) {
-            Candle candle = candles.get(i);
-            double close = 0.25 * (candle.getOpen() + candle.getHigh() + candle.getLow() + candle.getClose());
-            double open = 0.5 * (lastCandle.getOpen() + lastCandle.getClose());
-            double high = Math.max(Math.max(candle.getHigh(), open), close);
-            double low = Math.min(Math.min(candle.getLow(), open), close);
-            Candle haCandle = new Candle("", open, close, high, low, candle.getVolume(), candle.getOi());
-            haCandles.add(haCandle);
-            lastCandle = haCandle;
+        for (int i = 0; i < candles.size(); i++) {
+            Candle currentCandle = candles.get(i);
+
+            double haOpen, haHigh, haLow, haClose;
+
+            if (i == 0) {
+                haOpen = currentCandle.getOpen();
+                haClose = currentCandle.getClose();
+            } else {
+                Candle previousHA = heikinAshiCandles.get(i - 1);
+                haOpen = (previousHA.getOpen() + previousHA.getClose()) / 2;
+                haClose = (currentCandle.getOpen() + currentCandle.getHigh() + currentCandle.getLow() + currentCandle.getClose()) / 4;
+            }
+
+            haHigh = Math.max(Math.max(currentCandle.getHigh(), haOpen), haClose);
+            haLow = Math.min(Math.min(currentCandle.getLow(), haOpen), haClose);
+
+            heikinAshiCandles.add(new Candle(currentCandle.getTime(), haOpen, haHigh, haLow, haClose, currentCandle.getVolume(), currentCandle.getOi()));
         }
 
-        return haCandles;
+        return heikinAshiCandles;
     }
 }

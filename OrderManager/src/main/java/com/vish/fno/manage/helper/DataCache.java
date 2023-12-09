@@ -2,7 +2,7 @@ package com.vish.fno.manage.helper;
 
 import com.vish.fno.manage.util.FileUtils;
 import com.vish.fno.reader.service.KiteService;
-import com.vish.fno.reader.util.TimeUtils;
+import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.Instrument;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

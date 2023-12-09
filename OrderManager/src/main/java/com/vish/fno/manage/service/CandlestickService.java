@@ -1,5 +1,7 @@
 package com.vish.fno.manage.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vish.fno.manage.dao.CandlestickRepository;
 import com.vish.fno.manage.helper.DataCache;
 import com.vish.fno.manage.model.ApexChart;
@@ -10,6 +12,7 @@ import com.vish.fno.model.SymbolData;
 import com.vish.fno.reader.service.HistoricalDataService;
 import com.vish.fno.technical.indicators.ma.ExponentialMovingAverage;
 import com.vish.fno.technical.util.CandleUtils;
+import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.HistoricalData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +38,33 @@ public class CandlestickService {
 
     public Optional<SymbolData> getEntireDayHistoryData(String date, String symbol) {
         return getEntireDayHistoryData(date, symbol, "minute");
+    }
+
+    public Optional<List<Candle>> getHistoryData(String from, String to, String symbol, String interval) {
+        String instrument = cache.getInstrumentForSymbol(symbol);
+
+        if(instrument==null) {
+            log.warn("No instrument available for symbol {}", symbol);
+            return Optional.empty();
+        }
+
+        Date fromDate = TimeUtils.appendOpeningTimeToDate(TimeUtils.getDateObject(from));
+        Date toDate = TimeUtils.appendClosingTimeToDate(TimeUtils.getDateObject(to));
+        HistoricalData data =  historicalDataService.getHistoricalData(fromDate, toDate, instrument, interval, false);
+        try {
+            log.info("hist data : {}", new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(data));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<Candle> value = data.dataArrayList.stream()
+                .map(h -> new Candle(h.timeStamp, h.open, h.high, h.low, h.close, h.volume, h.oi))
+                .toList();
+
+        log.info("fromDate: {}, toDate: {}", fromDate, toDate);
+        log.info("hist data value: {}", value);
+
+        return Optional.of(value);
     }
 
     public Optional<SymbolData> getEntireDayHistoryData(String date, String symbol, String interval) {

@@ -7,7 +7,7 @@ import com.vish.fno.manage.service.CandlestickService;
 import com.vish.fno.model.OptionMetaData;
 import com.vish.fno.model.OptionSymbolData;
 import com.vish.fno.model.SymbolData;
-import com.vish.fno.reader.util.TimeUtils;
+import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.Instrument;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

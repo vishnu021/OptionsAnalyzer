@@ -28,7 +28,8 @@ public class TimeFrameUtils {
         double low = candleList.stream().mapToDouble(Candle::getLow).min().orElse(0d);
         long volume = (long) candleList.stream().mapToDouble(Candle::getVolume).sum();
         long oi = (long) candleList.stream().mapToDouble(Candle::getOi).sum();
+        String time = candleList.get(0).getTime();
 
-        return new Candle("", open, close, high, low, volume, oi);
+        return new Candle(time, open, high, low, close, volume, oi);
     }
 }

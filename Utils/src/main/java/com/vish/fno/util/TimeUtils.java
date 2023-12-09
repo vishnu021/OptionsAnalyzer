@@ -1,4 +1,4 @@
-package com.vish.fno.reader.util;
+package com.vish.fno.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
