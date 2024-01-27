@@ -3,6 +3,8 @@ package com.vish.fno.technical.util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vish.fno.model.Candle;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -16,10 +18,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public class CandleUtils {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
+public final class CandleUtils {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    public static final ArrayList<String> timeArray = new ArrayList<>();
+    public static final List<String> timeArray = new ArrayList<>();
 
     static {
         int hour = 9;
@@ -68,8 +72,9 @@ public class CandleUtils {
     }
 
     private static String toTimeValue(int timeVal) {
-        if (timeVal >= 0 && timeVal <= 9)
+        if (timeVal >= 0 && timeVal <= 9) {
             return "0" + timeVal;
+        }
         return String.valueOf(timeVal);
     }
 
@@ -117,41 +122,10 @@ public class CandleUtils {
 
     public static String readFile(String filename) throws IOException {
         Path path = Paths.get(filename);
-        log.info("path : {}", path.toAbsolutePath());
-        Stream<String> lines = Files.lines(path);
-        String content = lines.collect(Collectors.joining("\n"));
-        lines.close();
-        return content;
-    }
-
-    private static Candle combine(List<Candle> candleList) {
-        if (candleList == null || candleList.size() == 0)
-            return null;
-
-        if (candleList.size() == 1) {
-            return candleList.get(0);
+        log.info("reading file from path : {}", path.toAbsolutePath());
+        try (Stream<String> lines = Files.lines(path)) {
+            return lines.collect(Collectors.joining("\n"));
         }
-
-        double open = candleList.get(0).getOpen();
-        double close = candleList.get(candleList.size() - 1).getClose();
-        double high = candleList.stream().mapToDouble(Candle::getHigh).max().getAsDouble();
-        double low = candleList.stream().mapToDouble(Candle::getLow).min().getAsDouble();
-        long volume = candleList.stream().mapToLong(Candle::getVolume).sum();
-
-        return new Candle(candleList.get(0).getTime(), open, high, low, close, volume, 0L);
-    }
-
-    public static List<Candle> mergeCandle(List<Candle> allCandles, int n) {
-        List<Candle> candles = new ArrayList<>();
-
-        for (int i = 0; i < allCandles.size(); i += n) {
-            if (allCandles.size() < i + n){
-                break;
-            }
-            Candle mergedCandle = combine(allCandles.subList(i, i + n));
-            candles.add(mergedCandle);
-        }
-        return candles;
     }
 
     public static boolean contains(Candle candle, double value) {

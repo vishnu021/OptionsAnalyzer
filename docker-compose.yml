@@ -1,0 +1,17 @@
+version: '3.2'
+
+services:
+  order-manager:
+    image: order-manager:latest
+    hostname: order-manager
+    container_name: order-manager
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2000M
+    ports:
+      - "8080:8080"
+    environment:
+      - kite.serviceInCloud=false
+      - KITE_SERVICEINCLOUD=false

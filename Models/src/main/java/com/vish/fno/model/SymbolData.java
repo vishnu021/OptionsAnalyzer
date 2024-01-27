@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Data
@@ -18,7 +19,7 @@ import java.util.List;
 @Document(collection = "minute_history_data")
 public class SymbolData {
     private static final String FULL_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
-    private static final SimpleDateFormat formatterMilliSecond = new SimpleDateFormat(FULL_DATE_FORMAT);
+    private static final SimpleDateFormat formatterMilliSecond = new SimpleDateFormat(FULL_DATE_FORMAT, Locale.ENGLISH);
 
     @Id
     private CandleMetaData record;

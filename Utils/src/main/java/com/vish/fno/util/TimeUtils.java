@@ -13,12 +13,16 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TimeUtils {
-    public static final ArrayList<String> timeArray = new ArrayList<>();
+    public static final List<String> timeArray = new ArrayList<>();
+    public static final String DATE_FORMAT = "yyyy-MM-dd";
+    public static final String DATE_TIME_MS_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+    public static final String DATE_TIME_SEC_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     static {
         int hour = 9;
@@ -53,13 +57,14 @@ public final class TimeUtils {
         return date;
     }
 
-    public synchronized static int getIndexOfTime(String time) {
-        return timeArray.indexOf(time);
+    public  static int getIndexOfTime(String time) {
+            return timeArray.indexOf(time);
     }
 
     private static String toTimeValue(int timeVal) {
-        if (timeVal >= 0 && timeVal <= 9)
-            return "0" + timeVal;
+        if (timeVal >= 0 && timeVal <= 9) {
+            return ("0" + timeVal);
+        }
         return String.valueOf(timeVal);
     }
 
@@ -68,13 +73,9 @@ public final class TimeUtils {
     }
 
     public static Date asDate(String localDateString, int minutesAdjustment) {
-        try {
-            LocalDateTime localDate = LocalDateTime.parse(localDateString.replaceAll("\\+\\d+$", ""));
-            localDate = localDate.minusMinutes(minutesAdjustment);
-            return Date.from(localDate.atZone(ZoneId.systemDefault()).toInstant());
-        } catch (Exception e) {
-            return null;
-        }
+        LocalDateTime localDate = LocalDateTime.parse(localDateString.replaceAll("\\+\\d+$", ""));
+        localDate = localDate.minusMinutes(minutesAdjustment);
+        return Date.from(localDate.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public static Date asDate(LocalDateTime localDateTime) {
@@ -90,19 +91,19 @@ public final class TimeUtils {
     }
 
     public static Date appendOpeningTimeToDate(Date day) {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_SEC_FORMAT, Locale.ENGLISH);
+        SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
         try {
             return formatter.parse(dateFormatter.format(day) + " 09:15:00");
         } catch (ParseException e) {
-            log.error("",e);
+            log.error("Failed to parse date",e);
         }
         return day;
     }
 
     public static Date appendClosingTimeToDate(Date day) {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_SEC_FORMAT, Locale.ENGLISH);
+        SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
         try {
             return formatter.parse(dateFormatter.format(day) + " 15:30:00");
         } catch (ParseException e) {
@@ -112,8 +113,8 @@ public final class TimeUtils {
     }
 
     public static Date postClosingTime(Date day) {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_SEC_FORMAT, Locale.ENGLISH);
+        SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
         try {
             return formatter.parse(dateFormatter.format(day) + " 15:45:00");
         } catch (ParseException e) {
@@ -151,32 +152,35 @@ public final class TimeUtils {
     }
 
     public static String getTime() {
-        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm");
+        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
         return timeFormatter.format(currentTime());
     }
 
     public static String getTime(Date timeStamp) {
-        if (timeStamp == null)
+        if (timeStamp == null) {
             return null;
-        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm");
+        }
+        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
         return timeFormatter.format(timeStamp);
     }
 
     public static String getTimeWithSeconds(Date timeStamp) {
-        if (timeStamp == null)
+        if (timeStamp == null) {
             return null;
-        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
+        }
+        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
         return timeFormatter.format(timeStamp);
     }
 
     public static int getIndexOfTimeStamp(Date timeStamp) {
-        if (timeStamp == null)
+        if (timeStamp == null) {
             return -1;
+        }
         return getIndexOfTime(getTime(timeStamp));
     }
 
     public static Date getDateTimeObject(String date) {
-        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat(DATE_TIME_MS_FORMAT, Locale.ENGLISH);
         try {
             return formatterMilliSecond.parse(date);
         } catch (ParseException e) {
@@ -186,7 +190,7 @@ public final class TimeUtils {
     }
 
     public static Date getDateTimeObjectMinute(String date) {
-        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH);
         try {
             return formatterMilliSecond.parse(date);
         } catch (ParseException e) {
@@ -196,7 +200,7 @@ public final class TimeUtils {
     }
 
     public static Date getDateObject(String date) {
-        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
         try {
             return formatterMilliSecond.parse(date);
         } catch (ParseException e) {
@@ -223,43 +227,46 @@ public final class TimeUtils {
     }
 
     public static String getTodayDate() {
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
         return dateFormatter.format(currentTime());
     }
 
     public static String getStringDateNDaysBefore(int n) {
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
         return dateFormatter.format(getNDaysBefore(n));
     }
 
     public static String getStringDate(Date date) {
-        if(date==null)
+        if(date==null) {
             return "";
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        }
+        SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
         return dateFormatter.format(date);
     }
 
     public static String getStringDay(Date date) {
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("EEE");
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("EEE", Locale.ENGLISH);
         return dateFormatter.format(date);
     }
 
     public static String getCompleteDateTime() {
-        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat(DATE_TIME_MS_FORMAT, Locale.ENGLISH);
         return formatterMilliSecond.format(currentTime());
     }
 
     public static String getStringDateTime(Date timeStamp) {
-        if (timeStamp == null)
+        if (timeStamp == null) {
             return null;
-        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        }
+        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat(DATE_TIME_MS_FORMAT, Locale.ENGLISH);
         return formatterMilliSecond.format(timeStamp);
     }
 
     public static String getStringDateTimeMinute(Date timeStamp) {
-        if (timeStamp == null)
+        if (timeStamp == null) {
             return null;
-        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        }
+        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH);
         return formatterMilliSecond.format(timeStamp);
     }
 
@@ -283,9 +290,10 @@ public final class TimeUtils {
     }
 
     public static String getStringDateWithDay(Date date) {
-        if (date == null)
+        if (date == null) {
             return null;
-        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("EEEE, dd-MM-yyyy");
+        }
+        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat("EEEE, dd-MM-yyyy", Locale.ENGLISH);
         return formatterMilliSecond.format(date);
     }
 
@@ -300,7 +308,7 @@ public final class TimeUtils {
     }
 
     public static Date getDateDayObject(String date) {
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("ddMMMyyyy");
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("ddMMMyyyy", Locale.ENGLISH);
 
         Date dateObj = null;
         try {

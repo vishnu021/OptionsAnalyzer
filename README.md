@@ -4,3 +4,13 @@ Project to analyze the technicals of stock options available in National Stock E
 #### Swagger UI   
 https://127.0.0.1:8080/swagger-ui/index.html
 
+### Docker
+```bash
+docker build -t order-manager OrderManager   
+```
+
+```bash
+docker-compose up -d
+```
+
+TODO : create separate profiles to include/exclude UI in the build

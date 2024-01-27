@@ -23,7 +23,9 @@ public abstract class MovingAverage extends AbstractIndicator {
 
         List<Double> maList = new ArrayList<>();
         for(int i = 0; i< closePrices.size(); i++) {
-            if (skipPresetValues(lastMA, maList, i)) continue;
+            if (skipPresetValues(lastMA, maList, i)) {
+                continue;
+            }
 
             lastMA = maValue(maList.get(i - 1), closePrices.get(i), multiplier);
             maList.add(lastMA);

@@ -69,3 +69,5 @@ options-analyzer-ui/yarn-error.log*
 options-analyzer-ui/node/
 OrderManager/options-analyzer-ui/node/
 OrderManager/src/main/resources/static/
+OrderManager/src/main/java/com/vish/fno/manage/strategy/
+OrderManager/src/main/resources/tick/

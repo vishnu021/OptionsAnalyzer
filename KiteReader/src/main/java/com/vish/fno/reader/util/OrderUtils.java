@@ -5,7 +5,7 @@ import com.zerodhatech.models.OrderParams;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderUtils {
 
     public static OrderParams createOrderWithParameters(String symbol,

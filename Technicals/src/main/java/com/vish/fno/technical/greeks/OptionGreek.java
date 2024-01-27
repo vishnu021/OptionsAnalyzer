@@ -2,6 +2,7 @@ package com.vish.fno.technical.greeks;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 
+@SuppressWarnings("PMD.AbstractClassWithoutAbstractMethod")
 public abstract class OptionGreek {
 
     private static final NormalDistribution N = new NormalDistribution();

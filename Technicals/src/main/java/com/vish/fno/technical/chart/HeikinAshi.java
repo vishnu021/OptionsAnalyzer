@@ -4,11 +4,13 @@ import com.vish.fno.model.Candle;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.vish.fno.technical.util.TimeFrameUtils.mergeCandle;
+import static com.vish.fno.technical.util.TimeFrameUtils.mergeIntradayCompleteCandle;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
@@ -20,7 +22,16 @@ public final class HeikinAshi {
 
     public static List<Candle> getCandles(List<Candle> allCandles, int timeFrame) {
         List<Candle> candles = mergeCandle(allCandles, timeFrame);
+        return convertToHiekinAshi(candles);
+    }
 
+    public static List<Candle> getIntradayCompleteCandle(List<Candle> allCandles, int timeFrame) {
+        List<Candle> candles = mergeIntradayCompleteCandle(allCandles, timeFrame);
+        return convertToHiekinAshi(candles);
+    }
+
+    @NotNull
+    private static List<Candle> convertToHiekinAshi(List<Candle> candles) {
         List<Candle> heikinAshiCandles = new ArrayList<>();
 
         for (int i = 0; i < candles.size(); i++) {
@@ -42,7 +53,6 @@ public final class HeikinAshi {
 
             heikinAshiCandles.add(new Candle(currentCandle.getTime(), haOpen, haHigh, haLow, haClose, currentCandle.getVolume(), currentCandle.getOi()));
         }
-
         return heikinAshiCandles;
     }
 }

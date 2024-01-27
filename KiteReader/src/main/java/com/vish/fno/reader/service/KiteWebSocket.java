@@ -1,29 +1,31 @@
 package com.vish.fno.reader.service;
 
+import com.vish.fno.reader.exception.InitialisationException;
 import com.zerodhatech.kiteconnect.KiteConnect;
 import com.zerodhatech.kiteconnect.kitehttp.exceptions.KiteException;
-import com.zerodhatech.models.Tick;
 import com.zerodhatech.ticker.KiteTicker;
+import com.zerodhatech.ticker.OnTicks;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 
 @Slf4j
+@SuppressWarnings({"PMD.RedundantFieldInitializer", "PMD.LooseCoupling"})
 public class KiteWebSocket {
     private final KiteTicker tickerProvider;
     private final ArrayList<Long> defaultTokens;
 
-    public KiteWebSocket(KiteConnect kiteSdk) {
+    public KiteWebSocket(KiteConnect kiteSdk, OnTicks onTickerArrivalListener) {
         this.tickerProvider = new KiteTicker(kiteSdk.getAccessToken(), kiteSdk.getApiKey());
         this.defaultTokens = new ArrayList<>();
         this.defaultTokens.add(256265L);
         this.defaultTokens.add(260105L);
-        initialize();
+        initialize(onTickerArrivalListener);
     }
 
-    public void initialize() {
-        addWebSocketListeners(defaultTokens);
+    private void initialize(OnTicks onTickerArrivalListener) {
+        addWebSocketListeners(defaultTokens, onTickerArrivalListener);
         tickerProvider.connect();
         boolean isConnected = tickerProvider.isConnectionOpen();
         log.info("isConnected : {}", isConnected);
@@ -37,7 +39,7 @@ public class KiteWebSocket {
     }
 
 
-    private void addWebSocketListeners(ArrayList<Long> tokens) {
+    private void addWebSocketListeners(ArrayList<Long> tokens, OnTicks onTickerArrivalListener) {
         tickerProvider.setOnConnectedListener(() -> {
             /* Subscribe ticks for token.
              * By default, all tokens are subscribed for modeQuote.
@@ -46,30 +48,26 @@ public class KiteWebSocket {
             tickerProvider.setMode(tokens, KiteTicker.modeFull);
         });
 
-        tickerProvider.setOnDisconnectedListener(() -> {
-            log.info("disconnected");
-        });
+        tickerProvider.setOnDisconnectedListener(() -> log.info("disconnected"));
 
         /* Set listener to get order updates.*/
         tickerProvider.setOnOrderUpdateListener(order -> log.info("order update {}", order.orderId));
 
-        tickerProvider.setOnTickerArrivalListener(ticks -> {
-            if(ticks.size() > 0) {
-                Tick tick = ticks.get(0);
-                log.debug("token: {},\tltp: {},\ttimestamp: {}",
-                        tick.getInstrumentToken(),
-                        tick.getLastTradedPrice(),
-                        tick.getTickTimestamp());
-            }
-        });
+
+        tickerProvider.setOnTickerArrivalListener(onTickerArrivalListener);
 
         tickerProvider.setTryReconnection(true);
         try {
             tickerProvider.setMaximumRetries(10);
             tickerProvider.setMaximumRetryInterval(30);
         } catch (KiteException e) {
-            throw new RuntimeException(e);
+            log.error("Exception while setting retries", e);
+            throw new InitialisationException("Error initializing kite web socket", e);
         }
+    }
+
+    public void addListener(OnTicks onTickerArrivalListener) {
+        tickerProvider.setOnTickerArrivalListener(onTickerArrivalListener);
     }
 
     public void subscribe(ArrayList<Long> tokens) {
@@ -88,7 +86,7 @@ public class KiteWebSocket {
 
     @PreDestroy
     public void disconnect() {
-        tickerProvider.disconnect();
         log.info("Disconnecting...");
+        tickerProvider.disconnect();
     }
 }

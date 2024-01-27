@@ -59,6 +59,22 @@
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.vish.fno.util</groupId>
+            <artifactId>Utils</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>32.0.0-android</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -136,6 +152,17 @@
                 </executions>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>static/**</include>
+                </includes>
+<!--                <excludes>-->
+<!--                    <exclude>**/*</exclude>-->
+<!--                </excludes>-->
+            </resource>
+        </resources>
         <finalName>order-manager</finalName>
     </build>
 </project>
