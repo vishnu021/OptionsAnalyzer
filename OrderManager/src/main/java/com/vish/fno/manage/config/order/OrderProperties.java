@@ -7,13 +7,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("order")
 public class OrderProperties {
     private int maximumOrderCount;
-    private int availableCash;
+    private double availableCash;
     private boolean placeOrders;
     private boolean putOrders;
     private boolean callOrders;
     private boolean tradeInLastHour;
     private int orderSize;
-    private int maximumBuyPrice;
-    private int minimumBuyPrice;
+    private double maximumBuyPrice;
+    private double minimumBuyPrice;
     private int slmDeltaPrice;
+    private String[] additionalSymbols;
+    private String symbolsPath;
+    private String[] webSocketDefaultSymbols;
 }

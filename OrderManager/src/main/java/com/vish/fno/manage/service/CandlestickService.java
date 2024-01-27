@@ -11,7 +11,7 @@ import com.vish.fno.model.Candle;
 import com.vish.fno.model.SymbolData;
 import com.vish.fno.reader.service.HistoricalDataService;
 import com.vish.fno.technical.indicators.ma.ExponentialMovingAverage;
-import com.vish.fno.technical.util.CandleUtils;
+import com.vish.fno.technical.util.TimeFrameUtils;
 import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.HistoricalData;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +30,7 @@ import static com.vish.fno.manage.util.Constants.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidThrowingRawExceptionTypes"})
 public class CandlestickService {
     private final CandlestickRepository candlestickRepository;
     private final DataCache cache;
@@ -81,7 +82,7 @@ public class CandlestickService {
 
         return getEntireDayHistoryData(date, symbol, MINUTE)
                 .map(c -> {
-                    List<Candle> data = CandleUtils.mergeCandle(c.getData(), Integer.parseInt(interval));
+                    List<Candle> data = TimeFrameUtils.mergeIntradayCompleteCandle(c.getData(), Integer.parseInt(interval));
                     return SymbolData.builder().record(c.getRecord()).data(data).build();
                 })
                 .filter(symbolData -> symbolData.getData() != null && !symbolData.getData().isEmpty())
@@ -121,12 +122,9 @@ public class CandlestickService {
 
         return candlestickRepository.findByRecordDateAndRecordSymbol(date, symbol)
                 .filter(candle -> candle.getData() != null && candle.getData().size() >= 375)
-                .or(() -> {
-                    log.debug("Getting candle data from broker as no data available for symbol: {}, date: {}", symbol, date);
-                    return getCandlesticksFromBroker(symbol, date, interval, instrument);
-                })
+                .or(() -> getCandlesticksFromBroker(symbol, date, interval, instrument))
                 .map(candle -> {
-                    fileUtils.saveJson(candle.getData(), String.format("data/%s_%s.json", symbol, date));
+                    fileUtils.saveCandlestickData(candle.getData(), symbol, date);
                     candlestickRepository.save(candle);
                     return candle;
                 });
@@ -134,8 +132,6 @@ public class CandlestickService {
 
     @NotNull
     public Optional<SymbolData> getCandlesticksFromBroker(String symbol, String date, String interval, String instrument) {
-        log.info("Returning data for symbol : {}, instrument : {}, date : {}, interval : {}",
-                symbol, instrument, date, interval);
         HistoricalData data = historicalDataService.getEntireDayHistoricalData(date, instrument, interval);
         if (data == null) {
             log.warn("No data available for symbol : {} and date: {}", symbol, date);
@@ -148,9 +144,10 @@ public class CandlestickService {
     private Optional<SymbolData> verifyAndTransform(String symbol, String date, HistoricalData data) {
         // This service has been created with few assumptions regarding the candlestick data coming from broker,
         // in case these conditions are not met, This service needs to be recreated.
-        if( data.open !=0 || data.high !=0 || data.low !=0 || data.close !=0 || data.volume !=0 || data.oi !=0)
+        if( data.open !=0 || data.high !=0 || data.low !=0 || data.close !=0 || data.volume !=0 || data.oi !=0) {
             log.error("open: {}, high: {}, low: {}, close: {}, volume: {}, oi: {}",
                     data.open,  data.high,  data.low,  data.close, data.volume, data.oi);
+        }
 
         try {
             return Optional.of(new SymbolData(data, symbol, date));

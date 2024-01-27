@@ -5,7 +5,9 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
+@EnableScheduling
 @OpenAPIDefinition(
         info = @Info(
                 title = "Options Analyzer",
@@ -17,6 +19,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         )
 )
 @SpringBootApplication
+@SuppressWarnings("PMD.UseUtilityClass")
 public class OrderManagerApplication {
 
     public static void main(String[] args) {

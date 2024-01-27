@@ -1,5 +1,6 @@
 package com.vish.fno.manage.config.kite;
 
+import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.manage.helper.DataCache;
 import com.vish.fno.reader.service.HistoricalDataService;
 import com.vish.fno.reader.service.KiteService;
@@ -52,8 +53,8 @@ public class KiteClientConfiguration {
     }
 
     @Bean
-    public DataCache dataCache(FileUtils fileUtils, KiteService kiteService) {
-        return new DataCache(fileUtils, kiteService);
+    public DataCache dataCache(OrderConfiguration orderConfiguration, FileUtils fileUtils, KiteService kiteService) {
+        return new DataCache(orderConfiguration, fileUtils, kiteService);
     }
 
     public List<Date> getHolidays() {

@@ -9,14 +9,12 @@ spring:
         port: 27017
         database: fno
 
-
-
 springdoc:
     swagger-ui:
         path: /swagger
 
 server:
-    port: 8080
+    port: 443
     ssl:
         enabled: true
         key-store-password: Vishnu$021
@@ -25,10 +23,11 @@ server:
 
 logging:
     level:
-        root: ERROR
+        root: INFO
         org.springframework.web: ERROR
         com.vish.fno: DEBUG
         okhttp3.OkHttpClient: ERROR
+        com.zerodhatech: INFO
     file:
         path: logs
         name: logs/kr.log
@@ -58,22 +57,28 @@ management:
         enabled: true
         step: 30s
 
+strategies:
+    list:
+        - strategyName: TEST
+          index: TEST
+          enabled: true
+
 kite:
     baseuri: https://kite.trade
-    apiKey: 
+    apiKey:
     userId:
     apiSecret:
-    liveData: true
+    liveData:
     authenticationUrl: ${kite.baseuri}/connect/login?api_key=${kite.apiKey}&v=3
     serviceInCloud: false
     holidays2023:
+        - "2023-01-22"
         - "2023-01-26"
         - "2023-03-07"
         - "2023-03-30"
         - "2023-04-04"
         - "2023-04-07"
         - "2023-04-14"
-        - "2023-04-22"
         - "2023-05-01"
         - "2023-06-29"
         - "2023-08-15"
@@ -87,14 +92,15 @@ kite:
 order:
     symbolsPath: ind_nifty100list.csv
     additionalSymbols: NIFTY, NIFTY 50, BANKNIFTY, NIFTY BANK, FINNIFTY, NIFTY FIN SERVICE
-    maximumOrderCount: 1
-    availableCash: 15000
-    placeOrders: false
-    connectToWebSocket: false
-    putOrders: true
-    callOrders: true
-    tradeInLastHour: false
-    orderSize: 25
-    maximumBuyPrice: 500
-    minimumBuyPrice: 225
-    slmDeltaPrice: 4
+    webSocketDefaultSymbols: NIFTY BANK, NIFTY 50, BANKNIFTY24JANFUT, BANKNIFTY24JANFUT, BAJFINANCE, BAJFINANCE24JANFUT, HINDUNILVR, HINDUNILVR24JANFUT, HDFCBANK, HDFCBANK24JANFUT
+    maximumOrderCount:
+    availableCash:
+    placeOrders:
+    connectToWebSocket:
+    putOrders:
+    callOrders:
+    tradeInLastHour:
+    orderSize:
+    maximumBuyPrice:
+    minimumBuyPrice:
+    slmDeltaPrice:

@@ -6,10 +6,13 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
 import java.awt.*;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 @Slf4j
 @AllArgsConstructor
+@SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
 public class BrowserLauncher {
 
     private final boolean liveData;
@@ -23,8 +26,9 @@ public class BrowserLauncher {
             Desktop desktop = Desktop.getDesktop();
             try {
                 desktop.browse(new URI(authenticationUrl));
-            } catch (Exception e) {
-                log.error("Exception while launching browser",e);
+            } catch (IOException | URISyntaxException e) {
+                log.error("Exception while launching browser", e);
+                throw new RuntimeException(e);
             }
         }
     }
