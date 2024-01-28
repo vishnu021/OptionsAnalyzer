@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.vish.fno.manage.util.Constants.*;
+import static com.vish.fno.util.Constants.*;
 
 @Slf4j
 @Service

@@ -11,11 +11,11 @@
 	</parent>
 
 	<modules>
+		<module>Utils</module>
 		<module>KiteReader</module>
-        <module>OrderManager</module>
+		<module>Models</module>
 		<module>Technicals</module>
-        <module>Models</module>
-        <module>Utils</module>
+        <module>OrderManager</module>
     </modules>
 
 	<groupId>com.vish.fno</groupId>
@@ -121,5 +121,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>

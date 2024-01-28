@@ -7,9 +7,9 @@
         <groupId>com.vish.fno</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.vish.fno.technicals</groupId>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.vish.fno.technical</groupId>
     <artifactId>Technicals</artifactId>
 
     <properties>
@@ -19,18 +19,12 @@
     </properties>
 
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/org.ta4j/ta4j-core -->
-        <dependency>
-            <groupId>org.ta4j</groupId>
-            <artifactId>ta4j-core</artifactId>
-            <version>0.12</version>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-json</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno</groupId>
+            <groupId>com.vish.fno.model</groupId>
             <artifactId>Models</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
@@ -41,5 +35,4 @@
             <version>3.6.1</version>
         </dependency>
     </dependencies>
-
 </project>

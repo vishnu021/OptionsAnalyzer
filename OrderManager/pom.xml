@@ -7,7 +7,9 @@
         <groupId>com.vish.fno</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
+    <groupId>com.vish.fno.manage</groupId>
     <artifactId>OrderManager</artifactId>
 
     <properties>
@@ -48,13 +50,13 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno</groupId>
+            <groupId>com.vish.fno.model</groupId>
             <artifactId>Models</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno.technicals</groupId>
+            <groupId>com.vish.fno.technical</groupId>
             <artifactId>Technicals</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>

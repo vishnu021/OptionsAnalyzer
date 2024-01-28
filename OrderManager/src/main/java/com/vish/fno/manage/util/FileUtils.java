@@ -1,14 +1,11 @@
 package com.vish.fno.manage.util;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.vish.fno.model.Candle;
 import com.vish.fno.model.order.ActiveOrder;
+import com.vish.fno.util.Constants;
 import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.Instrument;
 import com.zerodhatech.models.Tick;
@@ -18,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -33,6 +29,8 @@ public class FileUtils implements Constants {
 
     protected ObjectMapper indentedMapper = new ObjectMapper();
     protected ObjectMapper mapper = new ObjectMapper();
+    String filePath = Paths.get(".").normalize().toAbsolutePath() + "\\" + directory + "\\";
+    String tickPath = Paths.get(".").normalize().toAbsolutePath() + "\\" + tick_directory + "\\";
     int bufferLength;
 
     @PostConstruct
@@ -89,7 +87,7 @@ public class FileUtils implements Constants {
     }
 
     public void saveTickData(String symbol, Tick tick) {
-        String path = filePath + dateFormatter.format(new Date()) + symbol + ".txt";
+        String path = filePath + getFormattedDate(new Date()) + symbol + ".txt";
         createDirectoryIfNotExist(path);
         try {
             indentedMapper.writeValue(new File(path), tick);
@@ -99,7 +97,7 @@ public class FileUtils implements Constants {
     }
 
     public void appendTickToFile(String symbol, Tick tick) {
-        String folderPath = tickPath + dateFormatter.format(new Date());
+        String folderPath = tickPath + getFormattedDate(new Date());
         createDirectoryIfNotExist(folderPath);
         String filePath = folderPath + "//" + symbol + ".txt";
         filePath = filePath.replaceAll("\\s", "_");
@@ -121,12 +119,15 @@ public class FileUtils implements Constants {
     }
 
     private String candleFileName(String instrument, Date fromDate) {
-        createDirectoryIfNotExist(filePath + dateFormatter.format(fromDate));
-        return filePath + dateFormatter.format(fromDate) + "\\" + instrument + ".json";
+        createDirectoryIfNotExist(filePath + getFormattedDate(fromDate));
+        return filePath + getFormattedDate(fromDate) + "\\" + instrument + ".json";
     }
 
+    private String getFormattedDate(Date date) {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(date);
+    }
     private String getInstrumentFileName(int days) {
-        return "instruments_" + dateFormatter.format(TimeUtils.getNDaysBefore(days)) + ".json";
+        return "instruments_" + getFormattedDate(TimeUtils.getNDaysBefore(days)) + ".json";
     }
 
     public void logCompletedOrder(ActiveOrder order) {

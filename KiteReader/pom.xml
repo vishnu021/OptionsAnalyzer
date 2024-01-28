@@ -36,11 +36,10 @@
             <version>20230227</version>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno</groupId>
+            <groupId>com.vish.fno.util</groupId>
             <artifactId>Utils</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
-
 </project>

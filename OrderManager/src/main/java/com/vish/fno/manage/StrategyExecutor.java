@@ -79,7 +79,7 @@ public class StrategyExecutor {
         if(symbol == null || candlesCache.get(symbol) == null) {
             log.error("symbol or task is null for strategy: {}", strategy);
         } else {
-            Optional<OpenOrder> indexOrderOptional = strategy.test(candlesCache.get(symbol), timestampIndex);
+            Optional<? extends OpenOrder> indexOrderOptional = strategy.test(candlesCache.get(symbol), timestampIndex);
             indexOrderOptional.ifPresent(o -> {
                 String itmOptionSymbol = dataCache.getITMStock(o.getIndex(), o.getBuyThreshold(), o.isCallOrder());
                 o.setOptionSymbol(itmOptionSymbol);

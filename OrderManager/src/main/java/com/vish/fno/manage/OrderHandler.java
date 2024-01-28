@@ -7,20 +7,18 @@ import com.vish.fno.manage.helper.TimeProvider;
 import com.vish.fno.manage.util.FileUtils;
 import com.vish.fno.model.order.*;
 import com.vish.fno.reader.service.KiteService;
-import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.Tick;
 import com.zerodhatech.ticker.OnTicks;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.vish.fno.manage.util.Constants.NIFTY_BANK;
+import static com.vish.fno.util.Constants.NIFTY_BANK;
 
 @Slf4j
 @Component

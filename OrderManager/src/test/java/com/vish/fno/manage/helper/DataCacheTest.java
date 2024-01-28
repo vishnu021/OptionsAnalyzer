@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import static com.vish.fno.manage.util.Constants.NIFTY_50;
-import static com.vish.fno.manage.util.Constants.NIFTY_BANK;
+import static com.vish.fno.util.Constants.NIFTY_50;
+import static com.vish.fno.util.Constants.NIFTY_BANK;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 

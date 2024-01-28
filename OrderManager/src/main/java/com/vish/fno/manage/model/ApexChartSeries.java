@@ -9,13 +9,14 @@ import lombok.extern.slf4j.Slf4j;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.IntStream;
 
 @Slf4j
 @Data
 public class ApexChartSeries {
     private static final String FULL_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
-    private static final SimpleDateFormat formatterMilliSecond = new SimpleDateFormat(FULL_DATE_FORMAT);
+    private static final SimpleDateFormat formatterMilliSecond = new SimpleDateFormat(FULL_DATE_FORMAT, Locale.ENGLISH);
     private String type;
     private String name;
     private List<? extends DataField> data;
@@ -33,6 +34,7 @@ public class ApexChartSeries {
     }
 
     @Data
+    @SuppressWarnings({"PMD.AbstractClassWithoutAbstractMethod", "PMD.AbstractClassWithoutAnyMethod"})
     private abstract static class DataField {
         protected long x;
     }

@@ -1,6 +1,5 @@
 package com.vish.fno.manage;
 
-import com.vish.fno.manage.OrderHandler;
 import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.manage.helper.DataCache;
 import com.vish.fno.manage.helper.TimeProvider;
@@ -15,7 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static com.vish.fno.manage.util.Constants.NIFTY_BANK;
+import static com.vish.fno.util.Constants.NIFTY_BANK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;

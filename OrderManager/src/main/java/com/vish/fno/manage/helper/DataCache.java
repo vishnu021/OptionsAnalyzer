@@ -8,16 +8,12 @@ import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.Instrument;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import static com.vish.fno.manage.util.Constants.*;
 
 
 /*Only focusing on the 100 stocks of nifty 100 and indices*/
