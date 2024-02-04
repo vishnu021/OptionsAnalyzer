@@ -5,7 +5,7 @@ import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.order.ActiveOrderFactory;
 import com.vish.fno.model.order.OpenIndexOrder;
 import com.vish.fno.model.order.OpenOrder;
-import com.vish.fno.reader.helper.InstrumentCache;
+import com.vish.fno.reader.service.KiteService;
 import com.zerodhatech.models.Tick;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ class OpenOrderVerifierTest {
     @Mock
     private OrderConfiguration orderConfiguration;
     @Mock
-    private InstrumentCache instrumentCache;
+    private KiteService kiteService;
     private OpenOrderVerifier openOrderVerifier;
 
     @BeforeEach
@@ -40,7 +40,7 @@ class OpenOrderVerifierTest {
         when(orderConfiguration.getAdditionalSymbols()).thenReturn(additionalSymbols);
         when(orderConfiguration.getAvailableCash()).thenReturn(25000d);
 
-        openOrderVerifier = new OpenOrderVerifier(orderConfiguration, instrumentCache);
+        openOrderVerifier = new OpenOrderVerifier(orderConfiguration, kiteService);
     }
 
 
@@ -253,7 +253,7 @@ class OpenOrderVerifierTest {
                 .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
 
         //Act
         OpenOrder openOrderEntry = openOrderVerifier.checkEntryInOpenOrders(tick, List.of(newOpenOrder), List.of(activeOrder)).get();
@@ -287,7 +287,7 @@ class OpenOrderVerifierTest {
                 .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         //Act
         Optional<OpenOrder> openOrderEntry = openOrderVerifier.checkEntryInOpenOrders(tick, List.of(newOpenOrder), List.of(activeOrder));
@@ -321,7 +321,7 @@ class OpenOrderVerifierTest {
                 .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
 
         //Act
         OpenOrder openOrderEntry = openOrderVerifier.checkEntryInOpenOrders(tick, List.of(newOpenOrder), List.of(activeOrder)).get();
@@ -355,7 +355,7 @@ class OpenOrderVerifierTest {
                 .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
 
         //Act
         Optional<OpenOrder> openOrderEntry = openOrderVerifier.checkEntryInOpenOrders(tick, List.of(newOpenOrder), List.of(activeOrder));
@@ -389,7 +389,7 @@ class OpenOrderVerifierTest {
                 .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
 
         //Act
         OpenOrder openOrderEntry = openOrderVerifier.checkEntryInOpenOrders(tick, List.of(newOpenOrder), List.of(activeOrder)).get();
@@ -423,7 +423,7 @@ class OpenOrderVerifierTest {
                 .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         //Act
         Optional<OpenOrder> openOrderEntry = openOrderVerifier.checkEntryInOpenOrders(tick, List.of(newOpenOrder), List.of(activeOrder));

@@ -1,6 +1,5 @@
-package com.vish.fno.reader.helper;
+package com.vish.fno.reader.service;
 
-import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.reader.util.InstrumentFileUtils;
 import com.vish.fno.reader.util.KiteUtils;
 import com.zerodhatech.models.Instrument;
@@ -13,7 +12,7 @@ import java.util.stream.Collectors;
 /*Only focusing on the 100 stocks of nifty 100 and indices*/
 @Slf4j
 @SuppressWarnings({"PMD.AvoidThrowingRawExceptionTypes", "PMD.AvoidSynchronizedAtMethodLevel"})
-public class InstrumentCache {
+class InstrumentCache {
     private final static String NSE = "NSE";
     private final static String NFO = "NFO";
 
@@ -29,7 +28,6 @@ public class InstrumentCache {
     }
 
     public synchronized List<Instrument> getInstruments() {
-
         if (filteredInstruments != null) {
             return filteredInstruments;
         }
@@ -69,11 +67,6 @@ public class InstrumentCache {
         return this.symbolMap.get(script.toUpperCase(Locale.ENGLISH));
     }
 
-    public String getSymbol(String instrument) {
-        getInstruments();
-        return this.instrumentMap.get(Long.parseLong(instrument));
-    }
-
     public String getSymbol(long instrument) {
         getInstruments();
         return this.instrumentMap.get(instrument);
@@ -83,18 +76,6 @@ public class InstrumentCache {
         return getInstruments().stream()
                 .map(Instrument::getName)
                 .collect(Collectors.toSet());
-    }
-
-    public List<Map<String, String>> getAllInstruments() {
-        List<Map<String, String>> allInstrumentData = new ArrayList<>();
-        getInstruments().stream()
-                .sorted(Comparator.comparing(Instrument::getName))
-                .forEach( i -> allInstrumentData.add(
-                        Map.of(
-                                "exchange", i.getExchange(),
-                                "symbol", i.getTradingsymbol(),
-                                "expiry", KiteUtils.getStringDate(i.getExpiry()))));
-        return allInstrumentData;
     }
 
     public Map<String, String> getFilteredSymbols() {

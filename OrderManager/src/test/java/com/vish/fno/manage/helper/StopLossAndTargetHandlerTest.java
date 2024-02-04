@@ -4,7 +4,7 @@ import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.order.ActiveOrderFactory;
 import com.vish.fno.model.order.OpenIndexOrder;
 import com.vish.fno.model.order.OpenOrder;
-import com.vish.fno.reader.helper.InstrumentCache;
+import com.vish.fno.reader.service.KiteService;
 import com.zerodhatech.models.Tick;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 class StopLossAndTargetHandlerTest {
 
     @Mock private TimeProvider timeProvider;
-    @Mock private InstrumentCache instrumentCache;
+    @Mock private KiteService kiteService;
     @InjectMocks private StopLossAndTargetHandler stopLossAndTargetHandler;
 
     @BeforeEach
@@ -62,7 +62,7 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         List<ActiveOrder> activeOrders = List.of(ActiveOrderFactory.createOrder(openOrder, 0d, 1));
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
 
         // Act
         Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, activeOrders);
@@ -87,7 +87,7 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(openOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
         ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders)).get();
@@ -112,7 +112,7 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(openOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
         ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders)).get();
@@ -137,7 +137,7 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(openOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
         Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders));
@@ -162,7 +162,7 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(openOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
         ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders)).get();
@@ -187,7 +187,7 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(openOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
         ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders)).get();
@@ -212,7 +212,7 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(openOrder, 0d, 1);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
         Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders));

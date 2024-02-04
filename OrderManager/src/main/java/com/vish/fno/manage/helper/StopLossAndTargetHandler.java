@@ -1,7 +1,7 @@
 package com.vish.fno.manage.helper;
 
 import com.vish.fno.model.order.ActiveOrder;
-import com.vish.fno.reader.helper.InstrumentCache;
+import com.vish.fno.reader.service.KiteService;
 import com.zerodhatech.models.Tick;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,12 +15,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public final class StopLossAndTargetHandler {
     private final TimeProvider timeProvider;
-    private final InstrumentCache instrumentCache;
+    private final KiteService kiteService;
 
     private static final int INTRADAY_EXIT_POSITION_TIME_INDEX = 368;
 
     public Optional<ActiveOrder> getActiveOrderToSell(Tick tick, List<ActiveOrder> activeOrders) {
-        String tickSymbol = instrumentCache.getSymbol(tick.getInstrumentToken());
+        String tickSymbol = kiteService.getSymbol(tick.getInstrumentToken());
 
         List<ActiveOrder> activeOrdersForTick = activeOrders.stream().filter(o -> o.getIndex().contentEquals(tickSymbol)).toList();
 

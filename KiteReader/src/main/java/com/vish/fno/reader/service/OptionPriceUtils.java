@@ -1,20 +1,21 @@
-package com.vish.fno.manage.util;
+package com.vish.fno.reader.service;
 
 import com.zerodhatech.models.Instrument;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static com.vish.fno.util.Constants.*;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class OptionPriceUtils {
+final class OptionPriceUtils {
+    private final static String NIFTY_BANK = "NIFTY BANK";
+    private final static String NIFTY_50 = "NIFTY 50";
+    private final static String NIFTY_FIN_SERVICE = "NIFTY FIN SERVICE";
 
     public static String getITMStock(String indexSymbol, double price, boolean isCall, List<Instrument> instruments) {
 
@@ -76,7 +77,6 @@ public final class OptionPriceUtils {
         return itmSymbolValue;
     }
 
-    @NotNull
     private static String getOptionPrefix(String indexSymbol) {
         return switch (indexSymbol) {
             case NIFTY_BANK -> "BANKNIFTY";

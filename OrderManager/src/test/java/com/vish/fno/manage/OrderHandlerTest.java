@@ -1,7 +1,6 @@
 package com.vish.fno.manage;
 
 import com.vish.fno.manage.config.order.OrderConfiguration;
-import com.vish.fno.reader.helper.InstrumentCache;
 import com.vish.fno.manage.helper.OpenOrderVerifier;
 import com.vish.fno.manage.helper.StopLossAndTargetHandler;
 import com.vish.fno.manage.helper.TimeProvider;
@@ -22,14 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
 class OrderHandlerTest {
 
     @Mock private KiteService kiteService;
-    @Mock private InstrumentCache instrumentCache;
     @Mock private OrderConfiguration orderConfiguration;
     @Mock private FileUtils fileUtils;
     @Mock private TimeProvider timeProvider;
@@ -39,15 +36,19 @@ class OrderHandlerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        final OpenOrderVerifier openOrderVerifier = spy(new OpenOrderVerifier(orderConfiguration, instrumentCache));
-        final StopLossAndTargetHandler stopLossAndTargetHandler = spy(new StopLossAndTargetHandler(timeProvider, instrumentCache));
-        orderHandler = new OrderHandler(kiteService, instrumentCache, orderConfiguration, fileUtils, timeProvider, openOrderVerifier, stopLossAndTargetHandler);
+        final OpenOrderVerifier openOrderVerifier = spy(new OpenOrderVerifier(orderConfiguration, kiteService));
+        final StopLossAndTargetHandler stopLossAndTargetHandler = spy(new StopLossAndTargetHandler(timeProvider, kiteService));
+        orderHandler = new OrderHandler(kiteService, orderConfiguration, fileUtils, timeProvider, openOrderVerifier, stopLossAndTargetHandler);
     }
 
     @Test
     void testAppendOpenOrder() {
         //Arrange
-        OpenOrder mockOrder = mock(OpenOrder.class);
+        OpenOrder mockOrder = OpenIndexOrder.builder()
+                .tag("TestStrategyTag")
+                .index("TEST_SYMBOL")
+                .optionSymbol("TEST_OPTION_SYMBOL")
+                .build();
         //Act
         orderHandler.appendOpenOrder(mockOrder);
         //Assert
@@ -77,9 +78,9 @@ class OrderHandlerTest {
     @Test
     void testAppendOpenOrderForMultipleOpenOrders() {
         //Arrange
-        ArgumentCaptor<ArrayList<Long>> argumentCaptor = ArgumentCaptor.forClass(ArrayList.class);
-        ArrayList<Long> expectedFirstInvocationArgument = new ArrayList<>(Arrays.asList(1L, 3L));
-        ArrayList<Long> expectedSecondInvocationArgument = new ArrayList<>(Arrays.asList(2L, 4L));
+        ArgumentCaptor<List<String>> argumentCaptor = ArgumentCaptor.forClass(List.class);
+        List<String> expectedFirstInvocationArgument = List.of("TEST_SYMBOL", "TEST_OPTION_SYMBOL");
+        List<String> expectedSecondInvocationArgument = List.of("TEST_SYMBOL2", "TEST_OPTION_SYMBOL2");
 
         OpenOrder openOrder1 = OpenIndexOrder.builder()
                 .tag("TestStrategyTag")
@@ -92,10 +93,10 @@ class OrderHandlerTest {
                 .optionSymbol("TEST_OPTION_SYMBOL2")
                 .build();
 
-        when(instrumentCache.getInstrument("TEST_SYMBOL")).thenReturn(1L);
-        when(instrumentCache.getInstrument("TEST_SYMBOL2")).thenReturn(2L);
-        when(instrumentCache.getInstrument("TEST_OPTION_SYMBOL")).thenReturn(3L);
-        when(instrumentCache.getInstrument("TEST_OPTION_SYMBOL2")).thenReturn(4L);
+        when(kiteService.getInstrument("TEST_SYMBOL")).thenReturn(1L);
+        when(kiteService.getInstrument("TEST_SYMBOL2")).thenReturn(2L);
+        when(kiteService.getInstrument("TEST_OPTION_SYMBOL")).thenReturn(3L);
+        when(kiteService.getInstrument("TEST_OPTION_SYMBOL2")).thenReturn(4L);
 
         //Act
         orderHandler.appendOpenOrder(openOrder1);
@@ -103,9 +104,9 @@ class OrderHandlerTest {
 
         //Assert
         assertEquals(orderHandler.getOpenOrders().size(), 2);
-        verify(kiteService, times(2)).appendWebSocketTokensList(argumentCaptor.capture());
+        verify(kiteService, times(2)).appendWebSocketSymbolsList(argumentCaptor.capture());
 
-        List<ArrayList<Long>> allValues = argumentCaptor.getAllValues();
+        List<List<String>> allValues = argumentCaptor.getAllValues();
         assertEquals(expectedFirstInvocationArgument, allValues.get(0));
         assertEquals(expectedSecondInvocationArgument, allValues.get(1));
     }
@@ -201,7 +202,7 @@ class OrderHandlerTest {
         tick.setLastTradedPrice(100);
         ticks.add(tick);
 
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
         orderHandler.handleTicks(ticks);
@@ -231,7 +232,7 @@ class OrderHandlerTest {
         orderHandler.getActiveOrders().add(activeOrder);
 
         when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(true);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
 
         // Act
@@ -262,7 +263,7 @@ class OrderHandlerTest {
         orderHandler.getActiveOrders().add(activeOrder);
 
         when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(true);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
 
         // Act
@@ -293,7 +294,7 @@ class OrderHandlerTest {
         orderHandler.getActiveOrders().add(activeOrder);
 
         when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(false);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
 
         // Act
@@ -324,7 +325,7 @@ class OrderHandlerTest {
         orderHandler.getActiveOrders().add(activeOrder);
 
         when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(false);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
 
         // Act
@@ -355,7 +356,7 @@ class OrderHandlerTest {
         orderHandler.getActiveOrders().add(activeOrder);
 
         when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(true);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
         doThrow(new RuntimeException()).when(fileUtils).logCompletedOrder(any(ActiveOrder.class));
 
@@ -387,7 +388,7 @@ class OrderHandlerTest {
         orderHandler.getActiveOrders().add(activeOrder);
 
         when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(true);
-        when(instrumentCache.getSymbol(1L)).thenReturn("TEST_SYMBOL");
+        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
         doThrow(new RuntimeException()).when(fileUtils).logCompletedOrder(any(ActiveOrder.class));
 

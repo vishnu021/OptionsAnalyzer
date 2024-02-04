@@ -3,7 +3,7 @@ package com.vish.fno.manage.helper;
 import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.order.OpenOrder;
-import com.vish.fno.reader.helper.InstrumentCache;
+import com.vish.fno.reader.service.KiteService;
 import com.zerodhatech.models.Tick;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,11 +22,11 @@ public final class OpenOrderVerifier {
     private static final String ORDER_EXECUTED = "orderExecuted";
     private static final List<String> allowedSymbols = List.of(NIFTY_BANK, NIFTY_50, "HINDUNILVR", "BAJFINANCE");
     private double availableCash;
-    private final InstrumentCache instrumentCache;
+    private final KiteService kiteService;
 
-    public OpenOrderVerifier(OrderConfiguration orderConfiguration, InstrumentCache instrumentCache) {
+    public OpenOrderVerifier(OrderConfiguration orderConfiguration, KiteService kiteService) {
         this.availableCash = orderConfiguration.getAvailableCash();
-        this.instrumentCache = instrumentCache;
+        this.kiteService = kiteService;
     }
 
     public Optional<OpenOrder> checkEntryInOpenOrders(Tick tick, List<OpenOrder> openOrders, List<ActiveOrder> activeOrders) {
@@ -34,7 +34,7 @@ public final class OpenOrderVerifier {
             return Optional.empty();
         }
 
-        String tickSymbol = instrumentCache.getSymbol(tick.getInstrumentToken());
+        String tickSymbol = kiteService.getSymbol(tick.getInstrumentToken());
         List<OpenOrder> tickSymbolOrders = openOrders
                 .stream()
                 .filter(e -> e.getIndex().contentEquals(tickSymbol) && isNotInActiveOrders(activeOrders, e))
@@ -111,7 +111,9 @@ public final class OpenOrderVerifier {
         boolean isNotInActiveOrder = activeOrders
                 .stream()
                 .noneMatch(a -> a.getTag().equalsIgnoreCase(tickOpenOrder.getTag()) && a.getIndex().equalsIgnoreCase(tickOpenOrder.getIndex()));
-        log.info("Already an active order present for symbol: {}, open order : {}", tickOpenOrder.getIndex(), tickOpenOrder);
+        if(!isNotInActiveOrder) {
+            log.info("Already an active order present for symbol: {}, open order : {}", tickOpenOrder.getIndex(), tickOpenOrder);
+        }
         return isNotInActiveOrder;
     }
 

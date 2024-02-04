@@ -2,8 +2,6 @@ package com.vish.fno.manage.config.kite;
 
 import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.reader.exception.InitialisationException;
-import com.vish.fno.reader.helper.InstrumentCache;
-import com.vish.fno.reader.service.HistoricalDataService;
 import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.manage.util.BrowserLauncher;
 import com.vish.fno.manage.util.ConsoleAuthenticator;
@@ -51,19 +49,13 @@ public class KiteClientConfiguration {
 
     @Bean
     public KiteService kiteService(@Value("${order.placeOrders}") boolean placeOrders,
-                                   @Value("${order.connectToWebSocket}") boolean connectToWebSocket) {
-        return new KiteService(kiteClientProperties.getApiSecret(), kiteClientProperties.getApiKey(),
-                kiteClientProperties.getUserId(), placeOrders, connectToWebSocket);
-    }
-
-    @Bean
-    public HistoricalDataService historyService(KiteService kiteService) {
-        return new HistoricalDataService(kiteService);
-    }
-
-    @Bean
-    public InstrumentCache dataCache(OrderConfiguration orderConfiguration, KiteService kiteService) {
-        return new InstrumentCache(getNifty100Stocks(orderConfiguration), kiteService);
+                                   @Value("${order.connectToWebSocket}") boolean connectToWebSocket,
+                                   OrderConfiguration orderConfiguration) {
+        return new KiteService(kiteClientProperties.getApiSecret(),
+                kiteClientProperties.getApiKey(),
+                kiteClientProperties.getUserId(),
+                getNifty100Stocks(orderConfiguration),
+                placeOrders, connectToWebSocket);
     }
 
     private List<String> getNifty100Stocks(OrderConfiguration orderConfiguration) {

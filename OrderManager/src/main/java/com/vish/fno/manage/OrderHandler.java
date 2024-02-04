@@ -2,7 +2,6 @@ package com.vish.fno.manage;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.vish.fno.manage.config.order.OrderConfiguration;
-import com.vish.fno.reader.helper.InstrumentCache;
 import com.vish.fno.manage.helper.OpenOrderVerifier;
 import com.vish.fno.manage.helper.StopLossAndTargetHandler;
 import com.vish.fno.manage.helper.TimeProvider;
@@ -20,15 +19,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.LooseCoupling"})
+@SuppressWarnings({"PMD.AvoidCatchingGenericException"})
 public class OrderHandler {
     private final KiteService kiteService;
-    private final InstrumentCache instrumentCache;
     private final OrderConfiguration orderConfiguration;
     private final FileUtils fileUtils;
     private final TimeProvider timeProvider;
@@ -50,10 +47,8 @@ public class OrderHandler {
         };
 
         kiteService.setOnTickerArrivalListener(onTickerArrivalListener);
-        final ArrayList<Long> initialTokens = Arrays.stream(orderConfiguration.getWebSocketDefaultSymbols())
-                .map(instrumentCache::getInstrument)
-                .collect(Collectors.toCollection(ArrayList::new));
-        kiteService.appendWebSocketTokensList(initialTokens);
+        final List<String> initialSymbols = Arrays.stream(orderConfiguration.getWebSocketDefaultSymbols()).toList();
+        kiteService.appendWebSocketSymbolsList(initialSymbols);
     }
 
     public void appendOpenOrder(OpenOrder order) {
@@ -65,10 +60,11 @@ public class OrderHandler {
     }
 
     @VisibleForTesting
+    @SuppressWarnings({"PMD.LooseCoupling"})
     void handleTicks(ArrayList<Tick> ticks) {
         for(Tick tick: ticks) {
             try {
-                String tickSymbol = instrumentCache.getSymbol(tick.getInstrumentToken());
+                String tickSymbol = kiteService.getSymbol(tick.getInstrumentToken());
                 latestTickPrices.put(tickSymbol, new Pair<>(tick.getTickTimestamp(), tick.getLastTradedPrice()));
                 Optional<ActiveOrder> orderToSell = stopLossAndTargetHandler.getActiveOrderToSell(tick, activeOrders);
                 orderToSell.ifPresent(order -> sellOrder(tick, order));
@@ -95,10 +91,7 @@ public class OrderHandler {
     }
 
     private void addTokenToWebsocket(OpenOrder order) {
-        ArrayList<Long> newToken = new ArrayList<>();
-        newToken.add(instrumentCache.getInstrument(order.getIndex()));
-        newToken.add(instrumentCache.getInstrument(order.getOptionSymbol()));
-        kiteService.appendWebSocketTokensList(newToken);
+        kiteService.appendWebSocketSymbolsList(List.of(order.getIndex(), order.getOptionSymbol()));
     }
 
     private void sellOrder(Tick tick, ActiveOrder order) {

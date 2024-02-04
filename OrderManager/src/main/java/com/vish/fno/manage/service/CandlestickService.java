@@ -3,13 +3,12 @@ package com.vish.fno.manage.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vish.fno.manage.dao.CandlestickRepository;
-import com.vish.fno.reader.helper.InstrumentCache;
 import com.vish.fno.manage.model.ApexChart;
 import com.vish.fno.manage.model.ApexChartSeries;
+import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.model.Candle;
 import com.vish.fno.model.SymbolData;
-import com.vish.fno.reader.service.HistoricalDataService;
 import com.vish.fno.technical.indicators.ma.ExponentialMovingAverage;
 import com.vish.fno.technical.util.TimeFrameUtils;
 import com.vish.fno.util.TimeUtils;
@@ -33,25 +32,17 @@ import static com.vish.fno.util.Constants.*;
 @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidThrowingRawExceptionTypes"})
 public class CandlestickService {
     private final CandlestickRepository candlestickRepository;
-    private final InstrumentCache cache;
     private final FileUtils fileUtils;
-    private final HistoricalDataService historicalDataService;
+    private final KiteService kiteService;
 
     public Optional<SymbolData> getEntireDayHistoryData(String date, String symbol) {
         return getEntireDayHistoryData(date, symbol, "minute");
     }
 
     public Optional<List<Candle>> getHistoryData(String from, String to, String symbol, String interval) {
-        String instrument = cache.getInstrumentForSymbol(symbol);
-
-        if(instrument==null) {
-            log.warn("No instrument available for symbol {}", symbol);
-            return Optional.empty();
-        }
-
         Date fromDate = TimeUtils.appendOpeningTimeToDate(TimeUtils.getDateObject(from));
         Date toDate = TimeUtils.appendClosingTimeToDate(TimeUtils.getDateObject(to));
-        HistoricalData data =  historicalDataService.getHistoricalData(fromDate, toDate, instrument, interval, false);
+        HistoricalData data =  kiteService.getHistoricalData(fromDate, toDate, symbol, interval, false);
         try {
             log.info("hist data : {}", new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(data));
         } catch (JsonProcessingException e) {
@@ -102,7 +93,7 @@ public class CandlestickService {
             log.warn("Unable to calculate EMA {}", e.getMessage());
         }
 
-        String instrument = cache.getInstrumentForSymbol(symbol);
+        String instrument = String.valueOf(kiteService.getInstrument(symbol));
         return new ApexChart(date, symbol, instrument, symbolData.getData().size(), seriesCharts, getBarCharts(symbolData));
     }
 
@@ -113,16 +104,9 @@ public class CandlestickService {
     }
 
     private Optional<SymbolData> getCandlestickData(String date, String symbol, String interval) {
-        String instrument = cache.getInstrumentForSymbol(symbol);
-
-        if(instrument==null) {
-            log.warn("No instrument available for symbol {}", symbol);
-            return Optional.empty();
-        }
-
         return candlestickRepository.findByRecordDateAndRecordSymbol(date, symbol)
                 .filter(candle -> candle.getData() != null && candle.getData().size() >= 375)
-                .or(() -> getCandlesticksFromBroker(symbol, date, interval, instrument))
+                .or(() -> getCandlesticksFromBroker(symbol, date, interval))
                 .map(candle -> {
                     fileUtils.saveCandlestickData(candle.getData(), symbol, date);
                     candlestickRepository.save(candle);
@@ -131,13 +115,12 @@ public class CandlestickService {
     }
 
     @NotNull
-    public Optional<SymbolData> getCandlesticksFromBroker(String symbol, String date, String interval, String instrument) {
-
+    public Optional<SymbolData> getCandlesticksFromBroker(String symbol, String date, String interval) {
         Date lastTradingDay = TimeUtils.getDateObject(date);
         Date fromDate = TimeUtils.appendOpeningTimeToDate(lastTradingDay);
         Date toDate = TimeUtils.appendClosingTimeToDate(lastTradingDay);
 
-        HistoricalData data = historicalDataService.getEntireDayHistoricalData(fromDate, toDate , instrument, interval);
+        HistoricalData data = kiteService.getEntireDayHistoricalData(fromDate, toDate , symbol, interval);
         if (data == null) {
             log.warn("No data available for symbol : {} and date: {}", symbol, date);
             return Optional.empty();

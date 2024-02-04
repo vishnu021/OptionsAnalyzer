@@ -13,6 +13,7 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,8 @@ public class KiteService {
     private final KiteConnect kiteSdk;
     private final String apiSecret;
     private final boolean placeOrders;
+    private final InstrumentCache instrumentCache;
+    private final HistoricalDataService historicalDataService;
     @Getter
     private boolean initialised = false;
     private final boolean connectToWebSocket;
@@ -36,19 +39,39 @@ public class KiteService {
     private OnTicks onTickerArrivalListener;
     private final ArrayList<Long> webSocketTokensToSubscribe;
 
-    public KiteService(String apiSecret, String apiKey, String userId, boolean placeOrders, boolean connectToWebSocket) {
+    public KiteService(String apiSecret,
+                       String apiKey,
+                       String userId,
+                       List<String> nifty100Symbols,
+                       boolean placeOrders,
+                       boolean connectToWebSocket) {
         this.kiteSdk = kiteSdk(apiKey, userId);
         this.apiSecret = apiSecret;
         this.placeOrders = placeOrders;
         this.connectToWebSocket = connectToWebSocket;
+        this.historicalDataService = new HistoricalDataService(this);
+        this.instrumentCache = new InstrumentCache(nifty100Symbols, this);
         this.webSocketTokensToSubscribe = new ArrayList<>();
     }
 
-    private KiteConnect kiteSdk(String apiKey, String userId) {
-        KiteConnect kiteConnect = new KiteConnect(apiKey, true);
-        kiteConnect.setUserId(userId);
-        kiteConnect.setSessionExpiryHook(() -> log.info("session expired"));
-        return kiteConnect;
+    public HistoricalData getEntireDayHistoricalData(Date fromDate, Date toDate, String symbol, String interval) {
+        return historicalDataService.getEntireDayHistoricalData(fromDate, toDate, symbol, interval);
+    }
+
+    public HistoricalData getHistoricalData(Date from, Date to, String symbol, String interval, boolean continuous) {
+        return historicalDataService.getHistoricalData(from, to, symbol, interval, continuous);
+    }
+
+    public String getITMStock(String indexSymbol, double price, boolean isCall) {
+        return OptionPriceUtils.getITMStock(indexSymbol, price, isCall, instrumentCache.getInstruments());
+    }
+
+    public Long getInstrument(String symbol) {
+        return instrumentCache.getInstrument(symbol);
+    }
+
+    public String getSymbol(long token) {
+        return instrumentCache.getSymbol(token);
     }
 
     public void authenticate(String requestToken) {
@@ -67,11 +90,15 @@ public class KiteService {
         }
     }
 
-    public void appendWebSocketTokensList(ArrayList<Long> newTokens) {
-        List<Long> webSocketsToAdd = newTokens.stream().filter(t -> !webSocketTokensToSubscribe.contains(t)).toList();
+    public void appendWebSocketSymbolsList(List<String> newSymbols) {
+        List<Long> webSocketsToAdd = newSymbols
+                .stream()
+                .map(this::getInstrument)
+                .filter(t -> !webSocketTokensToSubscribe.contains(t))
+                .toList();
 
         if(!webSocketsToAdd.isEmpty()) {
-            log.info("Appending instruments: {} to websocket token list", newTokens);
+            log.info("Appending symbols: {} to websocket token list", newSymbols);
             webSocketTokensToSubscribe.addAll(webSocketsToAdd);
             if(this.kiteWebSocket != null) {
                 this.kiteWebSocket.subscribe(webSocketTokensToSubscribe);
@@ -79,22 +106,7 @@ public class KiteService {
         }
     }
 
-    private void initialiseWebSocket() {
-        if(connectToWebSocket) {
-            log.debug("Initialising websocket...");
-            this.kiteWebSocket = new KiteWebSocket(kiteSdk, onTickerArrivalListener);
-            if(!webSocketTokensToSubscribe.isEmpty()) {
-                log.info("Adding websocketTokens");
-                this.kiteWebSocket.subscribe(webSocketTokensToSubscribe);
-            }
-        }
-    }
-
-    private void addSessionExpiryHook() {
-        kiteSdk.setSessionExpiryHook(() -> log.info("kite session expired"));
-    }
-
-    public List<Instrument> getAllInstruments() {
+    List<Instrument> getAllInstruments() {
         List<Instrument> instruments = null;
         try {
             instruments = kiteSdk.getInstruments();
@@ -104,6 +116,7 @@ public class KiteService {
         }
         return instruments;
     }
+
     public void logOpenOrders() {
         try {
             List<Order> orders = kiteSdk.getOrders();
@@ -112,6 +125,7 @@ public class KiteService {
             log.error("Failed to load instruments from Kite server", e);
         }
     }
+
     public void logOpenPositions() {
         try {
             Map<String, List<Position>> orders = kiteSdk.getPositions();
@@ -170,5 +184,27 @@ public class KiteService {
             return false;
         }
         return true;
+    }
+
+    private KiteConnect kiteSdk(String apiKey, String userId) {
+        KiteConnect kiteConnect = new KiteConnect(apiKey, true);
+        kiteConnect.setUserId(userId);
+        kiteConnect.setSessionExpiryHook(() -> log.info("session expired"));
+        return kiteConnect;
+    }
+
+    private void initialiseWebSocket() {
+        if(connectToWebSocket) {
+            log.debug("Initialising websocket...");
+            this.kiteWebSocket = new KiteWebSocket(kiteSdk, onTickerArrivalListener);
+            if(!webSocketTokensToSubscribe.isEmpty()) {
+                log.info("Adding websocketTokens");
+                this.kiteWebSocket.subscribe(webSocketTokensToSubscribe);
+            }
+        }
+    }
+
+    private void addSessionExpiryHook() {
+        kiteSdk.setSessionExpiryHook(() -> log.info("kite session expired"));
     }
 }
