@@ -1,9 +1,8 @@
-package com.vish.fno.manage.util;
+package com.vish.fno.manage.service;
 
 import com.vish.fno.manage.config.kite.KiteClientConfiguration;
 import com.vish.fno.manage.dao.OptionsRepository;
-import com.vish.fno.manage.helper.DataCache;
-import com.vish.fno.manage.service.CandlestickService;
+import com.vish.fno.reader.helper.InstrumentCache;
 import com.vish.fno.model.OptionMetaData;
 import com.vish.fno.model.OptionSymbolData;
 import com.vish.fno.model.SymbolData;
@@ -21,14 +20,14 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ArchiverService {
 
-    private final DataCache dataCache;
+    private final InstrumentCache instrumentCache;
     private final KiteClientConfiguration kiteClientConfiguration;
     private final CandlestickService candlestickService;
     private final OptionsRepository optionsRepository;
 
     public void getAllNiftyOptions() {
 
-        List<Instrument> filteredInstruments = dataCache.getInstruments();
+        List<Instrument> filteredInstruments = instrumentCache.getInstruments();
 
         Map<String, Integer> optionIndicesMap = Map.of("NIFTY", Calendar.THURSDAY, "BANKNIFTY", Calendar.THURSDAY, "FINNIFTY", Calendar.TUESDAY);
         log.info("getHolidays : {}", kiteClientConfiguration.getHolidays());

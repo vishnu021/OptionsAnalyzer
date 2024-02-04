@@ -10,8 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 
+import static com.vish.fno.reader.util.KiteUtils.getFormattedOrder;
+
 @Slf4j
-@SuppressWarnings({"PMD.RedundantFieldInitializer", "PMD.LooseCoupling"})
+@SuppressWarnings({"PMD.RedundantFieldInitializer", "PMD.LooseCoupling", "PMD.AvoidCatchingGenericException"})
 public class KiteWebSocket {
     private final KiteTicker tickerProvider;
     private final ArrayList<Long> defaultTokens;
@@ -38,7 +40,6 @@ public class KiteWebSocket {
         tickerProvider.setMode(defaultTokens, KiteTicker.modeLTP);
     }
 
-
     private void addWebSocketListeners(ArrayList<Long> tokens, OnTicks onTickerArrivalListener) {
         tickerProvider.setOnConnectedListener(() -> {
             /* Subscribe ticks for token.
@@ -51,9 +52,7 @@ public class KiteWebSocket {
         tickerProvider.setOnDisconnectedListener(() -> log.info("disconnected"));
 
         /* Set listener to get order updates.*/
-        tickerProvider.setOnOrderUpdateListener(order -> log.info("order update {}", order.orderId));
-
-
+        tickerProvider.setOnOrderUpdateListener(order -> log.info("Order update complete : {}", getFormattedOrder(order)));
         tickerProvider.setOnTickerArrivalListener(onTickerArrivalListener);
 
         tickerProvider.setTryReconnection(true);

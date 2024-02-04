@@ -4,12 +4,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.vish.fno.util.TimeUtils.getStringDate;
-import static com.vish.fno.util.TimeUtils.timeArray;
-import static com.vish.fno.util.Utils.round;
+import static com.vish.fno.model.util.ModelUtils.getStringDate;
+import static com.vish.fno.model.util.ModelUtils.round;
 
 @Getter
 @Setter
@@ -41,6 +41,14 @@ public class ActiveIndexOrder implements ActiveOrder {
         setActive(false);
         setExitTimeStamp(timestamp);
         setSellPrice(closePrice);
+    }
+
+    @Override
+    public void appendExtraData(String key, String value) {
+        if(extraData == null) {
+            extraData = new HashMap<>();
+        }
+        extraData.put(key, value);
     }
 
     public ActiveIndexOrder(OpenIndexOrder openOrder, double buyPrice, int timestamp) {
@@ -113,10 +121,10 @@ public class ActiveIndexOrder implements ActiveOrder {
         sb.append(index)
                 .append(',')
                 .append(' ').append(getStringDate(date))
-                .append(' ').append(timeArray.get(entryTimeStamp))
+                .append(' ').append(entryTimeStamp)
                 .append(',')
                 .append(' ').append(getStringDate(date))
-                .append(' ').append(timeArray.get(exitTimeStamp))
+                .append(' ').append(exitTimeStamp)
                 .append(',')
                 .append(' ').append(round(buyThreshold))
                 .append(',')
@@ -158,8 +166,8 @@ public class ActiveIndexOrder implements ActiveOrder {
         final StringBuilder sb = new StringBuilder(estimated_buffer_size);
         sb.append("OrderLog{")
                 .append("index='").append(index).append("'")
-                .append(",\tentry=").append(getStringDate(date)).append(" ").append(timeArray.get(entryTimeStamp))
-                .append(",\texit=").append(timeArray.get(exitTimeStamp))
+                .append(",\tentry=").append(getStringDate(date)).append(" ").append(entryTimeStamp)
+                .append(",\texit=").append(exitTimeStamp)
                 .append(",\tbuy=").append(round(buyPrice))
                 .append(",\ttarget=").append(round(target))
                 .append(",\tsell=").append(round(sellPrice))

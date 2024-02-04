@@ -3,10 +3,10 @@ package com.vish.fno.manage.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vish.fno.manage.dao.CandlestickRepository;
-import com.vish.fno.manage.helper.DataCache;
+import com.vish.fno.reader.helper.InstrumentCache;
 import com.vish.fno.manage.model.ApexChart;
 import com.vish.fno.manage.model.ApexChartSeries;
-import com.vish.fno.manage.util.FileUtils;
+import com.vish.fno.util.FileUtils;
 import com.vish.fno.model.Candle;
 import com.vish.fno.model.SymbolData;
 import com.vish.fno.reader.service.HistoricalDataService;
@@ -33,7 +33,7 @@ import static com.vish.fno.util.Constants.*;
 @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidThrowingRawExceptionTypes"})
 public class CandlestickService {
     private final CandlestickRepository candlestickRepository;
-    private final DataCache cache;
+    private final InstrumentCache cache;
     private final FileUtils fileUtils;
     private final HistoricalDataService historicalDataService;
 
@@ -132,7 +132,12 @@ public class CandlestickService {
 
     @NotNull
     public Optional<SymbolData> getCandlesticksFromBroker(String symbol, String date, String interval, String instrument) {
-        HistoricalData data = historicalDataService.getEntireDayHistoricalData(date, instrument, interval);
+
+        Date lastTradingDay = TimeUtils.getDateObject(date);
+        Date fromDate = TimeUtils.appendOpeningTimeToDate(lastTradingDay);
+        Date toDate = TimeUtils.appendClosingTimeToDate(lastTradingDay);
+
+        HistoricalData data = historicalDataService.getEntireDayHistoricalData(fromDate, toDate , instrument, interval);
         if (data == null) {
             log.warn("No data available for symbol : {} and date: {}", symbol, date);
             return Optional.empty();

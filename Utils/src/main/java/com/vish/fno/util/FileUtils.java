@@ -1,19 +1,15 @@
-package com.vish.fno.manage.util;
+package com.vish.fno.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vish.fno.model.Candle;
 import com.vish.fno.model.order.ActiveOrder;
-import com.vish.fno.util.Constants;
-import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.Instrument;
 import com.zerodhatech.models.Tick;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -21,38 +17,21 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Slf4j
-@Component
 @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.AvoidCatchingGenericException"})
-public class FileUtils implements Constants {
+public final class FileUtils implements Constants {
 
     private static final String CANDLESTICK_PATH = "data";
 
-    protected ObjectMapper indentedMapper = new ObjectMapper();
-    protected ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper indentedMapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
     String filePath = Paths.get(".").normalize().toAbsolutePath() + "\\" + directory + "\\";
     String tickPath = Paths.get(".").normalize().toAbsolutePath() + "\\" + tick_directory + "\\";
     int bufferLength;
 
-    @PostConstruct
-    public void initialise() {
+    public FileUtils() {
         indentedMapper.enable(SerializationFeature.INDENT_OUTPUT);
         bufferLength = 0;
         createDirectoryIfNotExist(filePath);
-    }
-
-    public void saveInstrumentCache(List<Instrument> instruments) {
-        try {
-            indentedMapper.writeValue(new File(filePath + getInstrumentFileName(0)), instruments);
-        } catch (IOException e) {
-            log.error("",e);
-        }
-    }
-    public void saveFilteredInstrumentCache(Object instruments) {
-        try {
-            indentedMapper.writeValue(new File(filePath + "filtered_" + getInstrumentFileName(0)), instruments);
-        } catch (IOException e) {
-            log.error("Failed to save instrument cache.", e);
-        }
     }
 
     public void saveCandlestickData(List<Candle> candles, String symbol, String date) {
@@ -65,18 +44,7 @@ public class FileUtils implements Constants {
         }
     }
 
-    public List<Instrument> loadInstrumentCache(int days) {
-        List<Instrument> instruments = null;
-        String instrumentFileName = getInstrumentFileName(days);
-        try {
-            instruments = indentedMapper.readValue(new File(getInstrumentFileName(days)),
-                    indentedMapper.getTypeFactory().constructCollectionType(List.class, Instrument.class));
-            log.info("Loaded instrument cache from file " + instrumentFileName);
-        } catch (IOException e) {
-            log.error("Instrument file not yet created");
-        }
-        return instruments;
-    }
+
 
     public void createDirectoryIfNotExist(String path) {
         try {
@@ -126,9 +94,6 @@ public class FileUtils implements Constants {
     private String getFormattedDate(Date date) {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(date);
     }
-    private String getInstrumentFileName(int days) {
-        return "instruments_" + getFormattedDate(TimeUtils.getNDaysBefore(days)) + ".json";
-    }
 
     public void logCompletedOrder(ActiveOrder order) {
         try {
@@ -155,32 +120,8 @@ public class FileUtils implements Constants {
     @NotNull
     private ObjectMapper getMapper() {
         ObjectMapper mapper = new ObjectMapper();
-//        SimpleModule module = new SimpleModule();
-//        module.addSerializer(Double.class, new CustomDoubleSerializer());
-//        module.addSerializer(Float.class, new CustomFloatSerializer());
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.ENGLISH);
         mapper.setDateFormat(dateFormat);
-
-//        mapper.registerModule(module);
         return mapper;
     }
-
-//    static class CustomDoubleSerializer extends JsonSerializer<Double> {
-//        @Override
-//        public void serialize(Double value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-//            if (value != null) {
-//                gen.writeNumber(BigDecimal.valueOf(value).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
-//            }
-//        }
-//    }
-//
-//    static class CustomFloatSerializer extends JsonSerializer<Float> {
-//
-//        @Override
-//        public void serialize(Float aFloat, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-//            if (aFloat != null) {
-//                jsonGenerator.writeNumber(BigDecimal.valueOf(aFloat).setScale(2, BigDecimal.ROUND_HALF_UP).floatValue());
-//            }
-//        }
-//    }
 }

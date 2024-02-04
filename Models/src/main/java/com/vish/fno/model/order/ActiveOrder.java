@@ -1,6 +1,7 @@
 package com.vish.fno.model.order;
 
 import java.util.Date;
+import java.util.Map;
 
 public interface ActiveOrder {
 
@@ -28,5 +29,7 @@ public interface ActiveOrder {
     String orderLog();
     void setActive(boolean active);
     void closeOrder(double closePrice, int timestamp);
+    Map<String, String> getExtraData();
+    void appendExtraData(String key, String value);
 
 }

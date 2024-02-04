@@ -32,14 +32,8 @@ public final class Utils {
         return format(round(price));
     }
 
-//    public static float round(double price) {
-//        return ((float) Math.round(price * 100)) / 100;
-//    }
     public static double round(double price) {
         return Math.round(price / 0.05) * 0.05;
     }
 
-//    public static double roundToNearestFiveCents(double value) {
-//        return Math.round(value / 0.05) * 0.05;
-//    }
 }

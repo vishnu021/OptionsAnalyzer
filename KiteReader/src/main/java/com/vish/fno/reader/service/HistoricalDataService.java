@@ -1,6 +1,5 @@
 package com.vish.fno.reader.service;
 
-import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.kiteconnect.KiteConnect;
 import com.zerodhatech.kiteconnect.kitehttp.exceptions.KiteException;
 import com.zerodhatech.models.HistoricalData;
@@ -18,10 +17,7 @@ public class HistoricalDataService {
         this.kiteSdk = KiteService.getKiteSdk();
     }
 
-    public HistoricalData getEntireDayHistoricalData(String date, String token, String interval) {
-        Date lastTradingDay = TimeUtils.getDateObject(date);
-        Date fromDate = TimeUtils.appendOpeningTimeToDate(lastTradingDay);
-        Date toDate = TimeUtils.appendClosingTimeToDate(lastTradingDay);
+    public HistoricalData getEntireDayHistoricalData(Date fromDate, Date toDate, String token, String interval) {
         return getHistoricalData(fromDate, toDate, token, interval, false);
     }
 

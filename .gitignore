@@ -35,12 +35,10 @@ build/
 ### Additional ###
 .mvn
 logs
-OrderManager/src/main/resources/instrument_cache
 instrument_cache/
 *.p12
 Technicals/src/test/resources/RELIANCE_2023_03_10/
 Simulator/
-OrderManager/src/main/resources/data/
 options-analyzer-ui/package-lock.json
 
 
@@ -67,8 +65,11 @@ options-analyzer-ui/npm-debug.log*
 options-analyzer-ui/yarn-debug.log*
 options-analyzer-ui/yarn-error.log*
 options-analyzer-ui/node/
+
 OrderManager/options-analyzer-ui/node/
+OrderManager/src/main/resources/data/
+OrderManager/src/main/resources/instrument_cache
 OrderManager/src/main/resources/static/
+OrderManager/src/main/resources/tick/
 OrderManager/src/main/java/com/vish/fno/manage/malgos/
 OrderManager/src/main/java/com/vish/fno/manage/strategy/
-OrderManager/src/main/resources/tick/

@@ -1,6 +1,7 @@
 package com.vish.fno.manage;
 
-import com.vish.fno.manage.helper.DataCache;
+import com.vish.fno.manage.util.OptionPriceUtils;
+import com.vish.fno.reader.helper.InstrumentCache;
 import com.vish.fno.manage.helper.TimeProvider;
 import com.vish.fno.manage.service.CandlestickService;
 import com.vish.fno.model.Candle;
@@ -28,7 +29,7 @@ public class StrategyExecutor {
 
     private final CandlestickService candlestickService;
     private final OrderHandler orderHandler;
-    private final DataCache dataCache;
+    private final InstrumentCache instrumentCache;
     private final List<Strategy> activeStrategies;
     @Getter
     private final List<String> symbolList;
@@ -81,7 +82,7 @@ public class StrategyExecutor {
         } else {
             Optional<? extends OpenOrder> indexOrderOptional = strategy.test(candlesCache.get(symbol), timestampIndex);
             indexOrderOptional.ifPresent(o -> {
-                String itmOptionSymbol = dataCache.getITMStock(o.getIndex(), o.getBuyThreshold(), o.isCallOrder());
+                String itmOptionSymbol = OptionPriceUtils.getITMStock(o.getIndex(), o.getBuyThreshold(), o.isCallOrder(), instrumentCache.getInstruments());
                 o.setOptionSymbol(itmOptionSymbol);
                 orderHandler.appendOpenOrder(o);
             });

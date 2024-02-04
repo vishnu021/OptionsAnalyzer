@@ -14,8 +14,11 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import static com.vish.fno.reader.util.OrderUtils.createOrderWithParameters;
+import static com.vish.fno.reader.util.KiteUtils.getFormattedObject;
+import static com.vish.fno.reader.util.KiteUtils.getFormattedOrderParams;
+import static com.vish.fno.reader.util.OrderUtils.createMarketOrderWithParameters;
 
 @Slf4j
 @SuppressWarnings({"PMD.RedundantFieldInitializer", "PMD.LooseCoupling"})
@@ -101,29 +104,68 @@ public class KiteService {
         }
         return instruments;
     }
+    public void logOpenOrders() {
+        try {
+            List<Order> orders = kiteSdk.getOrders();
+            log.info("Loaded orders from Kite server : {}", getFormattedObject(orders));
+        } catch (JSONException | IOException | KiteException e) {
+            log.error("Failed to load instruments from Kite server", e);
+        }
+    }
+    public void logOpenPositions() {
+        try {
+            Map<String, List<Position>> orders = kiteSdk.getPositions();
+            log.info("Loaded positions from Kite server : {}", getFormattedObject(orders));
+        } catch (KiteException | JSONException | IOException e) {
+            log.error("Failed to load instruments from Kite server", e);
+        }
+    }
 
-    public boolean buyOrder(String symbol, double price, int orderSize, String tag, boolean isPlaceOrder) {
-        log.info("Creating buy order with quantity : {}, symbol : {}, price : {} , isPlaceOrder: {}", orderSize, symbol, price, isPlaceOrder);
-        return placeOrder(symbol, price, orderSize, tag, Constants.TRANSACTION_TYPE_BUY, isPlaceOrder);
+    public Order placeOptionOrder(OrderParams orderParams) {
+        Order order = null;
+        try {
+            log.info("placing order with params : {}", orderParams);
+            order = kiteSdk.placeOrder(orderParams, Constants.VARIETY_REGULAR);
+            log.info("order id: {}", order.orderId);
+        } catch (KiteException ke) {
+            log.error("KiteException occurred while placing order, code: {}, message: {}, order: {}",
+                    ke.code, ke.message, getFormattedOrderParams(orderParams), ke);
+        } catch (JSONException | IOException e) {
+            log.error("Error occurred while placing order", e);
+        }
+        return order;
+    }
+
+    public boolean buyOrder(String symbol, int orderSize, String tag, boolean isPlaceOrder) {
+        log.info("Creating buy order with quantity : {}, symbol : {} , isPlaceOrder: {}", orderSize, symbol, isPlaceOrder);
+        return placeOrder(symbol, orderSize, tag, Constants.TRANSACTION_TYPE_BUY, isPlaceOrder);
     }
 
     // TODO: verify there is an existing order before placing a sell order
     public boolean sellOrder(String symbol, double price, int orderSize, String tag, boolean isPlaceOrder) {
         log.info("Creating sell order with quantity : {}, symbol : {}, price : {} ", orderSize, symbol, price);
-        return placeOrder(symbol, price, orderSize, tag, Constants.TRANSACTION_TYPE_SELL, isPlaceOrder);
+        return placeOrder(symbol, orderSize, tag, Constants.TRANSACTION_TYPE_SELL, isPlaceOrder);
     }
 
-    private boolean placeOrder(String symbol, double price, int orderSize, String tag, String transactionType, boolean isPlaceOrder) {
+    private boolean placeOrder(String symbol, int orderSize, String tag, String transactionType, boolean isPlaceOrder) {
+        if(!isInitialised()) {
+            log.warn("Not placing order as the kite service is not initialized yet.");
+            return false;
+        }
+
         if (!(placeOrders && isPlaceOrder)) {
-            log.error("Not placing orders as it is turned off by configuration");
+            log.warn("Not placing orders as it is turned off by configuration");
             return true;
         }
 
         try {
-            OrderParams orderParams = createOrderWithParameters(symbol, price, orderSize, transactionType, tag);
+            OrderParams orderParams = createMarketOrderWithParameters(symbol, orderSize, transactionType, tag);
             Order order = kiteSdk.placeOrder(orderParams, Constants.VARIETY_REGULAR);
-            log.debug("order id : {}", order.orderId);
-        } catch (JSONException | IOException | KiteException e) {
+            log.debug("order placed successfully with id: {}", order.orderId);
+        } catch (KiteException e) {
+            log.error("KiteException occurred while placing order, code: {}, message: {}", e.code, e.message);
+            return false;
+        } catch (JSONException | IOException e) {
             log.error("Error occurred while placing order", e);
             return false;
         }

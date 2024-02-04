@@ -8,11 +8,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderUtils {
 
-    public static OrderParams createOrderWithParameters(String symbol,
-                                                        double price,
-                                                        int orderSize,
-                                                        String transactionType,
-                                                        String tag) {
+    /*https://zerodha.com/marketintel/bulletin/305785/stop-loss-market-sl-m-orders-blocked-for-index-options*/
+
+    public static OrderParams createMarketOrderWithParameters(String symbol,
+                                                              int orderSize,
+                                                              String transactionType,
+                                                              String tag) {
         OrderParams orderParams = new OrderParams();
         orderParams.quantity = orderSize;
         orderParams.orderType = Constants.ORDER_TYPE_MARKET;
@@ -21,9 +22,8 @@ public class OrderUtils {
         orderParams.exchange = Constants.EXCHANGE_NFO;
         orderParams.validity = Constants.VALIDITY_DAY;
         orderParams.transactionType = transactionType;
-        orderParams.price = price;
-        orderParams.triggerPrice = 0.0;
-        orderParams.tag = tag;
+        orderParams.triggerPrice = 0.0; // order type is market
+        orderParams.tag = tag.substring(0,20); // max tag length is 20
         return orderParams;
     }
 }

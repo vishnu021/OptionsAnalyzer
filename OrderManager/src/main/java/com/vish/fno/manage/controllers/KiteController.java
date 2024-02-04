@@ -1,6 +1,6 @@
 package com.vish.fno.manage.controllers;
 
-import com.vish.fno.manage.helper.DataCache;
+import com.vish.fno.reader.helper.InstrumentCache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,23 +15,23 @@ import java.util.Set;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class KiteController {
-    private final DataCache dataCache;
+    private final InstrumentCache instrumentCache;
 
     @GetMapping("/exchangeSymbols")
     @ResponseStatus(HttpStatus.OK)
     public Map<String, String> exchangeSymbol() {
-        return dataCache.getFilteredSymbols();
+        return instrumentCache.getFilteredSymbols();
     }
 
     @GetMapping("/allInstruments")
     @ResponseStatus(HttpStatus.OK)
     public List<Map<String, String>> allFilteredInstruments() {
-        return dataCache.getAllInstruments();
+        return instrumentCache.getAllInstruments();
     }
 
     @GetMapping("/expiryDates")
     @ResponseStatus(HttpStatus.OK)
     public Set<String> expiryDates() {
-        return dataCache.getExpiryDates();
+        return instrumentCache.getExpiryDates();
     }
 }

@@ -15,10 +15,10 @@ public interface Constants {
     String LINE = "line";
     String BAR = "bar";
 
-    String DATE_FORMAT = "yyyy-MM-dd";
     String DATE_TIME_SEC_T_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
     String DATE_TIME_MS_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
     String DATE_TIME_SEC_FORMAT = "yyyy-MM-dd HH:mm:ss";
     String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
+    String DATE_FORMAT = "yyyy-MM-dd";
     String TIME_FORMAT = "HH:mm";
 }

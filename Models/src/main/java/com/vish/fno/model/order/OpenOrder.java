@@ -6,6 +6,7 @@ public interface OpenOrder {
     String getOptionSymbol();
     void setOptionSymbol(String optionSymbol);
     double getBuyThreshold();
+    double getTarget();
     int getQuantity();
     int getExpirationTimestamp();
     String getTag();

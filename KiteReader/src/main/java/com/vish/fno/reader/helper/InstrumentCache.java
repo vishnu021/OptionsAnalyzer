@@ -1,36 +1,32 @@
-package com.vish.fno.manage.helper;
+package com.vish.fno.reader.helper;
 
-import com.vish.fno.manage.config.order.OrderConfiguration;
-import com.vish.fno.manage.util.FileUtils;
-import com.vish.fno.manage.util.OptionPriceUtils;
 import com.vish.fno.reader.service.KiteService;
-import com.vish.fno.util.TimeUtils;
+import com.vish.fno.reader.util.InstrumentFileUtils;
+import com.vish.fno.reader.util.KiteUtils;
 import com.zerodhatech.models.Instrument;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 
 /*Only focusing on the 100 stocks of nifty 100 and indices*/
 @Slf4j
-@RequiredArgsConstructor
 @SuppressWarnings({"PMD.AvoidThrowingRawExceptionTypes", "PMD.AvoidSynchronizedAtMethodLevel"})
-public class DataCache {
+public class InstrumentCache {
     private final static String NSE = "NSE";
     private final static String NFO = "NFO";
-    private static final String DELIMITER = ",";
 
-    private final OrderConfiguration orderConfiguration;
-    private final FileUtils fileUtils;
     private final KiteService kiteService;
+    private final List<String> nifty100Symbols;
     private List<Instrument> filteredInstruments;
     private Map<String, Long> symbolMap;
     private Map<Long, String> instrumentMap;
+
+    public InstrumentCache(List<String> nifty100Symbols, KiteService kiteService) {
+        this.nifty100Symbols = nifty100Symbols;
+        this.kiteService = kiteService;
+    }
 
     public synchronized List<Instrument> getInstruments() {
 
@@ -39,9 +35,7 @@ public class DataCache {
         }
 
         List<Instrument> allInstruments = kiteService.getAllInstruments();
-        fileUtils.saveInstrumentCache(allInstruments);
-
-        List<String> nifty100Symbols = getNifty100Stocks();
+        InstrumentFileUtils.saveInstrumentCache(allInstruments);
 
         filteredInstruments = allInstruments.stream()
                 .filter(i -> i.getExchange().contentEquals(NSE) || i.getExchange().contentEquals(NFO) && i.expiry != null)
@@ -52,7 +46,7 @@ public class DataCache {
                 .collect(Collectors.toMap(Instrument::getTradingsymbol,
                         Instrument::getInstrument_token, (token, symbol) -> token, TreeMap::new));
 
-        fileUtils.saveFilteredInstrumentCache(symbolMap);
+        InstrumentFileUtils.saveFilteredInstrumentCache(symbolMap);
         log.info("Filtered instrument count : {}", symbolMap.size());
         log.info("Filtered instrument expiry dates: {}", getExpiryDates());
         instrumentMap = symbolMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
@@ -63,7 +57,7 @@ public class DataCache {
         return getInstruments().stream()
                 .map(Instrument::getExpiry)
                 .filter(Objects::nonNull)
-                .map(TimeUtils::getStringDate).collect(Collectors.toSet());
+                .map(KiteUtils::getStringDate).collect(Collectors.toSet());
     }
 
     public Long getInstrument(String script) {
@@ -99,7 +93,7 @@ public class DataCache {
                         Map.of(
                                 "exchange", i.getExchange(),
                                 "symbol", i.getTradingsymbol(),
-                                "expiry", TimeUtils.getStringDate(i.getExpiry()))));
+                                "expiry", KiteUtils.getStringDate(i.getExpiry()))));
         return allInstrumentData;
     }
 
@@ -109,10 +103,6 @@ public class DataCache {
                 .collect(Collectors.toMap(Instrument::getTradingsymbol, Instrument::getName, (k1, k2) ->  k1, LinkedHashMap::new ));
     }
 
-    public String getITMStock(String index, double buyThreshold, boolean callOrder) {
-        return OptionPriceUtils.getITMStock(index, buyThreshold, callOrder, getInstruments());
-    }
-
     public String getInstrumentForSymbol(String symbol) {
         Long instrument = getInstrument(symbol);
         if(instrument == null) {
@@ -120,22 +110,5 @@ public class DataCache {
             return null;
         }
         return String.valueOf(instrument);
-    }
-
-    private List<String> getNifty100Stocks() {
-        List<String> nifty100Symbols = new ArrayList<>();
-        log.info("symbolsPath : {}", orderConfiguration.getSymbolsPath());
-        try (BufferedReader br = new BufferedReader(new FileReader(orderConfiguration.getSymbolsPath()))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(DELIMITER);
-                nifty100Symbols.add(values[2]);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        log.info("Symbols : {}", Arrays.asList(orderConfiguration.getAdditionalSymbols()));
-        nifty100Symbols.addAll(Arrays.asList(orderConfiguration.getAdditionalSymbols()));
-        return nifty100Symbols;
     }
 }

@@ -1,21 +1,18 @@
 package com.vish.fno.manage;
 
-import com.vish.fno.manage.OrderHandler;
-import com.vish.fno.manage.StrategyExecutor;
-import com.vish.fno.manage.helper.DataCache;
 import com.vish.fno.manage.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.service.CandlestickService;
+import com.vish.fno.manage.util.OptionPriceUtils;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.model.SymbolData;
 import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.order.OpenOrder;
+import com.vish.fno.reader.helper.InstrumentCache;
 import com.vish.fno.reader.service.KiteService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,7 +31,7 @@ class StrategyExecutorTest {
     @Mock private KiteService kiteService;
     @Mock private CandlestickService candlestickService;
     @Mock private OrderHandler orderHandler;
-    @Mock private DataCache dataCache;
+    @Mock private InstrumentCache instrumentCache;
     @Mock private Strategy mockStrategy1;
     @Mock private Strategy mockStrategy2;
     @Mock private TimeProvider timeProvider;
@@ -53,7 +50,7 @@ class StrategyExecutorTest {
 
         List<String> symbolList =  activeStrategies.stream().map(s -> s.getTask().getIndex())
                 .collect(Collectors.toCollection(ArrayList::new));
-        strategyExecutor = new StrategyExecutor(kiteService, candlestickService, orderHandler, dataCache, activeStrategies, symbolList, timeProvider);
+        strategyExecutor = new StrategyExecutor(kiteService, candlestickService, orderHandler, instrumentCache, activeStrategies, symbolList, timeProvider);
 
     }
 
@@ -119,84 +116,97 @@ class StrategyExecutorTest {
     @Test
     public void testUpdate_WithinTradingHours_StrategiesTested_returning_openOrder() {
         // Arrange
-        SymbolData mockSymbolData = mock(SymbolData.class);
-        OpenOrder openOrder = mock(OpenOrder.class);
+        try(MockedStatic<OptionPriceUtils> mockedStatic = Mockito.mockStatic(OptionPriceUtils.class)) {
+            mockedStatic.when(() -> OptionPriceUtils.getITMStock(anyString(), anyDouble(), anyBoolean(), anyList())).thenReturn("test_itm_symbol");
 
-        LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
+            SymbolData mockSymbolData = mock(SymbolData.class);
+            OpenOrder openOrder = mock(OpenOrder.class);
 
-        when(timeProvider.now()).thenReturn(mockTime);
-        when(kiteService.isInitialised()).thenReturn(true);
-        when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
-        when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
-        when(dataCache.getITMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("test_itm_symbol");
+            LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
 
-        strategyExecutor.update();
+            when(timeProvider.now()).thenReturn(mockTime);
+            when(kiteService.isInitialised()).thenReturn(true);
+            when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
+            when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
 
-        verify(orderHandler).removeExpiredOpenOrders(anyInt());
-        verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
+            // Act
+            strategyExecutor.update();
 
-        // Verify Strategy.test is called exactly once for each strategy
-        for (Strategy strategy :activeStrategies) {
-            verify(strategy, times(1)).test(anyList(), anyInt());
+            // Assert
+            verify(orderHandler).removeExpiredOpenOrders(anyInt());
+            verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
+
+            // Verify Strategy.test is called exactly once for each strategy
+            for (Strategy strategy : activeStrategies) {
+                verify(strategy, times(1)).test(anyList(), anyInt());
+            }
+            verify(orderHandler, times(1)).appendOpenOrder(any());
         }
-        verify(orderHandler, times(1)).appendOpenOrder(any());
     }
 
     @Test
     public void testUpdate_WithinTradingHours_StrategiesTested_returning_openOrders() {
         // Arrange
-        SymbolData mockSymbolData = mock(SymbolData.class);
-        OpenOrder openOrder = mock(OpenOrder.class);
+        try(MockedStatic<OptionPriceUtils> mockedStatic = Mockito.mockStatic(OptionPriceUtils.class)) {
+            mockedStatic.when(() -> OptionPriceUtils.getITMStock(anyString(), anyDouble(), anyBoolean(), anyList())).thenReturn("test_itm_symbol");
+            SymbolData mockSymbolData = mock(SymbolData.class);
+            OpenOrder openOrder = mock(OpenOrder.class);
 
-        LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
+            LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
 
-        when(timeProvider.now()).thenReturn(mockTime);
-        when(kiteService.isInitialised()).thenReturn(true);
-        when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
-        when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
-        when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
-        when(dataCache.getITMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("test_itm_symbol");
+            when(timeProvider.now()).thenReturn(mockTime);
+            when(kiteService.isInitialised()).thenReturn(true);
+            when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
+            when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
+            when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
 
-        strategyExecutor.update();
+            // Act
+            strategyExecutor.update();
 
-        verify(orderHandler).removeExpiredOpenOrders(anyInt());
-        verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
+            // Assert
+            verify(orderHandler).removeExpiredOpenOrders(anyInt());
+            verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
 
-        // Verify Strategy.test is called exactly once for each strategy
-        for (Strategy strategy :activeStrategies) {
-            verify(strategy, times(1)).test(anyList(), anyInt());
+            // Verify Strategy.test is called exactly once for each strategy
+            for (Strategy strategy : activeStrategies) {
+                verify(strategy, times(1)).test(anyList(), anyInt());
+            }
+            verify(orderHandler, times(2)).appendOpenOrder(any());
         }
-        verify(orderHandler, times(2)).appendOpenOrder(any());
     }
 
     @Test
     public void testUpdate_WithinTradingHours_StrategiesTested_verify_order_logging() {
         // Arrange
-        SymbolData mockSymbolData = mock(SymbolData.class);
-        OpenOrder openOrder = mock(OpenOrder.class);
-        ActiveOrder activeOrder = mock(ActiveOrder.class);
+        try (MockedStatic<OptionPriceUtils> mockedStatic = Mockito.mockStatic(OptionPriceUtils.class)) {
+            mockedStatic.when(() -> OptionPriceUtils.getITMStock(anyString(), anyDouble(), anyBoolean(), anyList())).thenReturn("test_itm_symbol");
+            SymbolData mockSymbolData = mock(SymbolData.class);
+            OpenOrder openOrder = mock(OpenOrder.class);
+            ActiveOrder activeOrder = mock(ActiveOrder.class);
 
-        LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
+            LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
 
-        when(timeProvider.now()).thenReturn(mockTime);
-        when(kiteService.isInitialised()).thenReturn(true);
-        when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
-        when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
-        when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
-        when(dataCache.getITMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("test_itm_symbol");
-        when(orderHandler.getOpenOrders()).thenReturn(List.of(openOrder));
-        when(orderHandler.getActiveOrders()).thenReturn(List.of(activeOrder));
+            when(timeProvider.now()).thenReturn(mockTime);
+            when(kiteService.isInitialised()).thenReturn(true);
+            when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
+            when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
+            when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
+            when(orderHandler.getOpenOrders()).thenReturn(List.of(openOrder));
+            when(orderHandler.getActiveOrders()).thenReturn(List.of(activeOrder));
 
-        strategyExecutor.update();
+            // Act
+            strategyExecutor.update();
 
-        verify(orderHandler).removeExpiredOpenOrders(anyInt());
-        verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
+            // Assert
+            verify(orderHandler).removeExpiredOpenOrders(anyInt());
+            verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
 
-        // Verify Strategy.test is called exactly once for each strategy
-        for (Strategy strategy :activeStrategies) {
-            verify(strategy, times(1)).test(anyList(), anyInt());
+            // Verify Strategy.test is called exactly once for each strategy
+            for (Strategy strategy : activeStrategies) {
+                verify(strategy, times(1)).test(anyList(), anyInt());
+            }
+            verify(orderHandler, times(2)).appendOpenOrder(any());
         }
-        verify(orderHandler, times(2)).appendOpenOrder(any());
     }
 
     @Test

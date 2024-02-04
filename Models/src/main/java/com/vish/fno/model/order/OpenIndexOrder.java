@@ -1,7 +1,5 @@
 package com.vish.fno.model.order;
 
-import com.vish.fno.util.TimeUtils;
-import com.vish.fno.util.Utils;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +7,8 @@ import lombok.Setter;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.vish.fno.model.util.ModelUtils.round;
 
 @Getter
 @Builder
@@ -34,12 +34,12 @@ public class OpenIndexOrder implements OpenOrder {
     public String toString() {
         final StringBuilder sb = new StringBuilder(estimated_buffer_size);
         sb.append("\nOpenIndexOrder{")
-                .append("date=").append(TimeUtils.getStringDateTime(date))
+                .append("date=").append(date)
                 .append(", index=").append(index)
                 .append(", expiry=").append(expirationTimestamp)
-                .append(", buyAt=").append(Utils.format(buyThreshold))
-                .append(", target=").append(Utils.format(target))
-                .append(", stopLoss=").append(Utils.format(stopLoss))
+                .append(", buyAt=").append(round(buyThreshold))
+                .append(", target=").append(round(target))
+                .append(", stopLoss=").append(round(stopLoss))
                 .append(", CE=").append(isCallOrder())
                 .append('}');
         return sb.toString();

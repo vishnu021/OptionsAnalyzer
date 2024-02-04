@@ -1,6 +1,6 @@
 package com.vish.fno.manage.controllers;
 
-import com.vish.fno.manage.util.ArchiverService;
+import com.vish.fno.manage.service.ArchiverService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

@@ -15,7 +15,7 @@
 		<module>KiteReader</module>
 		<module>Models</module>
 		<module>Technicals</module>
-        <module>OrderManager</module>
+		<module>OrderManager</module>
     </modules>
 
 	<groupId>com.vish.fno</groupId>
