@@ -1,5 +1,6 @@
 package com.vish.fno.manage.helper;
 
+import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.order.ActiveOrderFactory;
 import com.vish.fno.model.order.OpenIndexOrder;
@@ -51,14 +52,12 @@ class StopLossAndTargetHandlerTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(89);
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
 
         List<ActiveOrder> activeOrders = List.of(ActiveOrderFactory.createOrder(openOrder, 0d, 1));
@@ -78,8 +77,7 @@ class StopLossAndTargetHandlerTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(106);
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
                 .buyThreshold(101)
                 .stopLoss(90)
@@ -103,8 +101,7 @@ class StopLossAndTargetHandlerTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(89);
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
@@ -128,8 +125,7 @@ class StopLossAndTargetHandlerTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(91);
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
@@ -153,8 +149,7 @@ class StopLossAndTargetHandlerTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(89);
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
                 .buyThreshold(100)
                 .stopLoss(115)
@@ -178,8 +173,7 @@ class StopLossAndTargetHandlerTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(112);
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
                 .buyThreshold(100)
                 .target(85)
@@ -203,8 +197,7 @@ class StopLossAndTargetHandlerTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(91);
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
                 .buyThreshold(100)
                 .target(90)

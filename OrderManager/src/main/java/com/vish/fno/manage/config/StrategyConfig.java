@@ -1,6 +1,7 @@
 package com.vish.fno.manage.config;
 
 import com.vish.fno.manage.config.task.TaskConfig;
+import com.vish.fno.manage.helper.CandleStickCache;
 import com.vish.fno.manage.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.service.CandlestickService;
@@ -31,6 +32,7 @@ public class StrategyConfig {
     public StrategyExecutor strategyExecutor(KiteService kiteService,
                                              CandlestickService candlestickService,
                                              OrderHandler orderHandler,
+                                             CandleStickCache candleStickCache,
                                              TimeProvider timeProvider) {
         List<Strategy> activeStrategies = getStrategies();
         List<String> symbolList =  taskConfig.getTaskProperties().getList().stream()
@@ -38,7 +40,7 @@ public class StrategyConfig {
                 .distinct()
                 .collect(Collectors.toCollection(ArrayList::new));
         log.info("Initialising strategy executor with symbols: {}", symbolList);
-        return new StrategyExecutor(kiteService, candlestickService, orderHandler, activeStrategies, symbolList, timeProvider);
+        return new StrategyExecutor(kiteService, candlestickService, orderHandler, candleStickCache, activeStrategies, symbolList, timeProvider);
     }
 
     private List<Strategy> getStrategies() {

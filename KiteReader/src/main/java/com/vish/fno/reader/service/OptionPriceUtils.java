@@ -9,30 +9,35 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static com.vish.fno.reader.util.KiteUtils.*;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class OptionPriceUtils {
-    private final static String NIFTY_BANK = "NIFTY BANK";
-    private final static String NIFTY_50 = "NIFTY 50";
-    private final static String NIFTY_FIN_SERVICE = "NIFTY FIN SERVICE";
+    private static final String FUT = "FUT";
+    private static final String CE = "CE";
+    private static final String PE = "PE";
+
+    public static Optional<String> getNextExpiryFutureSymbol(String symbol, List<Instrument> instruments) {
+        String symbolPrefix = getOptionPrefix(symbol);
+
+        Optional<List<Instrument>> earliestExpiryInstrument = getEarliestExpiryInstrument(instruments, symbolPrefix, FUT);
+
+        if(earliestExpiryInstrument.isPresent()) {
+            List<Instrument> nextExpiryFuture = earliestExpiryInstrument.get();
+            return Optional.of(nextExpiryFuture.get(0).getTradingsymbol());
+        }
+
+        log.warn("Cannot find FUTURE symbol for {}", symbol);
+        return Optional.empty();
+    }
 
     public static String getITMStock(String indexSymbol, double price, boolean isCall, List<Instrument> instruments) {
-
         String symbolsName = getOptionPrefix(indexSymbol);
 
-        String instrumentType = isCall ? "CE" : "PE";
+        String instrumentType = isCall ? CE : PE;
 
-        Map<Date, List<Instrument>> indexSymbolsInstruments = instruments.stream()
-                .filter(i -> i.getName().toUpperCase(Locale.ENGLISH).equalsIgnoreCase(symbolsName))
-                .filter(instrument -> instrument.exchange.equals("NFO"))
-                .filter(i -> i.getInstrument_type().equals(instrumentType))
-                .collect(Collectors.groupingBy(Instrument::getExpiry));
-
-        Optional<List<Instrument>> earliestExpiryInstrument = indexSymbolsInstruments.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(Map.Entry::getValue)
-                .findFirst();
+        Optional<List<Instrument>> earliestExpiryInstrument = getEarliestExpiryInstrument(instruments, symbolsName, instrumentType);
 
         AtomicReference<String> itmSymbol = new AtomicReference<>("");
         earliestExpiryInstrument.ifPresent(expiryInstruments -> {
@@ -75,6 +80,19 @@ final class OptionPriceUtils {
             log.error("Unable to find itmSymbol for index: {}, price: {}, call: {}", indexSymbol, price, isCall);
         }
         return itmSymbolValue;
+    }
+
+    private static Optional<List<Instrument>> getEarliestExpiryInstrument(List<Instrument> instruments, String symbolsName, String instrumentType) {
+        Map<Date, List<Instrument>> indexSymbolsInstruments = instruments.stream()
+                .filter(i -> i.getName().toUpperCase(Locale.ENGLISH).equalsIgnoreCase(symbolsName))
+                .filter(instrument -> instrument.exchange.equals("NFO"))
+                .filter(i -> i.getInstrument_type().equals(instrumentType))
+                .collect(Collectors.groupingBy(Instrument::getExpiry));
+
+        return indexSymbolsInstruments.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(Map.Entry::getValue)
+                .findFirst();
     }
 
     private static String getOptionPrefix(String indexSymbol) {

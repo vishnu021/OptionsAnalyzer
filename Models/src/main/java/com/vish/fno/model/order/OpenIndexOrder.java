@@ -1,5 +1,6 @@
 package com.vish.fno.model.order;
 
+import com.vish.fno.model.Task;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,8 +16,9 @@ import static com.vish.fno.model.util.ModelUtils.round;
 public class OpenIndexOrder implements OpenOrder {
 
     private static final int estimated_buffer_size = 100;
-    private String tag;
-    private String index;
+    private final Task task;
+    private final String tag;
+    private final String index;
 
     @Setter
     private String optionSymbol;
@@ -29,6 +31,29 @@ public class OpenIndexOrder implements OpenOrder {
     private int quantity;
     private boolean callOrder;
     private Map<String, String> extraData;
+
+    @Builder(builderMethodName = "builder")
+    public OpenIndexOrder(Task task, String tag, String index, String optionSymbol, Date date, int timestamp,
+                          int expirationTimestamp, double buyThreshold, double target, double stopLoss, int quantity,
+                          boolean callOrder, Map<String, String> extraData) {
+        this.task = task;
+        this.tag = tag;
+        this.index = index;
+        this.optionSymbol = optionSymbol;
+        this.date = date;
+        this.timestamp = timestamp;
+        this.expirationTimestamp = expirationTimestamp;
+        this.buyThreshold = buyThreshold;
+        this.target = target;
+        this.stopLoss = stopLoss;
+        this.quantity = quantity;
+        this.callOrder = callOrder;
+        this.extraData = extraData;
+    }
+
+    public static OpenIndexOrderBuilder builder(String tag, String index, Task task) {
+        return new OpenIndexOrderBuilder().tag(tag).index(index).task(task);
+    }
 
     @Override
     public String toString() {

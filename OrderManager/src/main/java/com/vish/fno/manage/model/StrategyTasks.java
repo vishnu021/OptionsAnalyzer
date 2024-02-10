@@ -12,4 +12,5 @@ public class StrategyTasks implements Task {
     private String strategyName;
     private String index;
     private boolean enabled;
+    private boolean expiryDayOrders;
 }

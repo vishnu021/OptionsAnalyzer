@@ -1,5 +1,6 @@
 package com.vish.fno.manage;
 
+import com.vish.fno.manage.helper.CandleStickCache;
 import com.vish.fno.manage.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.service.CandlestickService;
@@ -42,13 +43,19 @@ class StrategyExecutorTest {
         MockitoAnnotations.openMocks(this);
         activeStrategies = List.of(mockStrategy1, mockStrategy2);
 
-        when(mockStrategy1.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "BANK NIFTY", true));
-        when(mockStrategy2.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "NIFTY 50", false));
+        when(mockStrategy1.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "BANK NIFTY", true, true));
+        when(mockStrategy2.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "NIFTY 50", false, false));
+        CandleStickCache candleStickCache = spy(new CandleStickCache());
 
         List<String> symbolList =  activeStrategies.stream().map(s -> s.getTask().getIndex())
                 .collect(Collectors.toCollection(ArrayList::new));
-        strategyExecutor = new StrategyExecutor(kiteService, candlestickService, orderHandler, activeStrategies, symbolList, timeProvider);
-
+        strategyExecutor = new StrategyExecutor(kiteService,
+                candlestickService,
+                orderHandler,
+                candleStickCache,
+                activeStrategies,
+                symbolList,
+                timeProvider);
     }
 
     @Test
@@ -214,7 +221,7 @@ class StrategyExecutorTest {
 
     @Test
     void testIsWithinTradingHoursAtStart() {
-        LocalDateTime testTime = LocalDateTime.of(2024, 1, 1, 9, 15); // Time at the start of trading hours
+        LocalDateTime testTime = LocalDateTime.of(2024, 1, 1, 9, 16); // Time at the start of trading hours
         assertTrue(strategyExecutor.isWithinTradingHours(testTime));
     }
 

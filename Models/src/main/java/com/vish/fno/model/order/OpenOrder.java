@@ -1,5 +1,7 @@
 package com.vish.fno.model.order;
 
+import com.vish.fno.model.Task;
+
 public interface OpenOrder {
 
     String getIndex();
@@ -11,4 +13,5 @@ public interface OpenOrder {
     int getExpirationTimestamp();
     String getTag();
     boolean isCallOrder();
+    Task getTask();
 }

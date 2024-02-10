@@ -1,6 +1,7 @@
 package com.vish.fno.manage.helper;
 
 import com.vish.fno.manage.config.order.OrderConfiguration;
+import com.vish.fno.model.Task;
 import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.order.OpenOrder;
 import com.vish.fno.reader.service.KiteService;
@@ -12,21 +13,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.vish.fno.util.Constants.NIFTY_50;
-import static com.vish.fno.util.Constants.NIFTY_BANK;
-
 @Slf4j
 @Component
 public final class OpenOrderVerifier {
 
-    private static final String ORDER_EXECUTED = "orderExecuted";
-    private static final List<String> allowedSymbols = List.of(NIFTY_BANK, NIFTY_50, "HINDUNILVR", "BAJFINANCE");
+    public static final String ORDER_EXECUTED = "orderExecuted";
     private double availableCash;
     private final KiteService kiteService;
+    private final TimeProvider timeProvider;
 
-    public OpenOrderVerifier(OrderConfiguration orderConfiguration, KiteService kiteService) {
+    public OpenOrderVerifier(OrderConfiguration orderConfiguration, KiteService kiteService, TimeProvider timeProvider) {
         this.availableCash = orderConfiguration.getAvailableCash();
         this.kiteService = kiteService;
+        this.timeProvider = timeProvider;
     }
 
     public Optional<OpenOrder> checkEntryInOpenOrders(Tick tick, List<OpenOrder> openOrders, List<ActiveOrder> activeOrders) {
@@ -52,10 +51,19 @@ public final class OpenOrderVerifier {
 
     // TODO: dont stop sell order by price (but the condition is only for buyPrice :thinking)
     public boolean isPlaceOrder(ActiveOrder order, boolean isBuy) {
-        String index = order.getIndex();
+        // check if the price has not already moved too much
+        // TODO: inverse naming and logic
+        if(!hasNotMoveAlreadyHappened(order.getBuyPrice(), order)){
+            return false;
+        }
+
+        if(!order.getTask().isEnabled()) {
+            log.info("The following task({}) has not been enabled, not placing order: {}", order.getTask(), order);
+            return false;
+        }
 
         if(isBuy) {
-            if(availableCash > order.getBuyOptionPrice() * order.getQuantity() && allowedSymbols.contains(index)){
+            if(availableCash > order.getBuyOptionPrice() * order.getQuantity()){
                 order.appendExtraData(ORDER_EXECUTED, String.valueOf(true)); // todo: move after order placed in kite
                 availableCash -= order.getBuyOptionPrice() * order.getQuantity();
                 log.info("Placing order as the symbol is : {} or amount is: {}",
@@ -63,29 +71,36 @@ public final class OpenOrderVerifier {
                 log.info("Reducing available cash to {}, order : {}", availableCash, order);
                 return true;
             } else {
-                log.info("Not placing order as the symbol is : {} or amount is: {}",
-                        order.getIndex(), (order.getQuantity() * order.getBuyOptionPrice()));
+                log.info("Not placing order as the symbol is : {} or amount is: {}. Available amount: {}",
+                        order.getIndex(), (order.getQuantity() * order.getBuyOptionPrice()), availableCash);
             }
         }
 
         if(!isBuy) {
             Map<String, String> extraData = order.getExtraData();
-            if(extraData !=null && extraData.containsKey(ORDER_EXECUTED)) {
+            if(extraData != null && extraData.containsKey(ORDER_EXECUTED)) {
                 boolean wasExecuted = Boolean.parseBoolean(extraData.get(ORDER_EXECUTED));
                 if(wasExecuted) {
                     availableCash += order.getBuyOptionPrice() * order.getQuantity(); // todo update to
                     log.info("Updating available cash back to {}, order : {}", availableCash, order);
                 }
                 return Boolean.parseBoolean(extraData.get(ORDER_EXECUTED));
+            } else {
+                log.info("no need to place order to kite server as the extra data doesn't have order_executed : {}, order: {}", order.getExtraData(), order);
             }
         }
         return false;
     }
 
-    public boolean hasNotMoveAlreadyHappened(Tick tick, OpenOrder order) {
-        final double buyAt = order.getBuyThreshold();
+    public boolean hasNotMoveAlreadyHappened(double ltp, ActiveOrder order) {
+
+        if(order.getBuyOptionPrice() < 0.1) {
+            log.info("ltp price not set, not placing order. ltp: {}, order: {}", ltp, order);
+            return false;
+        }
+
+        final double buyAt = order.getBuyPrice();
         final double target = order.getTarget();
-        final double ltp = tick.getLastTradedPrice();
 
         if(order.isCallOrder()) {
             final double priceAlreadyCrossed = ltp - buyAt;
@@ -102,7 +117,7 @@ public final class OpenOrderVerifier {
             }
         }
         log.info("Price movement has already happened, ltp : {}, order buy: {}, target: {}",
-                tick.getLastTradedPrice(), order.getBuyThreshold(), order.getTarget());
+                ltp, order.getBuyThreshold(), order.getTarget());
 
         return false;
     }
@@ -118,6 +133,13 @@ public final class OpenOrderVerifier {
     }
 
     private Optional<OpenOrder> verifyAndPlaceOrder(Tick tick, OpenOrder order) {
+        // check if the strategy is enabled for expiry day
+        Task task = order.getTask();
+        if(kiteService.isExpiryDayForOption(order.getOptionSymbol(), timeProvider.todayDate()) && task.isExpiryDayOrders()) {
+            log.info("Expiry day orders is not enabled for task: {} ", order.getTask());
+            return Optional.empty();
+        }
+
         if(order.isCallOrder()) {
             if (tick.getLastTradedPrice() > order.getBuyThreshold()) {
                 log.info("tick ltp: {} is greater than buy threshold {}, placing order({}) : {}",

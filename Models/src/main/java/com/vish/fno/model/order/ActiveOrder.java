@@ -1,5 +1,7 @@
 package com.vish.fno.model.order;
 
+import com.vish.fno.model.Task;
+
 import java.util.Date;
 import java.util.Map;
 
@@ -11,7 +13,9 @@ public interface ActiveOrder {
     double getTarget();
     double getStopLoss();
     double getBuyPrice();
+    double getBuyThreshold();
     double getSellPrice();
+    Task getTask();
     void setBuyOptionPrice(double buyOptionPrice);
     double getBuyOptionPrice();
     void setSellOptionPrice(double sellOptionPrice);

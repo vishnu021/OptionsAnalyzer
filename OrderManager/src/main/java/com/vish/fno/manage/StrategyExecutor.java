@@ -1,8 +1,8 @@
 package com.vish.fno.manage;
 
+import com.vish.fno.manage.helper.CandleStickCache;
 import com.vish.fno.manage.helper.TimeProvider;
 import com.vish.fno.manage.service.CandlestickService;
-import com.vish.fno.model.Candle;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.SymbolData;
@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -27,15 +28,14 @@ public class StrategyExecutor {
 
     private final CandlestickService candlestickService;
     private final OrderHandler orderHandler;
+    private final CandleStickCache candleStickCache;
     private final List<Strategy> activeStrategies;
     @Getter
     private final List<String> symbolList;
     private final TimeProvider timeProvider;
-
-    private final Map<String, List<Candle>> candlesCache = new HashMap<>();
     private final String todaysDate = TimeUtils.getTodayDate();
 
-    private static final LocalTime START_TRADING_HOUR = LocalTime.of(9, 15);
+    private static final LocalTime START_TRADING_HOUR = LocalTime.of(9, 16);
     private static final LocalTime END_TRADING_HOUR = LocalTime.of(15, 30);
 
     // TODO: add external schedular as well, and delay by 1 or 2 seconds
@@ -46,6 +46,7 @@ public class StrategyExecutor {
             return;
         }
 
+        kiteService.appendIndexITMOptions();
         updateIntradayCache();
         orderHandler.removeExpiredOpenOrders(timeProvider.currentTimeStampIndex());
         for(Strategy strategy: activeStrategies) {
@@ -70,23 +71,26 @@ public class StrategyExecutor {
     }
 
     private void testStrategies(Strategy strategy) {
-        int timestampIndex = timeProvider.currentTimeStampIndex();
-
         String symbol = strategy.getTask().getIndex();
 
-        if(symbol == null || candlesCache.get(symbol) == null) {
+        if(symbol == null || candleStickCache.get(symbol) == null) {
             log.error("symbol or task is null for strategy: {}", strategy);
-        } else {
-            Optional<? extends OpenOrder> indexOrderOptional = strategy.test(candlesCache.get(symbol), timestampIndex);
-            indexOrderOptional.ifPresent(o -> {
-                String itmOptionSymbol = kiteService.getITMStock(o.getIndex(), o.getBuyThreshold(), o.isCallOrder());
-                o.setOptionSymbol(itmOptionSymbol);
-                orderHandler.appendOpenOrder(o);
-            });
+            return;
         }
+
+        Optional<? extends OpenOrder> openOrderOptional = strategy.test(candleStickCache.get(symbol), timeProvider.currentTimeStampIndex());
+        openOrderOptional.ifPresent(o -> {
+            String itmOptionSymbol = kiteService.getITMStock(o.getIndex(), o.getBuyThreshold(), o.isCallOrder());
+            o.setOptionSymbol(itmOptionSymbol);
+            orderHandler.appendOpenOrder(o);
+        });
     }
 
     boolean isWithinTradingHours(LocalDateTime now) {
+        DayOfWeek day = now.getDayOfWeek();
+        if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
+            return false;
+        }
         return !now.toLocalTime().isBefore(START_TRADING_HOUR) && !now.toLocalTime().isAfter(END_TRADING_HOUR);
     }
 
@@ -95,8 +99,7 @@ public class StrategyExecutor {
         for(String symbol: symbolList) {
             try {
                 Optional<SymbolData> candleStickData = candlestickService.getEntireDayHistoryData(todaysDate, symbol);
-                candlesCache.remove(symbol);
-                candleStickData.ifPresent(d -> candlesCache.put(symbol, d.getData()));
+                candleStickCache.update(symbol, candleStickData);
             } catch (Exception e) {
                 log.warn("Failed to update cache for symbol: {}", symbol, e);
             }

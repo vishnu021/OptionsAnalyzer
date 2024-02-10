@@ -8,11 +8,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 import static com.vish.fno.util.Constants.*;
 
@@ -22,11 +18,10 @@ import static com.vish.fno.util.Constants.*;
 public final class TimeUtils {
     public static final List<String> timeArray = new ArrayList<>();
 
-
     static {
         int hour = 9;
         int minute = 15;
-        for (int i = 0; i < 375; i++) {
+        for (int i = 0; i <= 375; i++) {
             timeArray.add(toTimeValue(hour) + ":" + toTimeValue(minute));
             minute++;
             if (minute == 60) {
@@ -62,50 +57,35 @@ public final class TimeUtils {
         return null;
     }
 
-    public  static int getIndexOfTime(String time) {
-            return timeArray.indexOf(time);
-    }
-
-    private static String toTimeValue(int timeVal) {
-        if (timeVal >= 0 && timeVal <= 9) {
-            return ("0" + timeVal);
+    public static int getIndexOfTimeStamp(Date timeStamp) {
+        if (timeStamp == null) {
+            return -1;
         }
-        return String.valueOf(timeVal);
+        return getIndexOfTime(getTime(timeStamp));
     }
 
     public static Date appendOpeningTimeToDate(Date day) {
-        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_SEC_FORMAT, Locale.ENGLISH);
-        SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
-        try {
-            return formatter.parse(dateFormatter.format(day) + " 09:15:00");
-        } catch (ParseException e) {
-            log.error("Failed to parse date",e);
-        }
-        return day;
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(day);
+        calendar.set(Calendar.HOUR_OF_DAY, 9);
+        calendar.set(Calendar.MINUTE, 15);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 
     public static Date appendClosingTimeToDate(Date day) {
-        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_SEC_FORMAT, Locale.ENGLISH);
-        SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
-        try {
-            return formatter.parse(dateFormatter.format(day) + " 15:30:00");
-        } catch (ParseException e) {
-            log.error("",e);
-        }
-        return day;
-    }
-
-    public static Date getNDaysBefore(long n) {
-        return new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(n));
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(day);
+        calendar.set(Calendar.HOUR_OF_DAY, 15);
+        calendar.set(Calendar.MINUTE, 30);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 
     public static Date currentTime() {
         return new Date(System.currentTimeMillis());
-    }
-
-    public static String getTime() {
-        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
-        return timeFormatter.format(currentTime());
     }
 
     public static String getTime(Date timeStamp) {
@@ -114,13 +94,6 @@ public final class TimeUtils {
         }
         SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
         return timeFormatter.format(timeStamp);
-    }
-
-    public static int getIndexOfTimeStamp(Date timeStamp) {
-        if (timeStamp == null) {
-            return -1;
-        }
-        return getIndexOfTime(getTime(timeStamp));
     }
 
     public static Date getDateTimeObjectMinute(String date) {
@@ -162,5 +135,20 @@ public final class TimeUtils {
         }
         SimpleDateFormat formatterMilliSecond = new SimpleDateFormat(DATE_TIME_MS_FORMAT, Locale.ENGLISH);
         return formatterMilliSecond.format(timeStamp);
+    }
+
+    private static int getIndexOfTime(String time) {
+        return timeArray.indexOf(time);
+    }
+
+    public static String getTimeByIndex(int index) {
+        return timeArray.get(index);
+    }
+
+    private static String toTimeValue(int timeVal) {
+        if (timeVal >= 0 && timeVal <= 9) {
+            return ("0" + timeVal);
+        }
+        return String.valueOf(timeVal);
     }
 }

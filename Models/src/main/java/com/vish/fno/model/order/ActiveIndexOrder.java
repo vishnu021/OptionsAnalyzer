@@ -1,5 +1,6 @@
 package com.vish.fno.model.order;
 
+import com.vish.fno.model.Task;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,8 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.vish.fno.model.util.ModelUtils.getStringDate;
-import static com.vish.fno.model.util.ModelUtils.round;
+import static com.vish.fno.model.util.ModelUtils.*;
 
 @Getter
 @Setter
@@ -17,6 +17,7 @@ public class ActiveIndexOrder implements ActiveOrder {
 
     private static final int estimated_buffer_size = 125;
     private final String tag;
+    private final Task task;
     private String index;
     private String optionSymbol;
     private Date date;
@@ -64,6 +65,7 @@ public class ActiveIndexOrder implements ActiveOrder {
         this.callOrder = openOrder.isCallOrder();
         this.extraData = openOrder.getExtraData();
         this.tag = openOrder.getTag();
+        this.task = openOrder.getTask();
         this.isActive = true;
     }
 
@@ -166,7 +168,7 @@ public class ActiveIndexOrder implements ActiveOrder {
         final StringBuilder sb = new StringBuilder(estimated_buffer_size);
         sb.append("OrderLog{")
                 .append("index='").append(index).append("'")
-                .append(",\tentry=").append(getStringDate(date)).append(" ").append(entryTimeStamp)
+                .append(",\tentry=").append(getStringDateTime(date))
                 .append(",\texit=").append(exitTimeStamp)
                 .append(",\tbuy=").append(round(buyPrice))
                 .append(",\ttarget=").append(round(target))

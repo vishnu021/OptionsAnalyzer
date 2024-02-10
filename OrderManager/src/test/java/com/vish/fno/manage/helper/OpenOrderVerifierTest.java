@@ -1,6 +1,7 @@
 package com.vish.fno.manage.helper;
 
 import com.vish.fno.manage.config.order.OrderConfiguration;
+import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.order.ActiveOrderFactory;
 import com.vish.fno.model.order.OpenIndexOrder;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,10 +25,9 @@ import static org.mockito.Mockito.when;
 class OpenOrderVerifierTest {
 
     private static final String ORDER_EXECUTED = "orderExecuted";
-    @Mock
-    private OrderConfiguration orderConfiguration;
-    @Mock
-    private KiteService kiteService;
+    @Mock private OrderConfiguration orderConfiguration;
+    @Mock private KiteService kiteService;
+    @Spy private TimeProvider timeProvider;
     private OpenOrderVerifier openOrderVerifier;
 
     @BeforeEach
@@ -40,7 +41,7 @@ class OpenOrderVerifierTest {
         when(orderConfiguration.getAdditionalSymbols()).thenReturn(additionalSymbols);
         when(orderConfiguration.getAvailableCash()).thenReturn(25000d);
 
-        openOrderVerifier = new OpenOrderVerifier(orderConfiguration, kiteService);
+        openOrderVerifier = new OpenOrderVerifier(orderConfiguration, kiteService, timeProvider);
     }
 
 
@@ -48,14 +49,12 @@ class OpenOrderVerifierTest {
     @Test
     void testIsPlaceOrderWhenSymbolIsNotInAllowedSymbolsForBuy() {
         //Arrange
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
 
@@ -68,14 +67,12 @@ class OpenOrderVerifierTest {
     @Test
     void testIsPlaceOrderWhenOrderAmountIsGreaterThanBuy() {
         //Arrange
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index(NIFTY_BANK)
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", NIFTY_BANK, new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
         activeOrder.setBuyOptionPrice(2600);
@@ -88,14 +85,12 @@ class OpenOrderVerifierTest {
     @Test
     void testIsPlaceOrderWhenOrderAmountIsMoreThanAvailableCashForBuy() {
         //Arrange
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
 
@@ -108,16 +103,14 @@ class OpenOrderVerifierTest {
     @Test
     void testIsPlaceOrderWhenOrderAmountIsInLimitThanBuy() {
         //Arrange
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index(NIFTY_BANK)
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", NIFTY_BANK, new StrategyTasks("","", true, true))
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 102, 1);
         activeOrder.setBuyOptionPrice(200);
         //Act
         boolean isPlaceOrder = openOrderVerifier.isPlaceOrder(activeOrder, true);
@@ -128,14 +121,12 @@ class OpenOrderVerifierTest {
     @Test
     void testIsPlaceOrderWhenExtraDataIsNotAvailableForSell() {
         //Arrange
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index(NIFTY_BANK)
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", NIFTY_BANK, new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
         activeOrder.setBuyOptionPrice(200);
@@ -148,14 +139,12 @@ class OpenOrderVerifierTest {
     @Test
     void testIsPlaceOrderWhenExtraDataNotSetForSell() {
         //Arrange
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index(NIFTY_BANK)
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", NIFTY_BANK, new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
         activeOrder.setBuyOptionPrice(200);
@@ -170,14 +159,12 @@ class OpenOrderVerifierTest {
     @Test
     void testIsPlaceOrderWhenExtraDataSetForSell() {
         //Arrange
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index(NIFTY_BANK)
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", NIFTY_BANK, new StrategyTasks("","", true, true))
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
         activeOrder.setBuyOptionPrice(200);
@@ -210,14 +197,12 @@ class OpenOrderVerifierTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(89);
 
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
 
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
@@ -235,22 +220,18 @@ class OpenOrderVerifierTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(101);
 
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
-        OpenOrder newOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL_2")
+        OpenOrder newOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL_2", new StrategyTasks())
                 .callOrder(true)
                 .buyThreshold(100)
                 .target(110)
                 .quantity(50)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
@@ -269,22 +250,18 @@ class OpenOrderVerifierTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(101);
 
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
-        OpenOrder newOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder newOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
                 .buyThreshold(100)
                 .target(110)
                 .quantity(50)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
@@ -303,22 +280,18 @@ class OpenOrderVerifierTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(99);
 
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(false)
                 .buyThreshold(110)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
-        OpenOrder newOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL_2")
+        OpenOrder newOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL_2", new StrategyTasks())
                 .callOrder(false)
                 .buyThreshold(100)
                 .target(110)
                 .quantity(50)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
@@ -337,22 +310,18 @@ class OpenOrderVerifierTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(121);
 
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(false)
                 .buyThreshold(110)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
-        OpenOrder newOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL_2")
+        OpenOrder newOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL_2", new StrategyTasks())
                 .callOrder(false)
                 .buyThreshold(120)
                 .target(110)
                 .quantity(50)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
@@ -371,22 +340,18 @@ class OpenOrderVerifierTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(101);
 
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(110)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
-        OpenOrder newOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL_2")
+        OpenOrder newOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL_2", new StrategyTasks())
                 .callOrder(true)
                 .buyThreshold(100)
                 .target(110)
                 .quantity(50)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
@@ -405,22 +370,18 @@ class OpenOrderVerifierTest {
         tick.setInstrumentToken(1L);
         tick.setLastTradedPrice(101);
 
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(false)
                 .buyThreshold(110)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
-        OpenOrder newOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder newOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
                 .buyThreshold(120)
                 .target(110)
                 .quantity(50)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
@@ -435,20 +396,19 @@ class OpenOrderVerifierTest {
     @Test
     void testHasMoveAlreadyHappenedIfLTPIsBelowStopLoss() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(89);
+        double ltp = 89;
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
                 .target(115)
                 .buyThreshold(100)
                 .stopLoss(90)
                 .build();
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, ltp, 1);
+        activeOrder.setBuyOptionPrice(1);
 
         //Act
-        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, openOrder);
+        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(ltp, activeOrder);
 
         // Assert
         assertTrue(continueOrder);
@@ -458,20 +418,18 @@ class OpenOrderVerifierTest {
     @Test
     void testHasMoveAlreadyHappenedIfLTPIsBetweenStopLossAndBuyAt() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(95);
+        double ltp = 95;
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
                 .target(115)
                 .buyThreshold(100)
                 .stopLoss(90)
                 .build();
-
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, ltp, 1);
+        activeOrder.setBuyOptionPrice(1);
         //Act
-        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, openOrder);
+        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(ltp, activeOrder);
 
         // Assert
         assertTrue(continueOrder);
@@ -480,20 +438,18 @@ class OpenOrderVerifierTest {
     @Test
     void testHasMoveAlreadyHappenedIfLTPIsJustAboveBuyAt() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(100.1);
+        double ltp = 100.1;
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
                 .target(115)
                 .buyThreshold(100)
                 .stopLoss(90)
                 .build();
-
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, ltp, 1);
+        activeOrder.setBuyOptionPrice(1);
         //Act
-        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, openOrder);
+        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(ltp, activeOrder);
 
         // Assert
         assertTrue(continueOrder);
@@ -502,20 +458,18 @@ class OpenOrderVerifierTest {
     @Test
     void testHasMoveAlreadyHappenedIfLTPIsJustBelowTarget() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(114);
+        double ltp = 114;
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
                 .target(115)
                 .buyThreshold(100)
                 .stopLoss(90)
                 .build();
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, ltp, 1);
 
         //Act
-        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, openOrder);
+        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(ltp, activeOrder);
 
         // Assert
         assertFalse(continueOrder);
@@ -524,20 +478,18 @@ class OpenOrderVerifierTest {
     @Test
     void testHasMoveAlreadyHappenedIfLTPIsAboveTarget() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(116);
+        double ltp = 116;
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
                 .target(115)
                 .buyThreshold(100)
                 .stopLoss(90)
                 .build();
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, ltp, 1);
 
         //Act
-        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, openOrder);
+        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(ltp, activeOrder);
 
         // Assert
         assertFalse(continueOrder);
@@ -546,20 +498,19 @@ class OpenOrderVerifierTest {
     @Test
     void testHasMoveAlreadyHappenedIfLTPIsBelowStoplossForPut() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(111);
+        double ltp = 111;
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
                 .target(85)
                 .buyThreshold(100)
                 .stopLoss(110)
                 .build();
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, ltp, 1);
+        activeOrder.setBuyOptionPrice(1);
 
         //Act
-        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, openOrder);
+        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(ltp, activeOrder);
 
         // Assert
         assertTrue(continueOrder);
@@ -567,22 +518,21 @@ class OpenOrderVerifierTest {
     }
 
     @Test
-    void testHasMoveAlreadyHappenedIfLTPIsBetweenStopLossAndBuyAtforPut() {
+    void testHasMoveAlreadyHappenedIfLTPIsBetweenStopLossAndBuyAtForPut() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(105);
+        double ltp = 105;
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
                 .target(85)
                 .buyThreshold(100)
                 .stopLoss(110)
                 .build();
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, ltp, 1);
+        activeOrder.setBuyOptionPrice(1);
 
         //Act
-        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, openOrder);
+        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(ltp, activeOrder);
 
         // Assert
         assertTrue(continueOrder);
@@ -591,20 +541,19 @@ class OpenOrderVerifierTest {
     @Test
     void testHasMoveAlreadyHappenedIfLTPIsJustAboveBuyAtForPut() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(99.9);
+        double ltp = 99.9;
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
                 .target(85)
                 .buyThreshold(100)
                 .stopLoss(110)
                 .build();
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, ltp, 1);
+        activeOrder.setBuyOptionPrice(1);
 
         //Act
-        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, openOrder);
+        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(ltp, activeOrder);
 
         // Assert
         assertTrue(continueOrder);
@@ -613,20 +562,18 @@ class OpenOrderVerifierTest {
     @Test
     void testHasMoveAlreadyHappenedIfLTPIsJustBelowTargetForPut() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(86);
+        double ltp = 86;
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
                 .target(85)
                 .buyThreshold(100)
                 .stopLoss(110)
                 .build();
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, ltp, 1);
 
         //Act
-        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, openOrder);
+        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(ltp, activeOrder);
 
         // Assert
         assertFalse(continueOrder);
@@ -635,20 +582,18 @@ class OpenOrderVerifierTest {
     @Test
     void testHasMoveAlreadyHappenedIfLTPIsAboveTargetForPut() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(84);
+        double ltp = 84;
 
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
                 .target(85)
                 .buyThreshold(100)
                 .stopLoss(110)
                 .build();
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, ltp, 1);
 
         //Act
-        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, openOrder);
+        boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(ltp, activeOrder);
 
         // Assert
         assertFalse(continueOrder);
@@ -657,14 +602,12 @@ class OpenOrderVerifierTest {
     @Test
     void testIsNotInActiveOrdersWhenNoActiveOrderIsPresent() {
         // Arrange
-        OpenOrder openOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
 
         //Act
@@ -677,23 +620,19 @@ class OpenOrderVerifierTest {
     @Test
     void testIsNotInActiveOrdersWhenDiffActiveOrderIsPresent() {
         // Arrange
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
-        OpenOrder newOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL_2")
+        OpenOrder newOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL_2", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
 
@@ -707,23 +646,19 @@ class OpenOrderVerifierTest {
     @Test
     void testIsNotInActiveOrdersWhenDiffActiveOrderTagIsPresent() {
         // Arrange
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
-        OpenOrder newOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder newOpenOrder = OpenIndexOrder.builder("TEST_TAG_2", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG_2")
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);
 
@@ -737,22 +672,18 @@ class OpenOrderVerifierTest {
     @Test
     void testIsNotInActiveOrdersWheSameOrderAndSymbolIsPresent() {
         // Arrange
-        OpenOrder existingOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder existingOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .buyThreshold(101)
                 .target(105)
                 .quantity(10)
-                .tag("TEST_TAG")
                 .build();
-        OpenOrder newOpenOrder = OpenIndexOrder.builder()
-                .index("TEST_SYMBOL")
+        OpenOrder newOpenOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
                 .buyThreshold(145)
                 .target(110)
                 .quantity(50)
-                .tag("TEST_TAG")
                 .build();
 
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOpenOrder, 0d, 1);

@@ -19,21 +19,21 @@ import java.util.concurrent.TimeUnit;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class InstrumentFileUtils {
 
-    private final static ObjectMapper indentedMapper = new ObjectMapper();
+    private final static ObjectMapper mapper = new ObjectMapper();
     private final static String directory = "instrument_cache";
     private final static String DATE_FORMAT = "yyyy-MM-dd";
     private final static String filePath = Paths.get(".").normalize().toAbsolutePath() + "\\" + directory + "\\";
 
     public static void saveInstrumentCache(List<Instrument> instruments) {
         try {
-            indentedMapper.writeValue(new File(filePath + getInstrumentFileName(0)), instruments);
+            mapper.writeValue(new File(filePath + getInstrumentFileName(0)), instruments);
         } catch (IOException e) {
             log.error("Exception occurred while saving Instrument cache", e);
         }
     }
     public static void saveFilteredInstrumentCache(Object instruments) {
         try {
-            indentedMapper.writeValue(new File(filePath + "filtered_" + getInstrumentFileName(0)), instruments);
+            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath + "filtered_" + getInstrumentFileName(0)), instruments);
         } catch (IOException e) {
             log.error("Failed to save instrument cache.", e);
         }
@@ -50,8 +50,8 @@ public final class InstrumentFileUtils {
         List<Instrument> instruments = null;
         String instrumentFileName = getInstrumentFileName(days);
         try {
-            instruments = indentedMapper.readValue(new File(getInstrumentFileName(days)),
-                    indentedMapper.getTypeFactory().constructCollectionType(List.class, Instrument.class));
+            instruments = mapper.readValue(new File(getInstrumentFileName(days)),
+                    mapper.getTypeFactory().constructCollectionType(List.class, Instrument.class));
             log.info("Loaded instrument cache from file " + instrumentFileName);
         } catch (IOException e) {
             log.error("Instrument file not yet created");

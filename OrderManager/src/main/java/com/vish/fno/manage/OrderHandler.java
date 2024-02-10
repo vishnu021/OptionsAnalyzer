@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.vish.fno.manage.helper.OpenOrderVerifier.ORDER_EXECUTED;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -48,7 +50,7 @@ public class OrderHandler {
 
         kiteService.setOnTickerArrivalListener(onTickerArrivalListener);
         final List<String> initialSymbols = Arrays.stream(orderConfiguration.getWebSocketDefaultSymbols()).toList();
-        kiteService.appendWebSocketSymbolsList(initialSymbols);
+        kiteService.appendWebSocketSymbolsList(initialSymbols, true);
     }
 
     public void appendOpenOrder(OpenOrder order) {
@@ -91,11 +93,10 @@ public class OrderHandler {
     }
 
     private void addTokenToWebsocket(OpenOrder order) {
-        kiteService.appendWebSocketSymbolsList(List.of(order.getIndex(), order.getOptionSymbol()));
+        kiteService.appendWebSocketSymbolsList(List.of(order.getIndex(), order.getOptionSymbol()), false);
     }
 
     private void sellOrder(Tick tick, ActiveOrder order) {
-        log.info("kite service : {}", kiteService);
         boolean orderSold = kiteService.sellOrder(order.getOptionSymbol(),
                 tick.getLastTradedPrice(),
                 order.getQuantity(),
@@ -147,13 +148,10 @@ public class OrderHandler {
             }
             log.debug("Placing an order for index: {}, symbol: {}, at buyThreshold: {}", order.getIndex(), order.getOptionSymbol(), order.getBuyThreshold());
 
-            // check if the price has not already moved too much
-            final boolean continueOrder = openOrderVerifier.hasNotMoveAlreadyHappened(tick, order);
-
             boolean orderPlaced = kiteService.buyOrder(order.getOptionSymbol(),
                     order.getQuantity(),
                     order.getTag(),
-                    openOrderVerifier.isPlaceOrder(activeOrder, true) && continueOrder);
+                    openOrderVerifier.isPlaceOrder(activeOrder, true));
             if(orderPlaced) {
                 activeOrder.setActive(true);
                 activeOrders.add(activeOrder);
@@ -161,6 +159,12 @@ public class OrderHandler {
                 log.debug("Order placed successfully, active orders ({}): {}", activeOrders.size(), activeOrders);
             } else {
                 log.warn("Failed to place order : {}", order);
+                // TODO: add back the amount in open order verifier
+                // TODO: temporarily continuing the order in mock trade
+                activeOrder.appendExtraData(ORDER_EXECUTED, String.valueOf(false));
+                activeOrder.setActive(true);
+                activeOrders.add(activeOrder);
+                openOrders.remove(order);
             }
         }
     }

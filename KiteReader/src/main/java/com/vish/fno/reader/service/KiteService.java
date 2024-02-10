@@ -12,13 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import static com.vish.fno.reader.util.KiteUtils.getFormattedObject;
-import static com.vish.fno.reader.util.KiteUtils.getFormattedOrderParams;
+import static com.vish.fno.reader.util.KiteUtils.*;
 import static com.vish.fno.reader.util.OrderUtils.createMarketOrderWithParameters;
 
 @Slf4j
@@ -34,7 +31,6 @@ public class KiteService {
     private boolean initialised = false;
     private final boolean connectToWebSocket;
     private KiteWebSocket kiteWebSocket;
-
     @Setter
     private OnTicks onTickerArrivalListener;
     private final ArrayList<Long> webSocketTokensToSubscribe;
@@ -49,8 +45,8 @@ public class KiteService {
         this.apiSecret = apiSecret;
         this.placeOrders = placeOrders;
         this.connectToWebSocket = connectToWebSocket;
-        this.historicalDataService = new HistoricalDataService(this);
         this.instrumentCache = new InstrumentCache(nifty100Symbols, this);
+        this.historicalDataService = new HistoricalDataService(this, this.instrumentCache);
         this.webSocketTokensToSubscribe = new ArrayList<>();
     }
 
@@ -90,20 +86,39 @@ public class KiteService {
         }
     }
 
-    public void appendWebSocketSymbolsList(List<String> newSymbols) {
-        List<Long> webSocketsToAdd = newSymbols
+    public void appendWebSocketSymbolsList(List<String> symbols, boolean addFutures) {
+
+        if(!connectToWebSocket) {
+            return;
+        }
+
+        // Adding futures of the symbols as well
+        ArrayList<String> allSymbols = new ArrayList<>();
+        if(addFutures) {
+            for (String symbol : symbols) {
+                Optional<String> futureTradingSymbol = OptionPriceUtils.getNextExpiryFutureSymbol(symbol, instrumentCache.getInstruments());
+                futureTradingSymbol.ifPresent(allSymbols::add);
+            }
+        }
+
+        allSymbols.addAll(symbols);
+        List<Long> webSocketsToAdd = allSymbols
                 .stream()
                 .map(this::getInstrument)
                 .filter(t -> !webSocketTokensToSubscribe.contains(t))
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
 
         if(!webSocketsToAdd.isEmpty()) {
-            log.info("Appending symbols: {} to websocket token list", newSymbols);
+            log.info("Appending symbols: {} to websocket token list", allSymbols);
             webSocketTokensToSubscribe.addAll(webSocketsToAdd);
             if(this.kiteWebSocket != null) {
                 this.kiteWebSocket.subscribe(webSocketTokensToSubscribe);
             }
         }
+    }
+
+    public List<Map<String, String>> getFilteredInstruments() {
+        return instrumentCache.getAllInstruments();
     }
 
     List<Instrument> getAllInstruments() {
@@ -118,21 +133,17 @@ public class KiteService {
     }
 
     public void logOpenOrders() {
-        try {
-            List<Order> orders = kiteSdk.getOrders();
-            log.info("Loaded orders from Kite server : {}", getFormattedObject(orders));
-        } catch (JSONException | IOException | KiteException e) {
-            log.error("Failed to load instruments from Kite server", e);
-        }
+        List<Order> orders = getOrders();
+        log.info("Loaded orders from Kite server : {}", getFormattedObject(orders));
     }
 
     public void logOpenPositions() {
-        try {
-            Map<String, List<Position>> orders = kiteSdk.getPositions();
-            log.info("Loaded positions from Kite server : {}", getFormattedObject(orders));
-        } catch (KiteException | JSONException | IOException e) {
-            log.error("Failed to load instruments from Kite server", e);
-        }
+        Map<String, List<Position>> orders = getPositions();
+        log.info("Loaded positions from Kite server : {}", getFormattedObject(orders));
+    }
+
+    public boolean isExpiryDayForOption(String optionSymbol, Date date) {
+        return instrumentCache.isExpiryDayForOption(optionSymbol, date);
     }
 
     public Order placeOptionOrder(OrderParams orderParams) {
@@ -155,10 +166,31 @@ public class KiteService {
         return placeOrder(symbol, orderSize, tag, Constants.TRANSACTION_TYPE_BUY, isPlaceOrder);
     }
 
-    // TODO: verify there is an existing order before placing a sell order
     public boolean sellOrder(String symbol, double price, int orderSize, String tag, boolean isPlaceOrder) {
         log.info("Creating sell order with quantity : {}, symbol : {}, price : {} ", orderSize, symbol, price);
         return placeOrder(symbol, orderSize, tag, Constants.TRANSACTION_TYPE_SELL, isPlaceOrder);
+    }
+
+    private List<Order> getOrders() {
+        try {
+            return this.kiteSdk.getOrders();
+        } catch (KiteException e) {
+            log.error("Failed to get orders, error code: {}, error message: {}", e.code, e.message, e);
+        } catch (IOException e) {
+            log.error("Failed to get orders, error: {}", e.getMessage(), e);
+        }
+        return List.of();
+    }
+
+    private Map<String, List<Position>> getPositions() {
+        try {
+            return this.kiteSdk.getPositions();
+        } catch (KiteException e) {
+            log.error("Failed to get positions, error code: {}, error message: {}", e.code, e.message, e);
+        } catch (IOException e) {
+            log.error("Failed to get positions, error: {}", e.getMessage(), e);
+        }
+        return Map.of();
     }
 
     private boolean placeOrder(String symbol, int orderSize, String tag, String transactionType, boolean isPlaceOrder) {
@@ -167,7 +199,12 @@ public class KiteService {
             return false;
         }
 
-        if (!(placeOrders && isPlaceOrder)) {
+        if (!isPlaceOrder) {
+            log.warn("Not placing orders as it is not enabled or allowed currently");
+            return true;
+        }
+
+        if (!placeOrders) {
             log.warn("Not placing orders as it is turned off by configuration");
             return true;
         }
@@ -202,6 +239,33 @@ public class KiteService {
                 this.kiteWebSocket.subscribe(webSocketTokensToSubscribe);
             }
         }
+    }
+
+    public void appendIndexITMOptions() {
+        if(connectToWebSocket) {
+            List<String> indicesITMOptionSymbols = getITMIndexSymbols();
+            appendWebSocketSymbolsList(indicesITMOptionSymbols, false);
+        }
+    }
+
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
+    private List<String> getITMIndexSymbols() {
+        List<String> indexOptionSymbols = new ArrayList<>();
+        try {
+            HistoricalData niftyData = getEntireDayHistoricalData(getOpeningTime(), getClosingTime(), NIFTY_50, "minute");
+            HistoricalData bnfData = getEntireDayHistoricalData(getOpeningTime(), getClosingTime(), NIFTY_BANK, "minute");
+            getITMOptionSymbols(niftyData, indexOptionSymbols, NIFTY_50);
+            getITMOptionSymbols(bnfData, indexOptionSymbols, NIFTY_BANK);
+        } catch (Exception e) {
+            log.error("Failed to get the ITM option symbols", e);
+        }
+        return indexOptionSymbols;
+    }
+
+    private void getITMOptionSymbols(HistoricalData data, List<String> indicesOptionSymbols, String index) {
+        double openPrice = data.dataArrayList.get(0).open;
+        indicesOptionSymbols.add(getITMStock(index, openPrice, true));
+        indicesOptionSymbols.add(getITMStock(index, openPrice, false));
     }
 
     private void addSessionExpiryHook() {

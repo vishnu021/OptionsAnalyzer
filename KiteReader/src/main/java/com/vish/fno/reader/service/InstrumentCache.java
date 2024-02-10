@@ -5,6 +5,8 @@ import com.vish.fno.reader.util.KiteUtils;
 import com.zerodhatech.models.Instrument;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,9 +38,11 @@ class InstrumentCache {
         InstrumentFileUtils.saveInstrumentCache(allInstruments);
 
         filteredInstruments = allInstruments.stream()
+                .filter(i -> i.getName() != null)
                 .filter(i -> i.getExchange().contentEquals(NSE) || i.getExchange().contentEquals(NFO) && i.expiry != null)
-                .filter(i -> nifty100Symbols.contains(i.getTradingsymbol())
-                        || nifty100Symbols.contains(i.getName())).toList();
+                .filter(i ->  nifty100Symbols.contains(i.getTradingsymbol())
+                                || nifty100Symbols.contains(i.getName()))
+                .toList();
 
         symbolMap = filteredInstruments.stream()
                 .collect(Collectors.toMap(Instrument::getTradingsymbol,
@@ -49,6 +53,18 @@ class InstrumentCache {
         log.info("Filtered instrument expiry dates: {}", getExpiryDates());
         instrumentMap = symbolMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
         return filteredInstruments;
+    }
+
+    public List<Map<String, String>> getAllInstruments() {
+        List<Map<String, String>> allInstrumentData = new ArrayList<>();
+        getInstruments().stream()
+                .sorted(Comparator.comparing(Instrument::getName))
+                .forEach( i -> allInstrumentData.add(
+                        Map.of(
+                                "exchange", i.getExchange(),
+                                "symbol", i.getTradingsymbol(),
+                                "expiry", KiteUtils.getStringDate(i.getExpiry()))));
+        return allInstrumentData;
     }
 
     public Set<String> getExpiryDates() {
@@ -84,12 +100,27 @@ class InstrumentCache {
                 .collect(Collectors.toMap(Instrument::getTradingsymbol, Instrument::getName, (k1, k2) ->  k1, LinkedHashMap::new ));
     }
 
-    public String getInstrumentForSymbol(String symbol) {
-        Long instrument = getInstrument(symbol);
-        if(instrument == null) {
-            log.warn("Invalid symbol : {}, not available in cache", symbol);
-            return null;
+    public List<Instrument> getInstrumentForSymbol(String symbol) {
+        return getInstruments().stream()
+                .filter(i -> i.getTradingsymbol() != null)
+                .filter(i -> i.getTradingsymbol().equals(symbol))
+                .toList();
+    }
+
+    public boolean isExpiryDayForOption(String optionSymbol, Date currentDate) {
+        List<Instrument> optionSymbolInstrument = getInstruments().stream().filter(i -> i.getTradingsymbol().equals(optionSymbol)).toList();
+
+        if(optionSymbolInstrument.size() == 1) {
+            Date expiryDay = optionSymbolInstrument.get(0).getExpiry();
+            return isSameDay(currentDate, expiryDay);
         }
-        return String.valueOf(instrument);
+        log.error("Cannot find option : {} in the instrument cache. {}", optionSymbol, optionSymbolInstrument);
+        return false;
+    }
+
+    private boolean isSameDay(Date date1, Date date2) {
+        LocalDate localDate1 = date1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate localDate2 = date2.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        return localDate1.equals(localDate2);
     }
 }

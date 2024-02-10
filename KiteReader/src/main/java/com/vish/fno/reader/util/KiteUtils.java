@@ -9,12 +9,16 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class KiteUtils {
+    public static final String NIFTY_BANK = "NIFTY BANK";
+    public static final String NIFTY_50 = "NIFTY 50";
+    public static final  String NIFTY_FIN_SERVICE = "NIFTY FIN SERVICE";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     private final static ObjectMapper mapper = new ObjectMapper();
@@ -26,25 +30,25 @@ public final class KiteUtils {
             log.warn("Failed to parse order params for order with symbol: {} and tag: {}",
                     orderParams.tradingsymbol, orderParams.tag);
         }
-        return null;
+        return "";
     }
 
     public static String getFormattedOrder(Order order) {
         try {
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(order);
         } catch (JsonProcessingException e) {
-            log.warn("Failed to parse order params for order with id: {} ", order.orderId);
+            log.error("Failed to parse order params for order with id: {} ", order.orderId);
         }
-        return null;
+        return "";
     }
 
     public static String getFormattedObject(Object order) {
         try {
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(order);
         } catch (JsonProcessingException e) {
-            log.warn("Failed to parse object", e);
+            log.error("Failed to parse object", e);
         }
-        return null;
+        return "";
     }
 
     public static String getStringDate(Date date) {
@@ -53,5 +57,23 @@ public final class KiteUtils {
         }
         SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
         return dateFormatter.format(date);
+    }
+
+    public static Date getOpeningTime() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 9);
+        calendar.set(Calendar.MINUTE, 15);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
+    }
+
+    public static Date getClosingTime() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 15);
+        calendar.set(Calendar.MINUTE, 30);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 }

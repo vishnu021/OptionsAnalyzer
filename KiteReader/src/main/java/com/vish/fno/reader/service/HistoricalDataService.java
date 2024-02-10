@@ -2,6 +2,7 @@ package com.vish.fno.reader.service;
 
 import com.zerodhatech.kiteconnect.kitehttp.exceptions.KiteException;
 import com.zerodhatech.models.HistoricalData;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 
@@ -9,12 +10,10 @@ import java.io.IOException;
 import java.util.Date;
 
 @Slf4j
+@AllArgsConstructor
 class HistoricalDataService {
     private final KiteService kiteService;
-
-    HistoricalDataService(KiteService kiteService) {
-        this.kiteService = kiteService;
-    }
+    private final InstrumentCache instrumentCache;
 
     HistoricalData getEntireDayHistoricalData(Date fromDate, Date toDate, String symbol, String interval) {
         return getHistoricalData(fromDate, toDate, symbol, interval, false);
@@ -37,7 +36,7 @@ class HistoricalDataService {
     }
 
     private String getInstrumentToken(String symbol) {
-        String instrument = String.valueOf(kiteService.getInstrument(symbol));
+        String instrument = String.valueOf(instrumentCache.getInstrument(symbol));
 
         if(instrument==null || instrument.equalsIgnoreCase("null")) {
             log.warn("No instrument available for symbol {}", symbol);

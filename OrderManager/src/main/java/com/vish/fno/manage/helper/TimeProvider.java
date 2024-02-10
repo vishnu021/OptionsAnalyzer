@@ -13,6 +13,10 @@ public class TimeProvider {
         return LocalDateTime.now();
     }
 
+    public Date todayDate() {
+        return new Date();
+    }
+
     public int currentTimeStampIndex() {
         return TimeUtils.getIndexOfTimeStamp(new Date());
     }
