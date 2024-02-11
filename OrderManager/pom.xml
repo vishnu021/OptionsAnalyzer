@@ -113,20 +113,36 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>backend-only</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>install node and npm</id>
+                                <phase>none</phase>
+                            </execution>
+                            <execution>
+                                <id>npm install</id>
+                                <phase>none</phase>
+                            </execution>
+                            <execution>
+                                <id>npm run build</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
@@ -181,18 +197,40 @@
                             <resources>
                                 <resource>
                                     <directory>${project.basedir}/../options-analyzer-ui/build</directory>
+                                    <includes>
+                                        <include>**/*.*</include>
+                                    </includes>
                                 </resource>
                             </resources>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
         </plugins>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
-                    <include>static/**</include>
+                    <include>static/**/*</include>
                 </includes>
             </resource>
         </resources>
