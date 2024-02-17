@@ -1,7 +1,7 @@
 package com.vish.fno.manage.service;
 
 import com.vish.fno.reader.service.KiteService;
-import com.vish.fno.reader.util.KiteUtils;
+import com.vish.fno.util.JsonUtils;
 import com.zerodhatech.models.Order;
 import com.zerodhatech.models.OrderParams;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +19,11 @@ public class OrderService {
     private final KiteService kiteService;
 
     public void openPositions() {
-        log.info("Loaded orders from Kite server : {}", KiteUtils.getFormattedObject(kiteService.getOrders()));
+        log.info("Loaded orders from Kite server : {}", JsonUtils.getFormattedObject(kiteService.getOrders()));
     }
 
     public void openOrders() {
-        log.info("Loaded positions from Kite server : {}", KiteUtils.getFormattedObject(kiteService.getPositions()));
+        log.info("Loaded positions from Kite server : {}", JsonUtils.getFormattedObject(kiteService.getPositions()));
     }
 
     // TODO: simplify

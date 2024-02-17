@@ -11,9 +11,9 @@
 	</parent>
 
 	<modules>
+		<module>Models</module>
 		<module>Utils</module>
 		<module>KiteReader</module>
-		<module>Models</module>
 		<module>Technicals</module>
 		<module>OrderManager</module>
     </modules>

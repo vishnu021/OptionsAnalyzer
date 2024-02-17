@@ -1,7 +1,7 @@
 package com.vish.fno.reader.service;
 
 import com.vish.fno.reader.util.InstrumentFileUtils;
-import com.vish.fno.reader.util.KiteUtils;
+import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.Instrument;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,7 +63,7 @@ class InstrumentCache {
                         Map.of(
                                 "exchange", i.getExchange(),
                                 "symbol", i.getTradingsymbol(),
-                                "expiry", KiteUtils.getStringDate(i.getExpiry()))));
+                                "expiry", TimeUtils.getStringDate(i.getExpiry()))));
         return allInstrumentData;
     }
 
@@ -71,7 +71,7 @@ class InstrumentCache {
         return getInstruments().stream()
                 .map(Instrument::getExpiry)
                 .filter(Objects::nonNull)
-                .map(KiteUtils::getStringDate).collect(Collectors.toSet());
+                .map(TimeUtils::getStringDate).collect(Collectors.toSet());
     }
 
     public Long getInstrument(String script) {

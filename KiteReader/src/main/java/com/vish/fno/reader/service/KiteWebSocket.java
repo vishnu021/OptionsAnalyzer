@@ -1,6 +1,7 @@
 package com.vish.fno.reader.service;
 
 import com.vish.fno.reader.exception.InitialisationException;
+import com.vish.fno.util.JsonUtils;
 import com.zerodhatech.kiteconnect.KiteConnect;
 import com.zerodhatech.kiteconnect.kitehttp.exceptions.KiteException;
 import com.zerodhatech.ticker.KiteTicker;
@@ -15,8 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.vish.fno.reader.util.KiteUtils.getFormattedOrder;
 
 @Slf4j
 @SuppressWarnings({"PMD.RedundantFieldInitializer", "PMD.LooseCoupling", "PMD.AvoidCatchingGenericException"})
@@ -38,7 +37,7 @@ public class KiteWebSocket {
         this.webSocketTokensToSubscribe = new ArrayList<>();
         this.webSocketTokensToSubscribe.add(256265L);
         this.webSocketTokensToSubscribe.add(260105L);
-        this.onOrderUpdateListener = order -> log.info("Order update complete : {}", getFormattedOrder(order));
+        this.onOrderUpdateListener = order -> log.info("Order update complete : {}", JsonUtils.getFormattedObject(order));
     }
 
     public void initialize(KiteConnect kiteSdk) {

@@ -20,17 +20,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.zerodhatech.kiteconnect</groupId>
-            <artifactId>kiteconnect</artifactId>
-            <version>3.3.2</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>json</artifactId>
-                    <groupId>org.json</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.14.0-rc1</version>

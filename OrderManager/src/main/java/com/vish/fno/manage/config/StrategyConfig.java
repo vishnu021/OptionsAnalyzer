@@ -9,6 +9,10 @@ import com.vish.fno.manage.OrderHandler;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.manage.StrategyExecutor;
 import com.vish.fno.reader.service.KiteService;
+import com.vish.fno.util.orderflow.sl.FixedStopLossHandler;
+import com.vish.fno.util.orderflow.sl.StopLossHandler;
+import com.vish.fno.util.orderflow.target.FixedTargetHandler;
+import com.vish.fno.util.orderflow.target.TargetHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -52,5 +56,15 @@ public class StrategyConfig {
             strategyList.add(strategy);
         }
         return strategyList;
+    }
+
+    @Bean
+    public TargetHandler targetHandler() {
+        return new FixedTargetHandler();
+    }
+
+    @Bean
+    public StopLossHandler stopLossHandler() {
+        return new FixedStopLossHandler();
     }
 }

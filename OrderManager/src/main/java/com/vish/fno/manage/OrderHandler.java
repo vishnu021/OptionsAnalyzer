@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.vish.fno.manage.helper.EntryVerifier.ORDER_EXECUTED;
-import static com.vish.fno.reader.util.KiteUtils.getFormattedOrder;
+import static com.vish.fno.util.JsonUtils.getFormattedObject;
 
 @Slf4j
 @Component
@@ -52,7 +52,7 @@ public class OrderHandler {
             }
         };
         final OnOrderUpdate onOrderUpdateListener = order -> {
-            log.info("Order update complete : {}", getFormattedOrder(order));
+            log.info("Order update complete : {}", getFormattedObject(order));
             try {
                 String orderId = order.orderId;
                 List<ActiveOrder> activeOrdersForOrderId = activeOrders
@@ -121,7 +121,7 @@ public class OrderHandler {
                 entryVerifier.isPlaceOrder(order, false));
         if(orderSoldOptional.isPresent() && orderSoldOptional.get().isOrderPlaced()) {
             KiteOpenOrder soldOrder = orderSoldOptional.get();
-            log.info("Sold status : {}", JsonUtils.getFormattedObject(soldOrder));
+            log.info("Sold status : {}", getFormattedObject(soldOrder));
             order.setActive(false);
             Tick latestOptionTick = latestTicks.get(order.getOptionSymbol());
             if(latestOptionTick != null) {
@@ -152,14 +152,14 @@ public class OrderHandler {
         if(marketDepth == null) {
             return;
         }
-        log.info("Market depth: {}", JsonUtils.getFormattedObject(marketDepth));
+        log.info("Market depth: {}", getFormattedObject(marketDepth));
         if(marketDepth.containsKey("buy") && !marketDepth.get("buy").isEmpty()) {
             ArrayList<Depth> buyMarketDepth = marketDepth.get("buy");
-            log.info("next buy price: {}", JsonUtils.getFormattedObject(buyMarketDepth.get(0)));
+            log.info("next buy price: {}", getFormattedObject(buyMarketDepth.get(0)));
         }
         if(marketDepth.containsKey("sell") && !marketDepth.get("sell").isEmpty()) {
             ArrayList<Depth> sellMarketDepth = marketDepth.get("sell");
-            log.info("next sell price: {}", JsonUtils.getFormattedObject(sellMarketDepth.get(0)));
+            log.info("next sell price: {}", getFormattedObject(sellMarketDepth.get(0)));
         }
     }
 

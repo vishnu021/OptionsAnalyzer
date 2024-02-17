@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vish.fno.manage.dao.CandlestickRepository;
 import com.vish.fno.manage.model.ApexChart;
 import com.vish.fno.manage.model.ApexChartSeries;
+import com.vish.fno.model.CandleMetaData;
 import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.model.Candle;
@@ -18,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -74,7 +74,7 @@ public class CandlestickService {
         return getEntireDayHistoryData(date, symbol, MINUTE)
                 .map(c -> {
                     List<Candle> data = TimeFrameUtils.mergeIntradayCompleteCandle(c.getData(), Integer.parseInt(interval));
-                    return SymbolData.builder().record(c.getRecord()).data(data).build();
+                    return new SymbolData(c.getRecord(), data);
                 })
                 .filter(symbolData -> symbolData.getData() != null && !symbolData.getData().isEmpty())
                 .map(symbolData -> createChartData(date, symbol, symbolData));
@@ -137,10 +137,14 @@ public class CandlestickService {
                     data.open,  data.high,  data.low,  data.close, data.volume, data.oi);
         }
 
-        try {
-            return Optional.of(new SymbolData(data, symbol, date));
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+        return Optional.of(createSymbolData(data, symbol, date));
+    }
+
+    private SymbolData createSymbolData(HistoricalData hd, String symbol, String date) {
+        CandleMetaData record = new CandleMetaData(symbol, date);
+        List<Candle> data = hd.dataArrayList.stream()
+                .map(h -> new Candle(h.timeStamp, h.open, h.high, h.low, h.close, h.volume, h.oi))
+                .toList();
+        return new SymbolData(record, data);
     }
 }

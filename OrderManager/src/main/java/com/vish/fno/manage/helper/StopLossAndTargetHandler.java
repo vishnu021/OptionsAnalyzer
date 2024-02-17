@@ -2,6 +2,8 @@ package com.vish.fno.manage.helper;
 
 import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.reader.service.KiteService;
+import com.vish.fno.util.orderflow.sl.StopLossHandler;
+import com.vish.fno.util.orderflow.target.TargetHandler;
 import com.zerodhatech.models.Tick;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,8 @@ import java.util.Optional;
 public final class StopLossAndTargetHandler {
     private final TimeProvider timeProvider;
     private final KiteService kiteService;
+    private final TargetHandler targetHandler;
+    private final StopLossHandler stopLossHandler;
 
     private static final int INTRADAY_EXIT_POSITION_TIME_INDEX = 368;
 
@@ -32,12 +36,12 @@ public final class StopLossAndTargetHandler {
 
         for(ActiveOrder order : activeOrdersForTick) {
             if(order.isCallOrder()) {
-                if(isCallTargetAchieved(order, tick) || isCallStopLossHit(order, tick) || timestampIndex > INTRADAY_EXIT_POSITION_TIME_INDEX) {
+                if(isCallExitCondition(tick, timestampIndex, order)) {
                     log.info("Exiting call order for : {}", order.getOptionSymbol());
                     return Optional.of(order);
                 }
             } else {
-                if(isPutTargetAchieved(order, tick) || isPutStopLossHit(order, tick) || timestampIndex > INTRADAY_EXIT_POSITION_TIME_INDEX){
+                if(isPutExitCondition(tick, timestampIndex, order)){
                     log.info("Exiting put order for : {}", order.getOptionSymbol());
                     return Optional.of(order);
                 }
@@ -46,35 +50,15 @@ public final class StopLossAndTargetHandler {
         return Optional.empty();
     }
 
-    private boolean isPutStopLossHit(ActiveOrder order, Tick tick) {
-        if(order.getStopLoss() < tick.getLastTradedPrice()) {
-            log.info("Put stoploss hit for order : {} ltp: {}", order, tick.getLastTradedPrice());
-            return true;
-        }
-        return false;
-    }
-    private boolean isCallTargetAchieved(ActiveOrder order, Tick tick) {
-        if(order.getTarget() < tick.getLastTradedPrice()) {
-            log.info("Call target achieved for order : {} ltp: {}", order, tick.getLastTradedPrice());
-            return true;
-        }
-        return false;
+    private boolean isPutExitCondition(Tick tick, int timestampIndex, ActiveOrder order) {
+        return targetHandler.isPutTargetAchieved(order, tick.getLastTradedPrice())
+                || stopLossHandler.isPutStopLossHit(order, tick.getLastTradedPrice())
+                || timestampIndex > INTRADAY_EXIT_POSITION_TIME_INDEX;
     }
 
-    private boolean isCallStopLossHit(ActiveOrder order, Tick tick) {
-        if(order.getStopLoss() > tick.getLastTradedPrice()) {
-            log.info("Call stoploss hit for order : {} ltp: {}", order, tick.getLastTradedPrice());
-            return true;
-        }
-        return false;
-    }
-
-
-    private boolean isPutTargetAchieved(ActiveOrder order, Tick tick) {
-        if(order.getTarget() > tick.getLastTradedPrice()) {
-            log.info("Put target achieved for order : {} ltp: {}", order, tick.getLastTradedPrice());
-            return true;
-        }
-        return false;
+    private boolean isCallExitCondition(Tick tick, int timestampIndex, ActiveOrder order) {
+        return targetHandler.isCallTargetAchieved(order, tick.getLastTradedPrice())
+                || stopLossHandler.isCallStopLossHit(order, tick.getLastTradedPrice())
+                || timestampIndex > INTRADAY_EXIT_POSITION_TIME_INDEX;
     }
 }

@@ -6,12 +6,16 @@ import com.vish.fno.model.order.ActiveOrderFactory;
 import com.vish.fno.model.order.IndexOrderRequest;
 import com.vish.fno.model.order.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
+import com.vish.fno.util.orderflow.sl.FixedStopLossHandler;
+import com.vish.fno.util.orderflow.target.FixedTargetHandler;
+import com.vish.fno.util.orderflow.target.TargetHandler;
 import com.zerodhatech.models.Tick;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +28,8 @@ class StopLossAndTargetHandlerTest {
 
     @Mock private TimeProvider timeProvider;
     @Mock private KiteService kiteService;
+    @Spy private FixedTargetHandler targetHandler;
+    @Spy private FixedStopLossHandler stopLossHandler;
     @InjectMocks private StopLossAndTargetHandler stopLossAndTargetHandler;
 
     @BeforeEach

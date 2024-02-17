@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vish.fno.model.Candle;
 import com.vish.fno.model.order.ActiveOrder;
-import com.zerodhatech.models.Instrument;
-import com.zerodhatech.models.Tick;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -54,7 +51,7 @@ public final class FileUtils implements Constants {
         }
     }
 
-    public void saveTickData(String symbol, Tick tick) {
+    public void saveTickData(String symbol, Object tick) {
         String path = filePath + getFormattedDate(new Date()) + symbol + ".txt";
         createDirectoryIfNotExist(path);
         try {
@@ -64,7 +61,7 @@ public final class FileUtils implements Constants {
         }
     }
 
-    public void appendTickToFile(String symbol, Tick tick) {
+    public void appendTickToFile(String symbol, Object tick) {
         String folderPath = tickPath + getFormattedDate(new Date());
         createDirectoryIfNotExist(folderPath);
         String filePath = folderPath + "//" + symbol + ".txt";
@@ -117,7 +114,6 @@ public final class FileUtils implements Constants {
         }
     }
 
-    @NotNull
     private ObjectMapper getMapper() {
         ObjectMapper mapper = new ObjectMapper();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.ENGLISH);

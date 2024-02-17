@@ -16,6 +16,7 @@ import static com.vish.fno.util.Constants.*;
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TimeUtils {
+
     public static final List<String> timeArray = new ArrayList<>();
 
     static {
@@ -143,6 +144,24 @@ public final class TimeUtils {
 
     public static String getTimeByIndex(int index) {
         return timeArray.get(index);
+    }
+
+    public static Date getOpeningTime() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 9);
+        calendar.set(Calendar.MINUTE, 15);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
+    }
+
+    public static Date getClosingTime() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 15);
+        calendar.set(Calendar.MINUTE, 30);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 
     private static String toTimeValue(int timeVal) {

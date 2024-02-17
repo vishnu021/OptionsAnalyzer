@@ -9,6 +9,10 @@ import com.vish.fno.reader.model.KiteOpenOrder;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.model.order.*;
 import com.vish.fno.reader.service.KiteService;
+import com.vish.fno.util.orderflow.sl.FixedStopLossHandler;
+import com.vish.fno.util.orderflow.sl.StopLossHandler;
+import com.vish.fno.util.orderflow.target.FixedTargetHandler;
+import com.vish.fno.util.orderflow.target.TargetHandler;
 import com.zerodhatech.models.Tick;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +42,9 @@ class OrderHandlerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         final EntryVerifier entryVerifier = spy(new EntryVerifier(orderConfiguration, kiteService, timeProvider));
-        final StopLossAndTargetHandler stopLossAndTargetHandler = spy(new StopLossAndTargetHandler(timeProvider, kiteService));
+        final TargetHandler targetHandler = spy(new FixedTargetHandler());
+        final StopLossHandler stopLossHandler = spy(new FixedStopLossHandler());
+        final StopLossAndTargetHandler stopLossAndTargetHandler = spy(new StopLossAndTargetHandler(timeProvider, kiteService, targetHandler, stopLossHandler));
         orderHandler = new OrderHandler(kiteService, orderConfiguration, fileUtils, timeProvider, entryVerifier, stopLossAndTargetHandler);
     }
 

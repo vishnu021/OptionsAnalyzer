@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static com.vish.fno.reader.util.KiteUtils.*;
+import static com.vish.fno.util.Constants.*;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

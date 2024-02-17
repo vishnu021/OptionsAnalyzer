@@ -1,7 +1,7 @@
 package com.vish.fno.reader.service;
 
 import com.vish.fno.reader.model.KiteOpenOrder;
-import com.vish.fno.reader.util.KiteUtils;
+import com.vish.fno.util.JsonUtils;
 import com.zerodhatech.kiteconnect.KiteConnect;
 import com.zerodhatech.kiteconnect.kitehttp.exceptions.KiteException;
 import com.zerodhatech.kiteconnect.utils.Constants;
@@ -17,11 +17,16 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.*;
 
-import static com.vish.fno.reader.util.KiteUtils.*;
 import static com.vish.fno.reader.util.OrderUtils.createMarketOrderWithParameters;
+import static com.vish.fno.util.Constants.NIFTY_50;
+import static com.vish.fno.util.Constants.NIFTY_BANK;
+import static com.vish.fno.util.Constants.MINUTE;
+import static com.vish.fno.util.JsonUtils.getFormattedObject;
+import static com.vish.fno.util.TimeUtils.getClosingTime;
+import static com.vish.fno.util.TimeUtils.getOpeningTime;
 
 @Slf4j
-@SuppressWarnings("PMD.LooseCoupling")
+@SuppressWarnings({"PMD.LooseCoupling", "PMD.TooManyStaticImports"})
 public class KiteService {
 
     private static final String EQUITY = "equity";
@@ -131,7 +136,7 @@ public class KiteService {
             log.info("order id: {}", order.orderId);
         } catch (KiteException ke) {
             log.error("KiteException occurred while placing order, code: {}, message: {}, order: {}",
-                    ke.code, ke.message, getFormattedOrderParams(orderParams), ke);
+                    ke.code, ke.message, getFormattedObject(orderParams), ke);
         } catch (JSONException | IOException e) {
             log.error("Error occurred while placing order", e);
         }
@@ -266,19 +271,19 @@ public class KiteService {
                 .stream()
                 .filter(o -> o.tradingSymbol.equals(symbol))
                 .filter(o -> o.tag.equals(tag))
-                .map(KiteUtils::getFormattedObject)
+                .map(JsonUtils::getFormattedObject)
                 .toList();
 
         List<String> netPositions = getPositions().get("net")
                 .stream()
                 .filter(o -> o.tradingSymbol.equals(symbol))
-                .map(KiteUtils::getFormattedObject)
+                .map(JsonUtils::getFormattedObject)
                 .toList();
 
         List<String> dayPositions = getPositions().get("day")
                 .stream()
                 .filter(o -> o.tradingSymbol.equals(symbol))
-                .map(KiteUtils::getFormattedObject)
+                .map(JsonUtils::getFormattedObject)
                 .toList();
 
         log.info("Existing orders for same symbol: {}", orders);
