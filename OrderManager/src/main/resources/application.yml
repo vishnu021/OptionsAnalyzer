@@ -17,8 +17,8 @@ server:
     port: 443
     ssl:
         enabled: true
-        key-store-password: Vishnu$021
-        key-store: selfsigned_localhost_sslserver.p12
+        key-store-password:
+        key-store:
         key-store-type: PKCS12
 
 logging:
@@ -59,9 +59,13 @@ management:
 
 strategies:
     list:
-        - strategyName: TEST
-          index: TEST
+        - strategyName: Strategy1
+          index: index1
           enabled: true
+          expiryDayOrders: false
+        - strategyName: Strategy2
+          index: index2
+          enabled: false
 
 kite:
     baseuri: https://kite.trade
@@ -91,16 +95,8 @@ kite:
 
 order:
     symbolsPath: ind_nifty100list.csv
-    additionalSymbols: NIFTY, NIFTY 50, BANKNIFTY, NIFTY BANK, FINNIFTY, NIFTY FIN SERVICE
-    webSocketDefaultSymbols: NIFTY BANK, NIFTY 50, BANKNIFTY24JANFUT, BANKNIFTY24JANFUT, BAJFINANCE, BAJFINANCE24JANFUT, HINDUNILVR, HINDUNILVR24JANFUT, HDFCBANK, HDFCBANK24JANFUT
-    maximumOrderCount:
+    additionalSymbols: NIFTY, NIFTY 50, BANKNIFTY, NIFTY BANK
+    webSocketDefaultSymbols: NIFTY BANK, NIFTY 50
     availableCash:
     placeOrders:
     connectToWebSocket:
-    putOrders:
-    callOrders:
-    tradeInLastHour:
-    orderSize:
-    maximumBuyPrice:
-    minimumBuyPrice:
-    slmDeltaPrice:

@@ -3,7 +3,7 @@ package com.vish.fno.manage.helper;
 import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.model.Task;
 import com.vish.fno.model.order.ActiveOrder;
-import com.vish.fno.model.order.OpenOrder;
+import com.vish.fno.model.order.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
 import com.zerodhatech.models.Tick;
 import lombok.extern.slf4j.Slf4j;
@@ -15,33 +15,33 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-public final class OpenOrderVerifier {
+public final class EntryVerifier {
 
     public static final String ORDER_EXECUTED = "orderExecuted";
     private double availableCash;
     private final KiteService kiteService;
     private final TimeProvider timeProvider;
 
-    public OpenOrderVerifier(OrderConfiguration orderConfiguration, KiteService kiteService, TimeProvider timeProvider) {
+    public EntryVerifier(OrderConfiguration orderConfiguration, KiteService kiteService, TimeProvider timeProvider) {
         this.availableCash = orderConfiguration.getAvailableCash();
         this.kiteService = kiteService;
         this.timeProvider = timeProvider;
     }
 
-    public Optional<OpenOrder> checkEntryInOpenOrders(Tick tick, List<OpenOrder> openOrders, List<ActiveOrder> activeOrders) {
-        if(openOrders.isEmpty()) {
+    public Optional<OrderRequest> checkEntryInOpenOrders(Tick tick, List<OrderRequest> orderRequests, List<ActiveOrder> activeOrders) {
+        if(orderRequests.isEmpty()) {
             return Optional.empty();
         }
 
         String tickSymbol = kiteService.getSymbol(tick.getInstrumentToken());
-        List<OpenOrder> tickSymbolOrders = openOrders
+        List<OrderRequest> tickSymbolOrders = orderRequests
                 .stream()
                 .filter(e -> e.getIndex().contentEquals(tickSymbol) && isNotInActiveOrders(activeOrders, e))
                 .toList();
 
-        for (OpenOrder order : tickSymbolOrders) {
-            Optional<OpenOrder> openOrderOptional = verifyAndPlaceOrder(tick, order);
-            if(!openOrders.isEmpty()) {
+        for (OrderRequest order : tickSymbolOrders) {
+            Optional<OrderRequest> openOrderOptional = verifyAndPlaceOrder(tick, order);
+            if(!orderRequests.isEmpty()) {
                 return openOrderOptional;
             }
         }
@@ -51,11 +51,14 @@ public final class OpenOrderVerifier {
 
     // TODO: dont stop sell order by price (but the condition is only for buyPrice :thinking)
     public boolean isPlaceOrder(ActiveOrder order, boolean isBuy) {
-        // check if the price has not already moved too much
-        // TODO: inverse naming and logic
-        if(!hasNotMoveAlreadyHappened(order.getBuyPrice(), order)){
+        // check if the strategy is enabled for expiry day
+        Task task = order.getTask();
+        // TODO: add test case
+        if(!task.isExpiryDayOrders() && kiteService.isExpiryDayForOption(order.getOptionSymbol(), timeProvider.todayDate())) {
+            log.info("Expiry day orders is not enabled for task: {} ", order.getTask());
             return false;
         }
+
 
         if(!order.getTask().isEnabled()) {
             log.info("The following task({}) has not been enabled, not placing order: {}", order.getTask(), order);
@@ -92,11 +95,11 @@ public final class OpenOrderVerifier {
         return false;
     }
 
-    public boolean hasNotMoveAlreadyHappened(double ltp, ActiveOrder order) {
+    public boolean hasMoveAlreadyHappened(double ltp, ActiveOrder order) {
 
         if(order.getBuyOptionPrice() < 0.1) {
-            log.info("ltp price not set, not placing order. ltp: {}, order: {}", ltp, order);
-            return false;
+            log.info("ltp price not set, not placing order for {}. ltp: {}, order: {}", order.getIndex(), ltp, order);
+            return true;
         }
 
         final double buyAt = order.getBuyPrice();
@@ -107,38 +110,32 @@ public final class OpenOrderVerifier {
             final double targetRemaining = target - ltp;
             // to ensure risk:reward is still 1:1, for 1:1.5 initial target
             if(targetRemaining > (priceAlreadyCrossed * 5)) {
-                return true;
+                return false;
             }
         } else {
             final double priceAlreadyCrossed =  buyAt - ltp;
             final double targetRemaining = ltp - target;
             if(targetRemaining > (priceAlreadyCrossed * 5)) {
-                return true;
+                return false;
             }
         }
-        log.info("Price movement has already happened, ltp : {}, order buy: {}, target: {}",
-                ltp, order.getBuyThreshold(), order.getTarget());
+        log.info("Price movement has already happened for {}, ltp : {}, order buy: {}, target: {}",
+                order.getIndex(), ltp, order.getBuyThreshold(), order.getTarget());
 
-        return false;
+        return true;
     }
 
-    public boolean isNotInActiveOrders(List<ActiveOrder> activeOrders, OpenOrder tickOpenOrder) {
+    public boolean isNotInActiveOrders(List<ActiveOrder> activeOrders, OrderRequest tickOrderRequest) {
         boolean isNotInActiveOrder = activeOrders
                 .stream()
-                .noneMatch(a -> a.getTag().equalsIgnoreCase(tickOpenOrder.getTag()) && a.getIndex().equalsIgnoreCase(tickOpenOrder.getIndex()));
+                .noneMatch(a -> a.getTag().equalsIgnoreCase(tickOrderRequest.getTag()) && a.getIndex().equalsIgnoreCase(tickOrderRequest.getIndex()));
         if(!isNotInActiveOrder) {
-            log.info("Already an active order present for symbol: {}, open order : {}", tickOpenOrder.getIndex(), tickOpenOrder);
+            log.info("Already an active order present for symbol: {}, open order : {}", tickOrderRequest.getIndex(), tickOrderRequest);
         }
         return isNotInActiveOrder;
     }
 
-    private Optional<OpenOrder> verifyAndPlaceOrder(Tick tick, OpenOrder order) {
-        // check if the strategy is enabled for expiry day
-        Task task = order.getTask();
-        if(kiteService.isExpiryDayForOption(order.getOptionSymbol(), timeProvider.todayDate()) && task.isExpiryDayOrders()) {
-            log.info("Expiry day orders is not enabled for task: {} ", order.getTask());
-            return Optional.empty();
-        }
+    private Optional<OrderRequest> verifyAndPlaceOrder(Tick tick, OrderRequest order) {
 
         if(order.isCallOrder()) {
             if (tick.getLastTradedPrice() > order.getBuyThreshold()) {

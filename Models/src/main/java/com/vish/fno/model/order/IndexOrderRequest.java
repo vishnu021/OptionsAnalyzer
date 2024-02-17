@@ -13,7 +13,7 @@ import static com.vish.fno.model.util.ModelUtils.round;
 
 @Getter
 @Builder
-public class OpenIndexOrder implements OpenOrder {
+public class IndexOrderRequest implements OrderRequest {
 
     private static final int estimated_buffer_size = 100;
     private final Task task;
@@ -33,9 +33,9 @@ public class OpenIndexOrder implements OpenOrder {
     private Map<String, String> extraData;
 
     @Builder(builderMethodName = "builder")
-    public OpenIndexOrder(Task task, String tag, String index, String optionSymbol, Date date, int timestamp,
-                          int expirationTimestamp, double buyThreshold, double target, double stopLoss, int quantity,
-                          boolean callOrder, Map<String, String> extraData) {
+    public IndexOrderRequest(Task task, String tag, String index, String optionSymbol, Date date, int timestamp,
+                             int expirationTimestamp, double buyThreshold, double target, double stopLoss, int quantity,
+                             boolean callOrder, Map<String, String> extraData) {
         this.task = task;
         this.tag = tag;
         this.index = index;
@@ -51,8 +51,8 @@ public class OpenIndexOrder implements OpenOrder {
         this.extraData = extraData;
     }
 
-    public static OpenIndexOrderBuilder builder(String tag, String index, Task task) {
-        return new OpenIndexOrderBuilder().tag(tag).index(index).task(task);
+    public static IndexOrderRequestBuilder builder(String tag, String index, Task task) {
+        return new IndexOrderRequestBuilder().tag(tag).index(index).task(task);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class OpenIndexOrder implements OpenOrder {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        OpenIndexOrder that = (OpenIndexOrder) o;
+        IndexOrderRequest that = (IndexOrderRequest) o;
         return Objects.equals(tag, that.tag) && Objects.equals(index, that.index);
     }
 

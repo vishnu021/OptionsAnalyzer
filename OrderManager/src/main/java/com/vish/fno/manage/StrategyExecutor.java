@@ -6,7 +6,7 @@ import com.vish.fno.manage.service.CandlestickService;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.SymbolData;
-import com.vish.fno.model.order.OpenOrder;
+import com.vish.fno.model.order.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.TimeUtils;
 import lombok.Getter;
@@ -25,7 +25,6 @@ import java.util.*;
 public class StrategyExecutor {
 
     private final KiteService kiteService;
-
     private final CandlestickService candlestickService;
     private final OrderHandler orderHandler;
     private final CandleStickCache candleStickCache;
@@ -37,8 +36,8 @@ public class StrategyExecutor {
 
     private static final LocalTime START_TRADING_HOUR = LocalTime.of(9, 16);
     private static final LocalTime END_TRADING_HOUR = LocalTime.of(15, 30);
+    private boolean itmOptionsAppended;
 
-    // TODO: add external schedular as well, and delay by 1 or 2 seconds
     @Scheduled(cron = "0 0/1 * * * ?")
     public void update() {
         // will expire the session and fail the app if the cron job runs before initialization
@@ -46,7 +45,10 @@ public class StrategyExecutor {
             return;
         }
 
-        kiteService.appendIndexITMOptions();
+        if(!itmOptionsAppended) {
+            itmOptionsAppended = kiteService.appendIndexITMOptions();
+        }
+
         updateIntradayCache();
         orderHandler.removeExpiredOpenOrders(timeProvider.currentTimeStampIndex());
         for(Strategy strategy: activeStrategies) {
@@ -60,9 +62,9 @@ public class StrategyExecutor {
     }
 
     private void logOpenOrders() {
-        final List<OpenOrder> existingOpenOrders = orderHandler.getOpenOrders();
-        if(!existingOpenOrders.isEmpty()) {
-            log.info("list of open orders({}) : {}", existingOpenOrders.size(), existingOpenOrders);
+        final List<OrderRequest> existingOrderRequests = orderHandler.getOrderRequests();
+        if(!existingOrderRequests.isEmpty()) {
+            log.info("list of open orders({}) : {}", existingOrderRequests.size(), existingOrderRequests);
         }
         final List<ActiveOrder> activeOrders = orderHandler.getActiveOrders();
         if(!activeOrders.isEmpty()) {
@@ -78,7 +80,7 @@ public class StrategyExecutor {
             return;
         }
 
-        Optional<? extends OpenOrder> openOrderOptional = strategy.test(candleStickCache.get(symbol), timeProvider.currentTimeStampIndex());
+        Optional<? extends OrderRequest> openOrderOptional = strategy.test(candleStickCache.get(symbol), timeProvider.currentTimeStampIndex());
         openOrderOptional.ifPresent(o -> {
             String itmOptionSymbol = kiteService.getITMStock(o.getIndex(), o.getBuyThreshold(), o.isCallOrder());
             o.setOptionSymbol(itmOptionSymbol);

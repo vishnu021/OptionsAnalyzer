@@ -1,10 +1,11 @@
 package com.vish.fno.manage;
 
 import com.vish.fno.manage.config.order.OrderConfiguration;
-import com.vish.fno.manage.helper.OpenOrderVerifier;
+import com.vish.fno.manage.helper.EntryVerifier;
 import com.vish.fno.manage.helper.StopLossAndTargetHandler;
 import com.vish.fno.manage.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
+import com.vish.fno.reader.model.KiteOpenOrder;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.model.order.*;
 import com.vish.fno.reader.service.KiteService;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 class OrderHandlerTest {
 
@@ -35,37 +37,37 @@ class OrderHandlerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        final OpenOrderVerifier openOrderVerifier = spy(new OpenOrderVerifier(orderConfiguration, kiteService, timeProvider));
+        final EntryVerifier entryVerifier = spy(new EntryVerifier(orderConfiguration, kiteService, timeProvider));
         final StopLossAndTargetHandler stopLossAndTargetHandler = spy(new StopLossAndTargetHandler(timeProvider, kiteService));
-        orderHandler = new OrderHandler(kiteService, orderConfiguration, fileUtils, timeProvider, openOrderVerifier, stopLossAndTargetHandler);
+        orderHandler = new OrderHandler(kiteService, orderConfiguration, fileUtils, timeProvider, entryVerifier, stopLossAndTargetHandler);
     }
 
     @Test
     void testAppendOpenOrder() {
         //Arrange
-        OpenOrder mockOrder = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest mockOrder = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .build();
         //Act
         orderHandler.appendOpenOrder(mockOrder);
         //Assert
-        assertEquals(orderHandler.getOpenOrders().size(), 1);
+        assertEquals(orderHandler.getOrderRequests().size(), 1);
     }
 
     @Test
     void testAppendOpenOrderIfSameOpenOrderPresent() {
         //Arrange
-        OpenOrder openOrder1 = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest1 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .build();
-        OpenOrder openOrder2 = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest2 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .build();
         //Act
-        orderHandler.appendOpenOrder(openOrder1);
-        orderHandler.appendOpenOrder(openOrder2);
+        orderHandler.appendOpenOrder(orderRequest1);
+        orderHandler.appendOpenOrder(orderRequest2);
         //Assert
-        assertEquals(orderHandler.getOpenOrders().size(), 1);
+        assertEquals(orderHandler.getOrderRequests().size(), 1);
     }
 
     @Test
@@ -75,10 +77,10 @@ class OrderHandlerTest {
         List<String> expectedFirstInvocationArgument = List.of("TEST_SYMBOL", "TEST_OPTION_SYMBOL");
         List<String> expectedSecondInvocationArgument = List.of("TEST_SYMBOL2", "TEST_OPTION_SYMBOL2");
 
-        OpenOrder openOrder1 = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest1 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .build();
-        OpenOrder openOrder2 = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest2 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .tag("TestStrategyTag")
                 .index("TEST_SYMBOL2")
                 .optionSymbol("TEST_OPTION_SYMBOL2")
@@ -90,11 +92,11 @@ class OrderHandlerTest {
         when(kiteService.getInstrument("TEST_OPTION_SYMBOL2")).thenReturn(4L);
 
         //Act
-        orderHandler.appendOpenOrder(openOrder1);
-        orderHandler.appendOpenOrder(openOrder2);
+        orderHandler.appendOpenOrder(orderRequest1);
+        orderHandler.appendOpenOrder(orderRequest2);
 
         //Assert
-        assertEquals(orderHandler.getOpenOrders().size(), 2);
+        assertEquals(orderHandler.getOrderRequests().size(), 2);
         verify(kiteService, times(2)).appendWebSocketSymbolsList(argumentCaptor.capture(), anyBoolean());
 
         List<List<String>> allValues = argumentCaptor.getAllValues();
@@ -105,71 +107,71 @@ class OrderHandlerTest {
     @Test
     void testAppendOpenOrderIfSameActiveOrderPresent() {
         //Arrange
-        OpenOrder openOrder1 = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest1 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .build();
-        OpenOrder openOrder2 = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest2 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder1, 1, 10);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest1, 1, 10);
         orderHandler.getActiveOrders().add(activeOrder);
 
         //Act
-        orderHandler.appendOpenOrder(openOrder2);
+        orderHandler.appendOpenOrder(orderRequest2);
         //Assert
-        assertEquals(orderHandler.getOpenOrders().size(), 0);
+        assertEquals(orderHandler.getOrderRequests().size(), 0);
     }
 
     @Test
     void testRemoveExpiredOrders() {
         //Arrange
         int timestamp = 25;
-        OpenOrder openOrder1 = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest1 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .expirationTimestamp(24)
                 .build();
-        orderHandler.getOpenOrders().add(openOrder1);
+        orderHandler.getOrderRequests().add(orderRequest1);
 
         //Act
         orderHandler.removeExpiredOpenOrders(timestamp);
 
         //Assert
-        assertEquals(orderHandler.getOpenOrders().size(), 0);
+        assertEquals(orderHandler.getOrderRequests().size(), 0);
     }
 
     @Test
     void testNotRemoveNonExpiredOrders() {
         //Arrange
         int timestamp = 25;
-        OpenOrder openOrder1 = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest1 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .expirationTimestamp(26)
                 .build();
-        orderHandler.getOpenOrders().add(openOrder1);
+        orderHandler.getOrderRequests().add(orderRequest1);
 
         //Act
         orderHandler.removeExpiredOpenOrders(timestamp);
 
         //Assert
-        assertEquals(orderHandler.getOpenOrders().size(), 1);
+        assertEquals(orderHandler.getOrderRequests().size(), 1);
     }
 
     @Test
     void testRemoveOnlyExpiredOrders() {
         //Arrange
         int timestamp = 25;
-        OpenOrder openOrder1 = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest1 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .expirationTimestamp(26)
                 .build();
-        OpenOrder openOrder2 = OpenIndexOrder.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest2 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .expirationTimestamp(24)
                 .build();
-        orderHandler.getOpenOrders().add(openOrder1);
-        orderHandler.getOpenOrders().add(openOrder2);
+        orderHandler.getOrderRequests().add(orderRequest1);
+        orderHandler.getOrderRequests().add(orderRequest2);
 
         //Act
         orderHandler.removeExpiredOpenOrders(timestamp);
 
         //Assert
-        assertEquals(orderHandler.getOpenOrders().size(), 1);
+        assertEquals(orderHandler.getOrderRequests().size(), 1);
     }
 
     @Test
@@ -199,16 +201,17 @@ class OrderHandlerTest {
         ticks.add(tick);
 
         //active order
-        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .target(99)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, 1d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, 1d, 1);
         orderHandler.getActiveOrders().add(activeOrder);
 
-        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(true);
+        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean()))
+                .thenReturn(Optional.of(KiteOpenOrder.builder().isOrderPlaced(true).build()));
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
 
@@ -228,16 +231,17 @@ class OrderHandlerTest {
         ticks.add(tick);
 
         //active order
-        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(false)
                 .target(101)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, 1d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, 1d, 1);
         orderHandler.getActiveOrders().add(activeOrder);
 
-        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(true);
+        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean()))
+                .thenReturn(Optional.of(KiteOpenOrder.builder().isOrderPlaced(true).build()));
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
 
@@ -257,16 +261,17 @@ class OrderHandlerTest {
         ticks.add(tick);
 
         //active order
-        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .target(99)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, 1d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, 1d, 1);
         orderHandler.getActiveOrders().add(activeOrder);
 
-        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(false);
+        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean()))
+                .thenReturn(Optional.of(KiteOpenOrder.builder().isOrderPlaced(false).build()));
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
 
@@ -286,16 +291,17 @@ class OrderHandlerTest {
         ticks.add(tick);
 
         //active order
-        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .target(101)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, 1d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, 1d, 1);
         orderHandler.getActiveOrders().add(activeOrder);
 
-        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(false);
+        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean()))
+                .thenReturn(Optional.of(KiteOpenOrder.builder().isOrderPlaced(false).build()));
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
 
@@ -315,16 +321,17 @@ class OrderHandlerTest {
         ticks.add(tick);
 
         //active order
-        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
                 .target(99)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, 1d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, 1d, 1);
         orderHandler.getActiveOrders().add(activeOrder);
 
-        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(true);
+        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean()))
+                .thenReturn(Optional.of(KiteOpenOrder.builder().isOrderPlaced(true).build()));
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
         doThrow(new RuntimeException()).when(fileUtils).logCompletedOrder(any(ActiveOrder.class));
@@ -345,16 +352,17 @@ class OrderHandlerTest {
         ticks.add(tick);
 
         //active order
-        OpenOrder openOrder = OpenIndexOrder.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
+        OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(false)
                 .target(101)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(openOrder, 1d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, 1d, 1);
         orderHandler.getActiveOrders().add(activeOrder);
 
-        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean())).thenReturn(true);
+        when(kiteService.sellOrder(anyString(), anyDouble(), anyInt(), anyString(), anyBoolean()))
+                .thenReturn(Optional.of(KiteOpenOrder.builder().isOrderPlaced(true).build()));
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
         when(timeProvider.currentTimeStampIndex()).thenReturn(300);
         doThrow(new RuntimeException()).when(fileUtils).logCompletedOrder(any(ActiveOrder.class));

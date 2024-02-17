@@ -7,7 +7,7 @@ import com.vish.fno.manage.service.CandlestickService;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.model.SymbolData;
 import com.vish.fno.model.order.ActiveOrder;
-import com.vish.fno.model.order.OpenOrder;
+import com.vish.fno.model.order.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -121,14 +121,14 @@ class StrategyExecutorTest {
     public void testUpdate_WithinTradingHours_StrategiesTested_returning_openOrder() {
         // Arrange
         SymbolData mockSymbolData = mock(SymbolData.class);
-        OpenOrder openOrder = mock(OpenOrder.class);
+        OrderRequest orderRequest = mock(OrderRequest.class);
 
         LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
 
         when(timeProvider.now()).thenReturn(mockTime);
         when(kiteService.isInitialised()).thenReturn(true);
         when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
-        when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
+        when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
 
         // Act
         strategyExecutor.update();
@@ -148,15 +148,15 @@ class StrategyExecutorTest {
     public void testUpdate_WithinTradingHours_StrategiesTested_returning_openOrders() {
         // Arrange
         SymbolData mockSymbolData = mock(SymbolData.class);
-        OpenOrder openOrder = mock(OpenOrder.class);
+        OrderRequest orderRequest = mock(OrderRequest.class);
 
         LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
 
         when(timeProvider.now()).thenReturn(mockTime);
         when(kiteService.isInitialised()).thenReturn(true);
         when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
-        when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
-        when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
+        when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
+        when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
 
         // Act
         strategyExecutor.update();
@@ -175,16 +175,16 @@ class StrategyExecutorTest {
     public void testUpdate_WithinTradingHours_StrategiesTested_verify_order_logging() {
         // Arrange
         SymbolData mockSymbolData = mock(SymbolData.class);
-        OpenOrder openOrder = mock(OpenOrder.class);
+        OrderRequest orderRequest = mock(OrderRequest.class);
         ActiveOrder activeOrder = mock(ActiveOrder.class);
 
         LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
         when(timeProvider.now()).thenReturn(mockTime);
         when(kiteService.isInitialised()).thenReturn(true);
         when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
-        when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
-        when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(openOrder));
-        when(orderHandler.getOpenOrders()).thenReturn(List.of(openOrder));
+        when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
+        when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
+        when(orderHandler.getOrderRequests()).thenReturn(List.of(orderRequest));
         when(orderHandler.getActiveOrders()).thenReturn(List.of(activeOrder));
 
         // Act

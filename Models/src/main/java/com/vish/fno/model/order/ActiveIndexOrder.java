@@ -52,7 +52,7 @@ public class ActiveIndexOrder implements ActiveOrder {
         extraData.put(key, value);
     }
 
-    public ActiveIndexOrder(OpenIndexOrder openOrder, double buyPrice, int timestamp) {
+    public ActiveIndexOrder(IndexOrderRequest openOrder, double buyPrice, int timestamp) {
         this.index = openOrder.getIndex();
         this.optionSymbol = openOrder.getOptionSymbol();
         this.date = openOrder.getDate();

@@ -1,6 +1,7 @@
 package com.vish.fno.manage.service;
 
 import com.vish.fno.reader.service.KiteService;
+import com.vish.fno.reader.util.KiteUtils;
 import com.zerodhatech.models.Order;
 import com.zerodhatech.models.OrderParams;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +19,14 @@ public class OrderService {
     private final KiteService kiteService;
 
     public void openPositions() {
-        kiteService.logOpenPositions();
+        log.info("Loaded orders from Kite server : {}", KiteUtils.getFormattedObject(kiteService.getOrders()));
     }
 
     public void openOrders() {
-        kiteService.logOpenOrders();
+        log.info("Loaded positions from Kite server : {}", KiteUtils.getFormattedObject(kiteService.getPositions()));
     }
 
+    // TODO: simplify
     public Optional<Order> placeOrder(Map<String, String> orderProps) {
         OrderParams orderParams = new OrderParams();
         for(String key: orderProps.keySet()) {

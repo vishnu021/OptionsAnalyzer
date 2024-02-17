@@ -6,10 +6,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ActiveOrderFactory {
 
-    public static ActiveOrder createOrder(OpenOrder openOrder, double ltp, int timestamp) {
+    public static ActiveOrder createOrder(OrderRequest orderRequest, double ltp, int timestamp) {
         ActiveOrder order = null;
 
-        if(openOrder instanceof OpenIndexOrder indexOrder) {
+        if(orderRequest instanceof IndexOrderRequest indexOrder) {
             order = new ActiveIndexOrder(indexOrder, ltp, timestamp);
         }
         return order;

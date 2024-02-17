@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.Map;
 
 public interface ActiveOrder {
-
     String getIndex();
     Date getDate();
     String getOptionSymbol();

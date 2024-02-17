@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Class for caching intraday candlestick data for symbols.
+ */
 @Component
 public class CandleStickCache {
 

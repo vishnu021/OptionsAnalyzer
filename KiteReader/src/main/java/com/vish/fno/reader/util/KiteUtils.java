@@ -19,6 +19,8 @@ public final class KiteUtils {
     public static final String NIFTY_BANK = "NIFTY BANK";
     public static final String NIFTY_50 = "NIFTY 50";
     public static final  String NIFTY_FIN_SERVICE = "NIFTY FIN SERVICE";
+
+    public static final String MINUTE = "minute";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     private final static ObjectMapper mapper = new ObjectMapper();
@@ -52,7 +54,7 @@ public final class KiteUtils {
     }
 
     public static String getStringDate(Date date) {
-        if(date==null) {
+        if(date == null) {
             return "";
         }
         SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);

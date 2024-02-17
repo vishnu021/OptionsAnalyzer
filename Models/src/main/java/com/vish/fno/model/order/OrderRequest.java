@@ -2,7 +2,7 @@ package com.vish.fno.model.order;
 
 import com.vish.fno.model.Task;
 
-public interface OpenOrder {
+public interface OrderRequest {
 
     String getIndex();
     String getOptionSymbol();

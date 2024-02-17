@@ -1,4 +1,4 @@
-package com.vish.fno.manage;
+package com.vish.fno.manage.config;
 
 import com.vish.fno.util.FileUtils;
 import org.springframework.context.annotation.Bean;
