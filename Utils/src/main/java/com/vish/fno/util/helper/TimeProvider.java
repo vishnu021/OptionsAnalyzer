@@ -1,12 +1,10 @@
-package com.vish.fno.manage.helper;
+package com.vish.fno.util.helper;
 
 import com.vish.fno.util.TimeUtils;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Date;
 
-@Component
 public class TimeProvider {
 
     public LocalDateTime now() {

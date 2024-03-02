@@ -3,7 +3,7 @@ package com.vish.fno.manage;
 import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.manage.helper.EntryVerifier;
 import com.vish.fno.manage.helper.StopLossAndTargetHandler;
-import com.vish.fno.manage.helper.TimeProvider;
+import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.reader.model.KiteOpenOrder;
 import com.vish.fno.util.FileUtils;
@@ -44,7 +44,7 @@ class OrderHandlerTest {
         final EntryVerifier entryVerifier = spy(new EntryVerifier(orderConfiguration, kiteService, timeProvider));
         final TargetHandler targetHandler = spy(new FixedTargetHandler());
         final StopLossHandler stopLossHandler = spy(new FixedStopLossHandler());
-        final StopLossAndTargetHandler stopLossAndTargetHandler = spy(new StopLossAndTargetHandler(timeProvider, kiteService, targetHandler, stopLossHandler));
+        final StopLossAndTargetHandler stopLossAndTargetHandler = spy(new StopLossAndTargetHandler(targetHandler, stopLossHandler));
         orderHandler = new OrderHandler(kiteService, orderConfiguration, fileUtils, timeProvider, entryVerifier, stopLossAndTargetHandler);
     }
 

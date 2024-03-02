@@ -5,6 +5,7 @@ import com.vish.fno.model.Task;
 import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.order.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
+import com.vish.fno.util.helper.TimeProvider;
 import com.zerodhatech.models.Tick;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -40,7 +41,7 @@ public final class EntryVerifier {
                 .toList();
 
         for (OrderRequest order : tickSymbolOrders) {
-            Optional<OrderRequest> openOrderOptional = verifyAndPlaceOrder(tick, order);
+            Optional<OrderRequest> openOrderOptional = verifyBuyThreshold(tick, order);
             if(!orderRequests.isEmpty()) {
                 return openOrderOptional;
             }
@@ -95,14 +96,14 @@ public final class EntryVerifier {
         return false;
     }
 
-    public boolean hasMoveAlreadyHappened(double ltp, ActiveOrder order) {
+    public boolean hasMoveAlreadyHappened(double ltp, OrderRequest order) {
 
-        if(order.getBuyOptionPrice() < 0.1) {
+        if(ltp < 0.1) {
             log.info("ltp price not set, not placing order for {}. ltp: {}, order: {}", order.getIndex(), ltp, order);
             return true;
         }
 
-        final double buyAt = order.getBuyPrice();
+        final double buyAt = order.getBuyThreshold();
         final double target = order.getTarget();
 
         if(order.isCallOrder()) {
@@ -135,7 +136,7 @@ public final class EntryVerifier {
         return isNotInActiveOrder;
     }
 
-    private Optional<OrderRequest> verifyAndPlaceOrder(Tick tick, OrderRequest order) {
+    private Optional<OrderRequest> verifyBuyThreshold(Tick tick, OrderRequest order) {
 
         if(order.isCallOrder()) {
             if (tick.getLastTradedPrice() > order.getBuyThreshold()) {

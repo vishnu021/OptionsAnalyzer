@@ -7,6 +7,7 @@ import com.vish.fno.model.order.ActiveOrderFactory;
 import com.vish.fno.model.order.IndexOrderRequest;
 import com.vish.fno.model.order.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
+import com.vish.fno.util.helper.TimeProvider;
 import com.zerodhatech.models.Tick;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,8 +44,6 @@ class EntryVerifierTest {
 
         entryVerifier = new EntryVerifier(orderConfiguration, kiteService, timeProvider);
     }
-
-
 
     @Test
     void testIsPlaceOrderWhenSymbolIsNotInAllowedSymbolsForBuy() {
@@ -404,11 +403,9 @@ class EntryVerifierTest {
                 .buyThreshold(100)
                 .stopLoss(90)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
-        activeOrder.setBuyOptionPrice(1);
 
         //Act
-        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, activeOrder);
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
 
         // Assert
         assertFalse(moveHappened);
@@ -426,10 +423,8 @@ class EntryVerifierTest {
                 .buyThreshold(100)
                 .stopLoss(90)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
-        activeOrder.setBuyOptionPrice(1);
         //Act
-        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, activeOrder);
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
 
         // Assert
         assertFalse(moveHappened);
@@ -446,10 +441,9 @@ class EntryVerifierTest {
                 .buyThreshold(100)
                 .stopLoss(90)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
-        activeOrder.setBuyOptionPrice(1);
+
         //Act
-        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, activeOrder);
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
 
         // Assert
         assertFalse(moveHappened);
@@ -466,10 +460,8 @@ class EntryVerifierTest {
                 .buyThreshold(100)
                 .stopLoss(90)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
-
         //Act
-        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, activeOrder);
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
 
         // Assert
         assertTrue(moveHappened);
@@ -486,10 +478,8 @@ class EntryVerifierTest {
                 .buyThreshold(100)
                 .stopLoss(90)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
-
         //Act
-        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, activeOrder);
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
 
         // Assert
         assertTrue(moveHappened);
@@ -506,11 +496,9 @@ class EntryVerifierTest {
                 .buyThreshold(100)
                 .stopLoss(110)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
-        activeOrder.setBuyOptionPrice(1);
 
         //Act
-        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, activeOrder);
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
 
         // Assert
         assertFalse(moveHappened);
@@ -527,11 +515,9 @@ class EntryVerifierTest {
                 .buyThreshold(100)
                 .stopLoss(110)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
-        activeOrder.setBuyOptionPrice(1);
 
         //Act
-        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, activeOrder);
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
 
         // Assert
         assertFalse(moveHappened);
@@ -548,11 +534,9 @@ class EntryVerifierTest {
                 .buyThreshold(100)
                 .stopLoss(110)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
-        activeOrder.setBuyOptionPrice(1);
 
         //Act
-        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, activeOrder);
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
 
         // Assert
         assertFalse(moveHappened);
@@ -569,10 +553,9 @@ class EntryVerifierTest {
                 .buyThreshold(100)
                 .stopLoss(110)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
 
         //Act
-        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, activeOrder);
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
 
         // Assert
         assertTrue(moveHappened);
@@ -589,10 +572,9 @@ class EntryVerifierTest {
                 .buyThreshold(100)
                 .stopLoss(110)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
 
         //Act
-        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, activeOrder);
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
 
         // Assert
         assertTrue(moveHappened);
@@ -692,5 +674,48 @@ class EntryVerifierTest {
 
         // Assert
         assertFalse(isNotInActiveOrder);
+    }
+
+
+
+    @Test
+    void testHasMoveAlreadyHappenedCase1() {
+        // Arrange
+        double ltp = 1419.9;
+
+        OrderRequest orderRequest = IndexOrderRequest.builder("HDFCBANK", "HDFCBANK24MAR1410CE", new StrategyTasks())
+                .callOrder(true)
+                .target(1421.95)
+                .buyThreshold(1419.8)
+                .stopLoss(1418.35)
+                .build();
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
+        activeOrder.setBuyOptionPrice(1);
+
+        //Act
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
+
+        // Assert
+        assertFalse(moveHappened);
+
+    }
+
+    @Test
+    void testHasMoveAlreadyHappenedCase2() {
+        // Arrange
+        double ltp = 1421.8;
+
+        OrderRequest orderRequest = IndexOrderRequest.builder("HDFCBANK", "HDFCBANK24MAR1410CE", new StrategyTasks())
+                .callOrder(true)
+                .target(1421.95)
+                .buyThreshold(1419.8)
+                .stopLoss(1418.35)
+                .build();
+
+        //Act
+        boolean moveHappened = entryVerifier.hasMoveAlreadyHappened(ltp, orderRequest);
+
+        // Assert
+        assertTrue(moveHappened);
     }
 }

@@ -1,8 +1,7 @@
-package com.vish.fno.manage.helper;
+package com.vish.fno.util.helper;
 
 import com.vish.fno.model.Candle;
 import com.vish.fno.model.SymbolData;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +11,6 @@ import java.util.Optional;
 /**
  * Class for caching intraday candlestick data for symbols.
  */
-@Component
 public class CandleStickCache {
 
     private final Map<String, List<Candle>> candlesCache = new HashMap<>();

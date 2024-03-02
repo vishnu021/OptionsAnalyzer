@@ -4,25 +4,26 @@ import com.google.common.annotations.VisibleForTesting;
 import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.manage.helper.EntryVerifier;
 import com.vish.fno.manage.helper.StopLossAndTargetHandler;
-import com.vish.fno.manage.helper.TimeProvider;
+import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.reader.model.KiteOpenOrder;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.model.order.*;
 import com.vish.fno.reader.service.KiteService;
-import com.vish.fno.util.JsonUtils;
 import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.Depth;
+import com.zerodhatech.models.Order;
 import com.zerodhatech.models.Tick;
 import com.zerodhatech.ticker.OnOrderUpdate;
 import com.zerodhatech.ticker.OnTicks;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.vish.fno.manage.helper.EntryVerifier.ORDER_EXECUTED;
 import static com.vish.fno.util.JsonUtils.getFormattedObject;
@@ -32,6 +33,9 @@ import static com.vish.fno.util.JsonUtils.getFormattedObject;
 @RequiredArgsConstructor
 @SuppressWarnings({"PMD.AvoidCatchingGenericException"})
 public class OrderHandler {
+    private static final String BUY = "BUY";
+    private static final String COMPLETE = "COMPLETE";
+    private static final String SELL = "SELL";
     private final KiteService kiteService;
     private final OrderConfiguration orderConfiguration;
     private final FileUtils fileUtils;
@@ -42,7 +46,15 @@ public class OrderHandler {
     private final List<OrderRequest> orderRequests = new ArrayList<>();
     @Getter
     private final List<ActiveOrder> activeOrders = new ArrayList<>();
+    private final List<ActiveOrder> buyCompletedOrders = new ArrayList<>();
+    private final List<ActiveOrder> completedOrders = new ArrayList<>();
     private final Map<String, Tick> latestTicks = new HashMap<>();
+
+    @PreDestroy
+    public void logOrders() {
+        log.info("Buy completed orders : {}", buyCompletedOrders);
+        log.info("All completed orders : {}", completedOrders);
+    }
 
     @PostConstruct
     public void initialiseWebSocket() {
@@ -51,27 +63,66 @@ public class OrderHandler {
                 handleTicks(ticks);
             }
         };
-        final OnOrderUpdate onOrderUpdateListener = order -> {
-            log.info("Order update complete : {}", getFormattedObject(order));
-            try {
-                String orderId = order.orderId;
-                List<ActiveOrder> activeOrdersForOrderId = activeOrders
-                        .stream()
-                        .filter(o -> o.getExtraData() != null && o.getExtraData().get("kiteOrderId").contentEquals(orderId))
-                        .collect(Collectors.toList());
-                log.info("Existing active order: {}", activeOrdersForOrderId);
-            } catch (Exception e) {
-                log.error("Exception while finding active order for order update", e);
-            }
-        };
+        final OnOrderUpdate onOrderUpdateListener = this::onOrderUpdate;
         kiteService.setOnTickerArrivalListener(onTickerArrivalListener);
         kiteService.setOnOrderUpdateListener(onOrderUpdateListener);
         final List<String> initialSymbols = Arrays.stream(orderConfiguration.getWebSocketDefaultSymbols()).toList();
         kiteService.appendWebSocketSymbolsList(initialSymbols, true);
     }
 
-    public void appendOpenOrder(OrderRequest order) {
-        if(entryVerifier.isNotInActiveOrders(activeOrders, order)) {
+    private void onOrderUpdate(Order order) {
+        log.info("Order update complete : {}", getFormattedObject(order));
+        try {
+            String orderId = order.orderId;
+            List<ActiveOrder> activeOrdersForOrderId = getActiveOrdersByOrderId(orderId);
+            log.info("Existing active order for order id: {}: {}", orderId, activeOrdersForOrderId);
+            logOrderLifeCycle(order, orderId);
+
+        } catch (Exception e) {
+            log.error("Exception while finding active order for order update", e);
+        }
+    }
+
+    private void logOrderLifeCycle(Order order, String orderId) {
+        if(BUY.contentEquals(order.transactionType)) {
+            if (COMPLETE.contentEquals(order.status)) {
+                List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(orderId);
+                log.info("Buy order completed for : {}", ordersForOrderId);
+                buyCompletedOrders.addAll(ordersForOrderId);
+            } else {
+                List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(orderId);
+                log.info("Buy order placed for : {}", ordersForOrderId);
+            }
+        }
+        if(SELL.contentEquals(order.transactionType)) {
+            if (COMPLETE.contentEquals(order.status)) {
+                List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(orderId);
+                log.info("Sell order completed for : {}", ordersForOrderId);
+                completedOrders.addAll(ordersForOrderId);
+            } else {
+                List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(orderId);
+                log.info("Sell order placed for : {}", ordersForOrderId);
+            }
+        }
+    }
+
+    @NotNull
+    private List<ActiveOrder> getActiveOrdersByOrderId(String orderId) {
+        return activeOrders
+                .stream()
+                .filter(o -> o.getExtraData() != null && o.getExtraData().get("kiteOrderId").contentEquals(orderId))
+                .toList();
+    }
+
+    public void appendOpenOrder(OrderRequest order) { // TODO: update to append open order if price movement has not passed
+        Tick tick = latestTicks.get(order.getIndex());
+        if(tick == null) {
+            log.info("Not appending order request : {}, as tick is null", order);
+            kiteService.appendWebSocketSymbolsList(List.of(order.getIndex()), false);
+            return;
+        }
+
+        if(entryVerifier.isNotInActiveOrders(activeOrders, order) && !entryVerifier.hasMoveAlreadyHappened(tick.getLastTradedPrice(), order)) {
             orderRequests.removeIf(o -> o.equals(order));
             orderRequests.add(order);
             addTokenToWebsocket(order);
@@ -84,13 +135,14 @@ public class OrderHandler {
         for(Tick tick: ticks) {
             try {
                 String tickSymbol = kiteService.getSymbol(tick.getInstrumentToken());
+                int timestampIndex = timeProvider.currentTimeStampIndex();
+                double ltp = tick.getLastTradedPrice();
                 latestTicks.put(tickSymbol, tick);
-                Optional<ActiveOrder> orderToSell = stopLossAndTargetHandler.getActiveOrderToSell(tick, activeOrders);
+                Optional<ActiveOrder> orderToSell = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, timestampIndex, activeOrders);
                 orderToSell.ifPresent(order -> sellOrder(tick, order));
                 Optional<OrderRequest> orderToBuy = entryVerifier.checkEntryInOpenOrders(tick, orderRequests, activeOrders);
                 orderToBuy.ifPresent(order -> {
-                    int timestamp = timeProvider.currentTimeStampIndex();
-                    placeOrder(tick, order, timestamp);
+                    placeOrder(tick, order, timestampIndex);
                 });
                 fileUtils.appendTickToFile(tickSymbol, tick);
             } catch (Exception e) {
@@ -181,10 +233,6 @@ public class OrderHandler {
             } else {
                 log.warn("Latest tick price for symbol: {} not present in latest tick prices: {}",
                         activeOrder.getOptionSymbol(), latestTicks.keySet());
-            }
-
-            if(entryVerifier.hasMoveAlreadyHappened(activeOrder.getBuyPrice(), activeOrder)) {
-                return;
             }
 
             log.debug("Placing an order for index: {}, symbol: {}, at buyThreshold: {}", order.getIndex(), order.getOptionSymbol(), order.getBuyThreshold());

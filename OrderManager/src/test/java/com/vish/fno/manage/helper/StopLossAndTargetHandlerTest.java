@@ -5,15 +5,11 @@ import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.order.ActiveOrderFactory;
 import com.vish.fno.model.order.IndexOrderRequest;
 import com.vish.fno.model.order.OrderRequest;
-import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.orderflow.sl.FixedStopLossHandler;
 import com.vish.fno.util.orderflow.target.FixedTargetHandler;
-import com.vish.fno.util.orderflow.target.TargetHandler;
-import com.zerodhatech.models.Tick;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
@@ -22,12 +18,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 class StopLossAndTargetHandlerTest {
 
-    @Mock private TimeProvider timeProvider;
-    @Mock private KiteService kiteService;
     @Spy private FixedTargetHandler targetHandler;
     @Spy private FixedStopLossHandler stopLossHandler;
     @InjectMocks private StopLossAndTargetHandler stopLossAndTargetHandler;
@@ -40,12 +33,11 @@ class StopLossAndTargetHandlerTest {
     @Test
     void testGetActiveOrderToSellForEmptyActiveOrders() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(89);
+        String tickSymbol = "TEST_SYMBOL";
+        double ltp = 89;
 
         // Act
-        Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of());
+        Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, 115 ,List.of());
 
         // Assert
         assertTrue(activeOrderOptional.isEmpty());
@@ -54,10 +46,8 @@ class StopLossAndTargetHandlerTest {
     @Test
     void testGetActiveOrderToSellForActiveOrdersOfDifferentTick() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(89);
-
+        String tickSymbol = "TEST_SYMBOL";
+        double ltp = 89;
         OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
                 .callOrder(true)
@@ -65,12 +55,10 @@ class StopLossAndTargetHandlerTest {
                 .target(105)
                 .quantity(10)
                 .build();
-
         List<ActiveOrder> activeOrders = List.of(ActiveOrderFactory.createOrder(orderRequest, 0d, 1));
-        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
 
         // Act
-        Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, activeOrders);
+        Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, 115 ,activeOrders);
 
         // Assert
         assertTrue(activeOrderOptional.isEmpty());
@@ -79,9 +67,8 @@ class StopLossAndTargetHandlerTest {
     @Test
     void testGetActiveOrderToSellForTagetHitForCall() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(106);
+        String tickSymbol = "TEST_SYMBOL";
+        double ltp = 106;
 
         OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
@@ -91,10 +78,9 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(orderRequest, 0d, 1);
-        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
-        ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders)).get();
+        ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, 115 ,List.of(activeOrders)).get();
 
         // Assert
         assertEquals(activeOrderOptional, activeOrders);
@@ -103,9 +89,8 @@ class StopLossAndTargetHandlerTest {
     @Test
     void testGetActiveOrderToSellForStopLossHitForCall() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(89);
+        String tickSymbol = "TEST_SYMBOL";
+        double ltp = 89;
 
         OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
@@ -115,10 +100,9 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(orderRequest, 0d, 1);
-        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
-        ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders)).get();
+        ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, 115 ,List.of(activeOrders)).get();
 
         // Assert
         assertEquals(activeOrderOptional, activeOrders);
@@ -127,9 +111,8 @@ class StopLossAndTargetHandlerTest {
     @Test
     void testGetActiveOrderToSellWhenPriceBetweenTargetAndStopLossForCall() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(91);
+        String tickSymbol = "TEST_SYMBOL";
+        double ltp = 91;
 
         OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(true)
@@ -139,10 +122,9 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(orderRequest, 0d, 1);
-        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
-        Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders));
+        Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, 115 ,List.of(activeOrders));
 
         // Assert
         assertTrue(activeOrderOptional.isEmpty());
@@ -151,9 +133,8 @@ class StopLossAndTargetHandlerTest {
     @Test
     void testGetActiveOrderToSellForTargetHitForPut() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(89);
+        String tickSymbol = "TEST_SYMBOL";
+        double ltp = 89;
 
         OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
@@ -163,10 +144,9 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(orderRequest, 0d, 1);
-        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
-        ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders)).get();
+        ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, 115 ,List.of(activeOrders)).get();
 
         // Assert
         assertEquals(activeOrderOptional, activeOrders);
@@ -175,9 +155,8 @@ class StopLossAndTargetHandlerTest {
     @Test
     void testGetActiveOrderToSellForStopLossHitForPut() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(112);
+        String tickSymbol = "TEST_SYMBOL";
+        double ltp = 112;
 
         OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
@@ -187,10 +166,9 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(orderRequest, 0d, 1);
-        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
-        ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders)).get();
+        ActiveOrder activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, 115 ,List.of(activeOrders)).get();
 
         // Assert
         assertEquals(activeOrderOptional, activeOrders);
@@ -199,9 +177,8 @@ class StopLossAndTargetHandlerTest {
     @Test
     void testGetActiveOrderToSellWhenPriceBetweenTargetAndStopLossForPut() {
         // Arrange
-        Tick tick = new Tick();
-        tick.setInstrumentToken(1L);
-        tick.setLastTradedPrice(91);
+        String tickSymbol = "TEST_SYMBOL";
+        double ltp = 91;
 
         OrderRequest orderRequest = IndexOrderRequest.builder("TEST_TAG", "TEST_SYMBOL", new StrategyTasks())
                 .callOrder(false)
@@ -211,10 +188,9 @@ class StopLossAndTargetHandlerTest {
                 .build();
 
         ActiveOrder activeOrders = ActiveOrderFactory.createOrder(orderRequest, 0d, 1);
-        when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         // Act
-        Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tick, List.of(activeOrders));
+        Optional<ActiveOrder> activeOrderOptional = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, 115 ,List.of(activeOrders));
 
         // Assert
         assertTrue(activeOrderOptional.isEmpty());

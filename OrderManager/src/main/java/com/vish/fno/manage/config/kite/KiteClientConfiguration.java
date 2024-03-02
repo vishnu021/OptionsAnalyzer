@@ -43,7 +43,7 @@ public class KiteClientConfiguration {
 
     @Bean
     @ConditionalOnProperty(prefix  = "kite", name = "serviceInCloud", havingValue = "true")
-    public ConsoleAuthenticator prepareConsoleAuthenticator(KiteService kiteService) {
+    public ConsoleAuthenticator prepareConsoleAuthenticator( KiteService kiteService) {
         return new ConsoleAuthenticator(kiteService, kiteClientProperties.getAuthenticationUrl());
     }
 
@@ -75,7 +75,7 @@ public class KiteClientConfiguration {
         return nifty100Symbols;
     }
 
-    public List<Date> getHolidays() {
-        return kiteClientProperties.getHolidays2023().stream().map(TimeUtils::getDateObject).toList();
+    public List<String> getHolidayDates() {
+        return kiteClientProperties.getHolidays2023();
     }
 }

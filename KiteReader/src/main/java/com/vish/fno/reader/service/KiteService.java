@@ -187,7 +187,7 @@ public class KiteService {
 
         if (!isPlaceOrder) {
             log.warn("Not placing orders as it is not enabled or allowed currently");
-            return Optional.of(buildUnsuccessfulKiteOrder());
+            return Optional.of(buildSuccessfulKiteTestOrder());
         }
 
         if (!placeOrders) {
@@ -237,7 +237,7 @@ public class KiteService {
 
     @NotNull
     private KiteOpenOrder buildSuccessfulKiteTestOrder() {
-        return KiteOpenOrder.builder().isOrderPlaced(false).build();
+        return KiteOpenOrder.builder().isOrderPlaced(true).build();
     }
 
 

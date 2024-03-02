@@ -13,10 +13,10 @@
 	<modules>
 		<module>Models</module>
 		<module>Utils</module>
-		<module>KiteReader</module>
 		<module>Technicals</module>
+		<module>KiteReader</module>
 		<module>OrderManager</module>
-    </modules>
+	</modules>
 
 	<groupId>com.vish.fno</groupId>
 	<artifactId>OptionsAnalyzer</artifactId>
