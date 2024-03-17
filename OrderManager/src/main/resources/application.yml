@@ -72,31 +72,14 @@ kite:
     apiKey:
     userId:
     apiSecret:
-    liveData:
     authenticationUrl: ${kite.baseuri}/connect/login?api_key=${kite.apiKey}&v=3
     serviceInCloud: false
-    holidays2023:
-        - "2023-01-22"
-        - "2023-01-26"
-        - "2023-03-07"
-        - "2023-03-30"
-        - "2023-04-04"
-        - "2023-04-07"
-        - "2023-04-14"
-        - "2023-05-01"
-        - "2023-06-29"
-        - "2023-08-15"
-        - "2023-09-19"
-        - "2023-10-02"
-        - "2023-10-24"
-        - "2023-11-14"
-        - "2023-11-27"
-        - "2023-12-25"
 
 order:
     symbolsPath: ind_nifty100list.csv
-    additionalSymbols: NIFTY, NIFTY 50, BANKNIFTY, NIFTY BANK
-    webSocketDefaultSymbols: NIFTY BANK, NIFTY 50
-    availableCash:
-    placeOrders:
-    connectToWebSocket:
+    additionalSymbols: NIFTY, NIFTY 50, BANKNIFTY, NIFTY BANK, FINNIFTY, NIFTY FIN SERVICE
+    webSocketDefaultSymbols: NIFTY BANK, NIFTY 50, BAJFINANCE, HINDUNILVR, HDFCBANK
+    maximumOrderCount: 1
+    availableCash: 24000
+    placeOrders: false
+    connectToWebSocket: false

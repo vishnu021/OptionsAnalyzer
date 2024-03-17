@@ -1,12 +1,10 @@
 package com.vish.fno.util.helper;
 
 import com.vish.fno.model.Candle;
-import com.vish.fno.model.SymbolData;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Class for caching intraday candlestick data for symbols.
@@ -19,8 +17,11 @@ public class CandleStickCache {
         return candlesCache.get(symbol);
     }
 
-    public void update(String symbol, Optional<SymbolData> candleStickData) {
+    public void update(String symbol, List<Candle> data) {
+        candlesCache.put(symbol, data);
+    }
+
+    public void clear(String symbol) {
         candlesCache.remove(symbol);
-        candleStickData.ifPresent(d -> candlesCache.put(symbol, d.getData()));
     }
 }

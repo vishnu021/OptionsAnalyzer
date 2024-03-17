@@ -1,6 +1,7 @@
 package com.vish.fno.manage;
 
 import com.vish.fno.manage.helper.DataCache;
+import com.vish.fno.manage.service.CalendarService;
 import com.vish.fno.util.helper.CandleStickCache;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
@@ -46,7 +47,8 @@ class StrategyExecutorTest {
 
         when(mockStrategy1.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "BANK NIFTY", true, true));
         when(mockStrategy2.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "NIFTY 50", false, false));
-        DataCache candleStickCache = spy(new DataCache(candlestickService));
+        CalendarService calendarService = mock(CalendarService.class);
+        DataCache candleStickCache = spy(new DataCache(candlestickService, calendarService));
 
         List<String> symbolList =  activeStrategies.stream().map(s -> s.getTask().getIndex())
                 .collect(Collectors.toCollection(ArrayList::new));

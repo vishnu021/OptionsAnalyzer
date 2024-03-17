@@ -2,10 +2,10 @@ package com.vish.fno.manage.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vish.fno.manage.config.kite.KiteClientConfiguration;
 import com.vish.fno.manage.dao.CandlestickRepository;
 import com.vish.fno.manage.model.ApexChart;
 import com.vish.fno.manage.model.ApexChartSeries;
+import com.vish.fno.manage.strategy.CustomIndexService;
 import com.vish.fno.model.CandleMetaData;
 import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.FileUtils;
@@ -33,9 +33,10 @@ import static com.vish.fno.util.Constants.*;
 @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidThrowingRawExceptionTypes"})
 public class CandlestickService {
     private final CandlestickRepository candlestickRepository;
+    private final CustomIndexService customIndexService;
     private final FileUtils fileUtils;
     private final KiteService kiteService;
-    private final KiteClientConfiguration clientConfiguration;
+    private final CalendarService calendarService;
 
     public Optional<SymbolData> getEntireDayHistoryData(String date, String symbol) {
         return getEntireDayHistoryData(date, symbol, "minute");
@@ -118,7 +119,7 @@ public class CandlestickService {
 
     @NotNull
     public Optional<SymbolData> getCandlesticksFromBroker(String symbol, String date, String interval) {
-        if(clientConfiguration.getHolidayDates().contains(date)) {
+        if(calendarService.getHolidays().contains(date)) {
             log.debug("{} is a holiday date", date);
             return Optional.empty();
         }

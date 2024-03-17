@@ -2,10 +2,8 @@ package com.vish.fno.manage.config;
 
 import com.vish.fno.manage.config.task.TaskConfig;
 import com.vish.fno.manage.helper.DataCache;
-import com.vish.fno.util.helper.CandleStickCache;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
-import com.vish.fno.manage.service.CandlestickService;
 import com.vish.fno.manage.OrderHandler;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.manage.StrategyExecutor;

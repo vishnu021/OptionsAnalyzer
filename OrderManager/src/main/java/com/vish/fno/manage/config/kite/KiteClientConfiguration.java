@@ -74,8 +74,4 @@ public class KiteClientConfiguration {
         nifty100Symbols.addAll(Arrays.asList(orderConfiguration.getAdditionalSymbols()));
         return nifty100Symbols;
     }
-
-    public List<String> getHolidayDates() {
-        return kiteClientProperties.getHolidays2023();
-    }
 }

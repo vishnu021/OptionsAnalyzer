@@ -13,5 +13,4 @@ public class KiteClientProperties {
     private String apiSecret;
     private boolean liveData;
     private String authenticationUrl;
-    private List<String> holidays2023;
 }

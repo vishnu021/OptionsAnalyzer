@@ -1,6 +1,7 @@
 package com.vish.fno.manage.config;
 
 import com.vish.fno.manage.helper.DataCache;
+import com.vish.fno.manage.service.CalendarService;
 import com.vish.fno.manage.service.CandlestickService;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.util.helper.TimeProvider;
@@ -21,7 +22,7 @@ public class UtilsConfig {
     }
 
     @Bean
-    public DataCache candleStickCache(CandlestickService candlestickService) {
-        return new DataCache(candlestickService);
+    public DataCache candleStickCache(CandlestickService candlestickService, CalendarService calendarService) {
+        return new DataCache(candlestickService, calendarService);
     }
 }

@@ -231,6 +231,9 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>static/**/*</include>
+                    <include>holidays.yml</include>
+                    <include>*.csv</include>
+                    <include>*.p12</include>
                 </includes>
             </resource>
         </resources>
