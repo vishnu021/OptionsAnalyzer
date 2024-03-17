@@ -1,6 +1,7 @@
 package com.vish.fno.manage.config;
 
-import com.vish.fno.util.helper.CandleStickCache;
+import com.vish.fno.manage.helper.DataCache;
+import com.vish.fno.manage.service.CandlestickService;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.util.helper.TimeProvider;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +21,7 @@ public class UtilsConfig {
     }
 
     @Bean
-    public CandleStickCache candleStickCache() {
-        return new CandleStickCache();
+    public DataCache candleStickCache(CandlestickService candlestickService) {
+        return new DataCache(candlestickService);
     }
 }

@@ -40,6 +40,7 @@ public class KiteService {
     private final KiteWebSocket kiteWebSocket;
     @Getter
     private boolean initialised;
+    private boolean itmOptionsAppended;
 
     public KiteService(String apiSecret,
                        String apiKey,
@@ -217,17 +218,17 @@ public class KiteService {
     }
 
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
-    public boolean appendIndexITMOptions() {
-        if(kiteWebSocket.isConnectToWebSocket()) {
+    public void appendIndexITMOptions() {
+        if(kiteWebSocket.isConnectToWebSocket() && !itmOptionsAppended) {
             try {
                 List<String> indicesITMOptionSymbols = getITMIndexSymbols();
                 appendWebSocketSymbolsList(indicesITMOptionSymbols, false);
             } catch (Exception e) {
                 log.error("Failed to get the ITM option symbols", e);
-                return false;
+                return;
             }
         }
-        return true;
+        itmOptionsAppended = true;
     }
 
     @NotNull

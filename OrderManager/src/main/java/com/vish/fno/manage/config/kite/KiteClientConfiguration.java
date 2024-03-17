@@ -43,7 +43,7 @@ public class KiteClientConfiguration {
 
     @Bean
     @ConditionalOnProperty(prefix  = "kite", name = "serviceInCloud", havingValue = "true")
-    public ConsoleAuthenticator prepareConsoleAuthenticator( KiteService kiteService) {
+    public ConsoleAuthenticator prepareConsoleAuthenticator(KiteService kiteService) {
         return new ConsoleAuthenticator(kiteService, kiteClientProperties.getAuthenticationUrl());
     }
 

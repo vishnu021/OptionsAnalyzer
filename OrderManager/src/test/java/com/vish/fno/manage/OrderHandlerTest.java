@@ -53,7 +53,15 @@ class OrderHandlerTest {
         //Arrange
         OrderRequest mockOrder = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
+                .target(200)
+                .buyThreshold(100)
+                .stopLoss(60)
+                .callOrder(true)
                 .build();
+        Tick tick = new Tick();
+        tick.setLastTradedPrice(101);
+        orderHandler.appendToLatestTick("TEST_SYMBOL", tick);
+        when(kiteService.getITMStock("TEST_SYMBOL", 100, true)).thenReturn("TEST_OPTION_SYMBOL");
         //Act
         orderHandler.appendOpenOrder(mockOrder);
         //Assert
@@ -65,10 +73,23 @@ class OrderHandlerTest {
         //Arrange
         OrderRequest orderRequest1 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
+                .target(200)
+                .buyThreshold(100)
+                .stopLoss(60)
+                .callOrder(true)
                 .build();
+
         OrderRequest orderRequest2 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
+                .target(200)
+                .buyThreshold(100)
+                .stopLoss(60)
+                .callOrder(true)
                 .build();
+        Tick tick = new Tick();
+        tick.setLastTradedPrice(101);
+        orderHandler.appendToLatestTick("TEST_SYMBOL", tick);
+        when(kiteService.getITMStock("TEST_SYMBOL", 100, true)).thenReturn("TEST_OPTION_SYMBOL");
         //Act
         orderHandler.appendOpenOrder(orderRequest1);
         orderHandler.appendOpenOrder(orderRequest2);
@@ -85,17 +106,32 @@ class OrderHandlerTest {
 
         OrderRequest orderRequest1 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL")
+                .target(200)
+                .buyThreshold(100)
+                .stopLoss(60)
+                .callOrder(true)
                 .build();
-        OrderRequest orderRequest2 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL", new StrategyTasks())
-                .tag("TestStrategyTag")
-                .index("TEST_SYMBOL2")
+        OrderRequest orderRequest2 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL2", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL2")
+                .target(200)
+                .buyThreshold(100)
+                .stopLoss(60)
+                .callOrder(true)
                 .build();
+
+        Tick tick = new Tick();
+        tick.setLastTradedPrice(101);
+        Tick tick2 = new Tick();
+        tick2.setLastTradedPrice(101);
+        orderHandler.appendToLatestTick("TEST_SYMBOL", tick);
+        orderHandler.appendToLatestTick("TEST_SYMBOL2", tick2);
 
         when(kiteService.getInstrument("TEST_SYMBOL")).thenReturn(1L);
         when(kiteService.getInstrument("TEST_SYMBOL2")).thenReturn(2L);
         when(kiteService.getInstrument("TEST_OPTION_SYMBOL")).thenReturn(3L);
         when(kiteService.getInstrument("TEST_OPTION_SYMBOL2")).thenReturn(4L);
+        when(kiteService.getITMStock("TEST_SYMBOL", 100, true)).thenReturn("TEST_OPTION_SYMBOL");
+        when(kiteService.getITMStock("TEST_SYMBOL2", 100, true)).thenReturn("TEST_OPTION_SYMBOL2");
 
         //Act
         orderHandler.appendOpenOrder(orderRequest1);
