@@ -61,6 +61,7 @@ public class IndexOrderRequest implements OrderRequest {
         sb.append("\nOpenIndexOrder{")
                 .append("date=").append(date)
                 .append(", index=").append(index)
+                .append(", tag=").append(tag)
                 .append(", expiry=").append(expirationTimestamp)
                 .append(", buyAt=").append(round(buyThreshold))
                 .append(", target=").append(round(target))

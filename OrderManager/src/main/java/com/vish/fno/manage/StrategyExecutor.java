@@ -1,6 +1,6 @@
 package com.vish.fno.manage;
 
-import com.vish.fno.manage.helper.DataCache;
+import com.vish.fno.manage.helper.DataCacheImpl;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.model.order.ActiveOrder;
@@ -23,7 +23,7 @@ public class StrategyExecutor {
 
     private final KiteService kiteService;
     private final OrderHandler orderHandler;
-    private final DataCache dataCache;
+    private final DataCacheImpl dataCacheImpl;
     private final List<Strategy> activeStrategies;
     @Getter
     private final List<String> symbolList;
@@ -38,6 +38,7 @@ public class StrategyExecutor {
         if(!(isWithinTradingHours(timeProvider.now()) && kiteService.isInitialised())) {
             return;
         }
+
         kiteService.appendIndexITMOptions();
         orderHandler.removeExpiredOpenOrders(timeProvider.currentTimeStampIndex());
         for(Strategy strategy: activeStrategies) {
@@ -67,7 +68,7 @@ public class StrategyExecutor {
             log.error("symbol is null for strategy: {}", strategy);
             return;
         }
-        Optional.ofNullable(dataCache.updateAndGetMinuteData(symbol))
+        Optional.ofNullable(dataCacheImpl.updateAndGetMinuteData(symbol))
                 .ifPresentOrElse(
                         data -> strategy.test(data, timeProvider.currentTimeStampIndex()).ifPresent(orderHandler::appendOpenOrder),
                         () -> log.error("data is null for symbol: {}, strategy: {}", symbol, strategy));

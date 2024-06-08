@@ -37,7 +37,7 @@ public class KiteClientConfiguration {
     @Bean
     @ConditionalOnProperty(prefix  = "kite", name = "serviceInCloud", havingValue = "false")
     public BrowserLauncher prepareBrowserLauncher() {
-        return new BrowserLauncher(kiteClientProperties.isLiveData(),
+        return new BrowserLauncher(kiteClientProperties.isServiceInCloud(),
                 kiteClientProperties.getAuthenticationUrl());
     }
 

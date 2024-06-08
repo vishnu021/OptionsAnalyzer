@@ -78,9 +78,13 @@ public class TimeFrameUtils {
         return candles;
     }
 
-    private static Candle combine(List<Candle> candleList) {
+    public static Candle combine(List<Candle> candleList) {
         if (candleList == null || candleList.isEmpty()) {
             return null;
+        }
+
+        if(candleList.size() == 1) {
+            return candleList.get(0);
         }
 
         double open = candleList.get(0).getOpen();

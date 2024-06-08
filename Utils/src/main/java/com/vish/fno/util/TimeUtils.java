@@ -58,6 +58,18 @@ public final class TimeUtils {
         return null;
     }
 
+    public static Date getDateTimeForZonedDateString(String date) {
+        try {
+            final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_TIME_SEC_T_FORMAT, Locale.ENGLISH);
+            final ZonedDateTime zonedDateTime = ZonedDateTime.parse(date, formatter);
+            final Instant instant = zonedDateTime.toInstant();
+            return Date.from(instant);
+        } catch (Exception e) {
+            log.error("Failed to format date string: {} to pattern: {}", date, DATE_TIME_SEC_T_FORMAT, e);
+        }
+        return null;
+    }
+
     public static int getIndexOfTimeStamp(Date timeStamp) {
         if (timeStamp == null) {
             return -1;

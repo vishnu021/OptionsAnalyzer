@@ -11,6 +11,6 @@ public class KiteClientProperties {
     private String apiKey;
     private String userId;
     private String apiSecret;
-    private boolean liveData;
+    private boolean serviceInCloud;
     private String authenticationUrl;
 }

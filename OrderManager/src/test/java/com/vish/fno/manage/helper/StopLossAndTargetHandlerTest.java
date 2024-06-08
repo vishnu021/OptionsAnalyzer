@@ -5,8 +5,7 @@ import com.vish.fno.model.order.ActiveOrder;
 import com.vish.fno.model.order.ActiveOrderFactory;
 import com.vish.fno.model.order.IndexOrderRequest;
 import com.vish.fno.model.order.OrderRequest;
-import com.vish.fno.util.orderflow.sl.FixedStopLossHandler;
-import com.vish.fno.util.orderflow.target.FixedTargetHandler;
+import com.vish.fno.util.orderflow.FixedTargetAndStopLossStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -21,8 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StopLossAndTargetHandlerTest {
 
-    @Spy private FixedTargetHandler targetHandler;
-    @Spy private FixedStopLossHandler stopLossHandler;
+    @Spy
+    FixedTargetAndStopLossStrategy targetAndStopLossStrategy;
     @InjectMocks private StopLossAndTargetHandler stopLossAndTargetHandler;
 
     @BeforeEach

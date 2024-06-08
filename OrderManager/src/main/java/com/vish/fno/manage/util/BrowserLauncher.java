@@ -15,12 +15,12 @@ import java.net.URISyntaxException;
 @SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
 public class BrowserLauncher {
 
-    private final boolean liveData;
+    private final boolean serviceInCloud;
     private final String authenticationUrl;
 
     @EventListener(ApplicationReadyEvent.class)
     public void launchBrowser() {
-        if (liveData) {
+        if (!serviceInCloud) {
             log.info("Initialising browser");
             System.setProperty("java.awt.headless", "false");
             Desktop desktop = Desktop.getDesktop();

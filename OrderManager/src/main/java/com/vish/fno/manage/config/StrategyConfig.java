@@ -1,17 +1,15 @@
 package com.vish.fno.manage.config;
 
 import com.vish.fno.manage.config.task.TaskConfig;
-import com.vish.fno.manage.helper.DataCache;
+import com.vish.fno.manage.helper.DataCacheImpl;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.OrderHandler;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.manage.StrategyExecutor;
 import com.vish.fno.reader.service.KiteService;
-import com.vish.fno.util.orderflow.sl.FixedStopLossHandler;
-import com.vish.fno.util.orderflow.sl.StopLossHandler;
-import com.vish.fno.util.orderflow.target.FixedTargetHandler;
-import com.vish.fno.util.orderflow.target.TargetHandler;
+import com.vish.fno.util.orderflow.FixedTargetAndStopLossStrategy;
+import com.vish.fno.util.orderflow.TargetAndStopLossStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -34,7 +32,7 @@ public class StrategyConfig {
     @Bean
     public StrategyExecutor strategyExecutor(KiteService kiteService,
                                              OrderHandler orderHandler,
-                                             DataCache dataCache,
+                                             DataCacheImpl dataCacheImpl,
                                              TimeProvider timeProvider) {
         List<Strategy> activeStrategies = getStrategies();
         List<String> symbolList =  taskConfig.getTaskProperties().getList().stream()
@@ -42,7 +40,7 @@ public class StrategyConfig {
                 .distinct()
                 .collect(Collectors.toCollection(ArrayList::new));
         log.info("Initialising strategy executor with symbols: {}", symbolList);
-        return new StrategyExecutor(kiteService, orderHandler, dataCache, activeStrategies, symbolList, timeProvider);
+        return new StrategyExecutor(kiteService, orderHandler, dataCacheImpl, activeStrategies, symbolList, timeProvider);
     }
 
     private List<Strategy> getStrategies() {
@@ -57,12 +55,7 @@ public class StrategyConfig {
     }
 
     @Bean
-    public TargetHandler targetHandler() {
-        return new FixedTargetHandler();
-    }
-
-    @Bean
-    public StopLossHandler stopLossHandler() {
-        return new FixedStopLossHandler();
+    public TargetAndStopLossStrategy targetHandler() {
+        return new FixedTargetAndStopLossStrategy();
     }
 }

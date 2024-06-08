@@ -17,7 +17,7 @@ public final class OptionsMetaDataUtils {
             case "HDFCBANK" -> 550;
             case "HINDUNILVR" -> 300;
             case "RELIANCE" -> 250;
-            default -> 0;
+            default -> 1;
         };
     }
 }

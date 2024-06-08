@@ -1,7 +1,7 @@
 package com.vish.fno.util.helper;
 
 import com.vish.fno.model.Candle;
-import com.vish.fno.model.SymbolData;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +14,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class HistoricDataCache {
     // date // symbol //  data
+    @Getter
     private final Map<String, Map<String, List<Candle>>> dataCache = new HashMap<>();
 
     public List<Candle> getData(String date, String symbol) {

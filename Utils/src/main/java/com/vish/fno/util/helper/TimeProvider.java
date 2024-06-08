@@ -2,8 +2,12 @@ package com.vish.fno.util.helper;
 
 import com.vish.fno.util.TimeUtils;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Locale;
+
+import static com.vish.fno.util.Constants.*;
 
 public class TimeProvider {
 
@@ -17,5 +21,16 @@ public class TimeProvider {
 
     public int currentTimeStampIndex() {
         return TimeUtils.getIndexOfTimeStamp(new Date());
+    }
+
+
+    public String getTodaysDateString() {
+        SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
+        return dateFormatter.format(TimeUtils.currentTime());
+    }
+
+    public String getCurrentStringDateTime() {
+        SimpleDateFormat formatterMilliSecond = new SimpleDateFormat(DATE_TIME_SEC_FORMAT, Locale.ENGLISH);
+        return formatterMilliSecond.format(TimeUtils.currentTime());
     }
 }

@@ -70,12 +70,12 @@ public class OrderHandler {
         kiteService.appendWebSocketSymbolsList(initialSymbols, true);
     }
 
-    public void appendOpenOrder(OrderRequest order) { // TODO: update to append open order if price movement has not passed
-
-        String itmOptionSymbol = kiteService.getITMStock(order.getIndex(), order.getBuyThreshold(), order.isCallOrder());
+    public void appendOpenOrder(OrderRequest order) {
+        // TODO: update to append open order if price movement has not passed
+        final String itmOptionSymbol = kiteService.getITMStock(order.getIndex(), order.getBuyThreshold(), order.isCallOrder());
         order.setOptionSymbol(itmOptionSymbol);
 
-        Tick tick = latestTicks.get(order.getIndex());
+        final Tick tick = latestTicks.get(order.getIndex());
         if(tick == null) {
             log.info("Not appending order request : {}, as tick is null", order);
             kiteService.appendWebSocketSymbolsList(List.of(order.getIndex()), false);
@@ -89,27 +89,28 @@ public class OrderHandler {
         }
     }
 
-
     @VisibleForTesting
     @SuppressWarnings({"PMD.LooseCoupling"})
     void handleTicks(ArrayList<Tick> ticks) {
         for(Tick tick: ticks) {
             try {
-                String tickSymbol = kiteService.getSymbol(tick.getInstrumentToken());
-                int timestampIndex = timeProvider.currentTimeStampIndex();
-                double ltp = tick.getLastTradedPrice();
-                latestTicks.put(tickSymbol, tick);
-                Optional<ActiveOrder> orderToSell = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, timestampIndex, activeOrders);
-                orderToSell.ifPresent(order -> sellOrder(tick, order));
-                Optional<OrderRequest> orderToBuy = entryVerifier.checkEntryInOpenOrders(tick, orderRequests, activeOrders);
-                orderToBuy.ifPresent(order -> {
-                    placeOrder(tick, order, timestampIndex);
-                });
+                final String tickSymbol = kiteService.getSymbol(tick.getInstrumentToken());
+                exitOrder(tick, tickSymbol);
+                entryVerifier.checkEntryInOpenOrders(tick, orderRequests, activeOrders)
+                        .ifPresent(order -> placeOrder(tick, order));
                 fileUtils.appendTickToFile(tickSymbol, tick);
             } catch (Exception e) {
                 log.warn("Failed to apply tick information for tick: {}", tick.getInstrumentToken(), e);
             }
         }
+    }
+
+    private void exitOrder(Tick tick, String tickSymbol) {
+        int timestampIndex = timeProvider.currentTimeStampIndex();
+        double ltp = tick.getLastTradedPrice();
+        latestTicks.put(tickSymbol, tick);
+        Optional<ActiveOrder> orderToSell = stopLossAndTargetHandler.getActiveOrderToSell(tickSymbol, ltp, timestampIndex, activeOrders);
+        orderToSell.ifPresent(order -> sellOrder(tick, order));
     }
 
     void removeExpiredOpenOrders(int timestamp) {
@@ -227,8 +228,9 @@ public class OrderHandler {
 
     // TODO: add an additional check to ensure order is not placed against wrong instrument.
 
-    private void placeOrder(Tick tick, OrderRequest order, int timestamp) {
-        ActiveOrder activeOrder = createActiveOrder(order, tick, timestamp);
+    private void placeOrder(Tick tick, OrderRequest order) {
+        int timestampIndex = timeProvider.currentTimeStampIndex();
+        ActiveOrder activeOrder = createActiveOrder(order, tick, timestampIndex);
         if(!activeOrders.contains(activeOrder)) {
             activeOrder.setEntryDatetime(new Date());
             // getting null pointer if the tick didn't come

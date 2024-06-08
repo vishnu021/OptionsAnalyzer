@@ -168,6 +168,7 @@ public class ActiveIndexOrder implements ActiveOrder {
         final StringBuilder sb = new StringBuilder(estimated_buffer_size);
         sb.append("OrderLog{")
                 .append("index='").append(index).append("'")
+                .append(",\ttag=").append(tag)
                 .append(",\tentry=").append(getStringDateTime(date))
                 .append(",\texit=").append(exitTimeStamp)
                 .append(",\tbuy=").append(round(buyPrice))

@@ -26,6 +26,11 @@ class HistoricalDataService {
             return null;
         }
 
+        if(!kiteService.isInitialised()) {
+            log.warn("Kite service is not initialised yet");
+            return null;
+        }
+
         try {
             log.debug("Collecting data for {} from: {}, to: {}, interval: {}", instrument, from, to, interval);
             return kiteService.getKiteSdk().getHistoricalData(from, to, instrument, interval, continuous, true);

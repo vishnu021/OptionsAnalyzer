@@ -17,6 +17,14 @@ public class CandleStickCache {
         return candlesCache.get(symbol);
     }
 
+    public Candle getLatestCandle(String symbol) {
+        List<Candle> candlesForSymbol = get(symbol);
+        if(candlesForSymbol == null || candlesForSymbol.isEmpty()) {
+            return null;
+        }
+        return candlesForSymbol.get(candlesForSymbol.size() - 1);
+    }
+
     public void update(String symbol, List<Candle> data) {
         candlesCache.put(symbol, data);
     }
