@@ -40,7 +40,7 @@ public class StrategyExecutor {
         }
 
         kiteService.appendIndexITMOptions();
-        orderHandler.removeExpiredOpenOrders(timeProvider.currentTimeStampIndex());
+        orderHandler.removeExpiredOpenOrders();
         for(Strategy strategy: activeStrategies) {
             try {
                 testStrategies(strategy);

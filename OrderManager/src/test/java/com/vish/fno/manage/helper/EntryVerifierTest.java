@@ -7,6 +7,7 @@ import com.vish.fno.model.order.ActiveOrderFactory;
 import com.vish.fno.model.order.IndexOrderRequest;
 import com.vish.fno.model.order.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
+import com.vish.fno.util.TimeUtils;
 import com.vish.fno.util.helper.TimeProvider;
 import com.zerodhatech.models.Tick;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +56,7 @@ class EntryVerifierTest {
                 .target(105)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
 
         //Act
         boolean isPlaceOrder = entryVerifier.isPlaceOrder(activeOrder, true);
@@ -73,7 +74,7 @@ class EntryVerifierTest {
                 .target(105)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         activeOrder.setBuyOptionPrice(2600);
         //Act
         boolean isPlaceOrder = entryVerifier.isPlaceOrder(activeOrder, true);
@@ -91,7 +92,7 @@ class EntryVerifierTest {
                 .target(105)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
 
         //Act
         boolean isPlaceOrder = entryVerifier.isPlaceOrder(activeOrder, true);
@@ -109,7 +110,7 @@ class EntryVerifierTest {
                 .target(105)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 102, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 102, 1, TimeUtils.getTodayDate());
         activeOrder.setBuyOptionPrice(200);
         //Act
         boolean isPlaceOrder = entryVerifier.isPlaceOrder(activeOrder, true);
@@ -127,7 +128,7 @@ class EntryVerifierTest {
                 .target(105)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         activeOrder.setBuyOptionPrice(200);
         //Act
         boolean isPlaceOrder = entryVerifier.isPlaceOrder(activeOrder, false);
@@ -145,7 +146,7 @@ class EntryVerifierTest {
                 .target(105)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         activeOrder.setBuyOptionPrice(200);
         activeOrder.appendExtraData("test", "");
 
@@ -165,7 +166,7 @@ class EntryVerifierTest {
                 .target(105)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         activeOrder.setBuyOptionPrice(200);
         activeOrder.appendExtraData(ORDER_EXECUTED, "true");
 
@@ -204,7 +205,7 @@ class EntryVerifierTest {
                 .quantity(10)
                 .build();
 
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         //Act
         Optional<OrderRequest> openOrderEntry = entryVerifier.checkEntryInOpenOrders(tick, List.of(), List.of(activeOrder));
 
@@ -232,7 +233,7 @@ class EntryVerifierTest {
                 .target(110)
                 .quantity(50)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
 
         //Act
@@ -262,7 +263,7 @@ class EntryVerifierTest {
                 .target(110)
                 .quantity(50)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         //Act
@@ -292,7 +293,7 @@ class EntryVerifierTest {
                 .target(110)
                 .quantity(50)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
 
         //Act
@@ -322,7 +323,7 @@ class EntryVerifierTest {
                 .target(110)
                 .quantity(50)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
 
         //Act
@@ -352,7 +353,7 @@ class EntryVerifierTest {
                 .target(110)
                 .quantity(50)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL_2");
 
         //Act
@@ -382,7 +383,7 @@ class EntryVerifierTest {
                 .target(110)
                 .quantity(50)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
         when(kiteService.getSymbol(1L)).thenReturn("TEST_SYMBOL");
 
         //Act
@@ -615,7 +616,7 @@ class EntryVerifierTest {
                 .target(105)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
 
         //Act
         boolean isNotInActiveOrder = entryVerifier.isNotInActiveOrders(List.of(activeOrder), newOrderRequest);
@@ -641,7 +642,7 @@ class EntryVerifierTest {
                 .target(105)
                 .quantity(10)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
 
         //Act
         boolean isNotInActiveOrder = entryVerifier.isNotInActiveOrders(List.of(activeOrder), newOrderRequest);
@@ -667,7 +668,7 @@ class EntryVerifierTest {
                 .quantity(50)
                 .build();
 
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(existingOrderRequest, 0d, 1, TimeUtils.getTodayDate());
 
         //Act
         boolean isNotInActiveOrder = entryVerifier.isNotInActiveOrders(List.of(activeOrder), newOrderRequest);
@@ -689,7 +690,7 @@ class EntryVerifierTest {
                 .buyThreshold(1419.8)
                 .stopLoss(1418.35)
                 .build();
-        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1);
+        ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, ltp, 1, TimeUtils.getTodayDate());
         activeOrder.setBuyOptionPrice(1);
 
         //Act

@@ -1,4 +1,4 @@
-package com.vish.fno.technical.util;
+package com.vish.fno.util;
 
 import com.vish.fno.model.Candle;
 import com.vish.fno.util.TimeUtils;

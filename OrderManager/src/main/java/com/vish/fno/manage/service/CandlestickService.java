@@ -12,7 +12,7 @@ import com.vish.fno.util.FileUtils;
 import com.vish.fno.model.Candle;
 import com.vish.fno.model.SymbolData;
 import com.vish.fno.technical.indicators.ma.ExponentialMovingAverage;
-import com.vish.fno.technical.util.TimeFrameUtils;
+import com.vish.fno.util.TimeFrameUtils;
 import com.vish.fno.util.TimeUtils;
 import com.zerodhatech.models.HistoricalData;
 import lombok.RequiredArgsConstructor;

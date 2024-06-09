@@ -67,16 +67,16 @@ public final class EntryVerifier {
         }
 
         if(isBuy) {
-            if(availableCash > order.getBuyOptionPrice() * order.getQuantity()){
+            if(availableCash > order.getBuyOptionPrice() * order.getBuyQuantity()){
                 order.appendExtraData(ORDER_EXECUTED, String.valueOf(true)); // todo: move after order placed in kite
-                availableCash -= order.getBuyOptionPrice() * order.getQuantity();
+                availableCash -= order.getBuyOptionPrice() * order.getBuyQuantity();
                 log.info("Placing order as the symbol is : {} or amount is: {}",
-                        order.getIndex(), (order.getQuantity() * order.getBuyOptionPrice()));
+                        order.getIndex(), (order.getBuyQuantity() * order.getBuyOptionPrice()));
                 log.info("Reducing available cash to {}, order : {}", availableCash, order);
                 return true;
             } else {
                 log.info("Not placing order as the symbol is : {} or amount is: {}. Available amount: {}",
-                        order.getIndex(), (order.getQuantity() * order.getBuyOptionPrice()), availableCash);
+                        order.getIndex(), (order.getBuyQuantity() * order.getBuyOptionPrice()), availableCash);
             }
         }
 
@@ -85,7 +85,7 @@ public final class EntryVerifier {
             if(extraData != null && extraData.containsKey(ORDER_EXECUTED)) {
                 boolean wasExecuted = Boolean.parseBoolean(extraData.get(ORDER_EXECUTED));
                 if(wasExecuted) {
-                    availableCash += order.getBuyOptionPrice() * order.getQuantity(); // todo update to
+                    availableCash += order.getBuyOptionPrice() * order.getBuyQuantity(); // todo update to
                     log.info("Updating available cash back to {}, order : {}", availableCash, order);
                 }
                 return Boolean.parseBoolean(extraData.get(ORDER_EXECUTED));

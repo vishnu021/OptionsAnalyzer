@@ -4,44 +4,53 @@ import com.vish.fno.model.Task;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 import static com.vish.fno.model.util.ModelUtils.*;
 
 @Getter
 @Setter
-public class ActiveIndexOrder implements ActiveOrder {
-
+public class ActiveIndexOrder extends AbstractActiveOrder {
     private static final int estimated_buffer_size = 125;
-    private final String tag;
     private final Task task;
     private String index;
     private String optionSymbol;
-    private Date date;
-    private int entryTimeStamp;
-    private int exitTimeStamp;
-    private double buyThreshold;
-    private double buyPrice;
-    private double sellPrice;
-    private double target;
-    private double stopLoss;
-
     private double buyOptionPrice;
     private double sellOptionPrice;
-    private Date entryDatetime;
-    private Date exitDatetime;
-    private int quantity;
+    private int lotSize;
     private boolean isActive;
     private boolean callOrder;
-    private Map<String, String> extraData;
 
-    public void closeOrder(double closePrice, int timestamp) {
+    public ActiveIndexOrder(IndexOrderRequest openOrder, double buyPrice, int timestampIndex, String timestamp) {
+        super(openOrder.getTag(),
+                openOrder.getDate(),
+                timestampIndex,
+                openOrder.getBuyThreshold(),
+                buyPrice,
+                openOrder.getQuantity(),
+                openOrder.getTarget(),
+                openOrder.getStopLoss());
+        this.index = openOrder.getIndex();
+        this.optionSymbol = openOrder.getOptionSymbol();
+        this.date = openOrder.getDate();
+        this.entryTimeStamp = timestampIndex;
+        this.buyThreshold = openOrder.getBuyThreshold();
+        this.callOrder = openOrder.isCallOrder();
+        this.extraData = openOrder.getExtraData();
+        this.task = openOrder.getTask();
+        this.isActive = true;
+        if(this.extraData == null) {
+            this.extraData = new HashMap<>();
+        }
+        this.extraData.put("entryDateTime", timestamp);
+    }
+
+    public void closeOrder(double closePrice, int timeIndex, String timestamp) {
         setActive(false);
-        setExitTimeStamp(timestamp);
+        setExitTimeStamp(timeIndex);
         setSellPrice(closePrice);
+        this.extraData.put("exitDateTime", timestamp);
     }
 
     @Override
@@ -52,28 +61,11 @@ public class ActiveIndexOrder implements ActiveOrder {
         extraData.put(key, value);
     }
 
-    public ActiveIndexOrder(IndexOrderRequest openOrder, double buyPrice, int timestamp) {
-        this.index = openOrder.getIndex();
-        this.optionSymbol = openOrder.getOptionSymbol();
-        this.date = openOrder.getDate();
-        this.entryTimeStamp = timestamp;
-        this.buyThreshold = openOrder.getBuyThreshold();
-        this.buyPrice = buyPrice;
-        this.target = openOrder.getTarget();
-        this.stopLoss = openOrder.getStopLoss();
-        this.quantity = openOrder.getQuantity();
-        this.callOrder = openOrder.isCallOrder();
-        this.extraData = openOrder.getExtraData();
-        this.tag = openOrder.getTag();
-        this.task = openOrder.getTask();
-        this.isActive = true;
-    }
-
     public double getProfit() {
         if(isCallOrder()) {
-            return (getSellPrice() - getBuyPrice()) * getQuantity();
+            return (getSellPrice() - getBuyPrice()) * this.getBuyQuantity();
         } else {
-            return (getBuyPrice() - getSellPrice()) * getQuantity();
+            return (getBuyPrice() - getSellPrice()) * this.getBuyQuantity();
         }
     }
 
@@ -113,10 +105,8 @@ public class ActiveIndexOrder implements ActiveOrder {
                 sb.append(",").append(key);
             }
         }
-
         return sb.toString();
     }
-
 
     public String toCSV() {
         final StringBuilder sb = new StringBuilder(estimated_buffer_size);
@@ -140,7 +130,7 @@ public class ActiveIndexOrder implements ActiveOrder {
                 .append(',')
                 .append(' ').append(round(getProfit()))
                 .append(',')
-                .append(' ').append(round(quantity));
+                .append(' ').append(round(buyQuantity));
 
         if (isCallOrder()) {
             sb.append(',')

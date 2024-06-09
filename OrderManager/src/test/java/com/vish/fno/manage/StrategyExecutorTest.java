@@ -68,7 +68,7 @@ class StrategyExecutorTest {
 
         strategyExecutor.update();
 
-        verify(orderHandler, never()).removeExpiredOpenOrders(anyInt());
+        verify(orderHandler, never()).removeExpiredOpenOrders();
     }
 
     @Test
@@ -79,7 +79,7 @@ class StrategyExecutorTest {
 
         strategyExecutor.update();
 
-        verify(orderHandler, never()).removeExpiredOpenOrders(anyInt());
+        verify(orderHandler, never()).removeExpiredOpenOrders();
     }
 
     @Test
@@ -90,7 +90,7 @@ class StrategyExecutorTest {
 
         strategyExecutor.update();
 
-        verify(orderHandler).removeExpiredOpenOrders(anyInt());
+        verify(orderHandler).removeExpiredOpenOrders();
         verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
         for (Strategy strategy :activeStrategies) {
             verify(strategy, times(0)).test(anyList(), anyInt());
@@ -110,7 +110,7 @@ class StrategyExecutorTest {
 
         strategyExecutor.update();
 
-        verify(orderHandler).removeExpiredOpenOrders(anyInt());
+        verify(orderHandler).removeExpiredOpenOrders();
         verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
 
         // Verify Strategy.test is called exactly once for each strategy
@@ -136,7 +136,7 @@ class StrategyExecutorTest {
         strategyExecutor.update();
 
         // Assert
-        verify(orderHandler).removeExpiredOpenOrders(anyInt());
+        verify(orderHandler).removeExpiredOpenOrders();
         verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
 
         // Verify Strategy.test is called exactly once for each strategy
@@ -164,7 +164,7 @@ class StrategyExecutorTest {
         strategyExecutor.update();
 
         // Assert
-        verify(orderHandler).removeExpiredOpenOrders(anyInt());
+        verify(orderHandler).removeExpiredOpenOrders();
         verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
         // Verify Strategy.test is called exactly once for each strategy
         for (Strategy strategy : activeStrategies) {
@@ -193,7 +193,7 @@ class StrategyExecutorTest {
         strategyExecutor.update();
 
         // Assert
-        verify(orderHandler).removeExpiredOpenOrders(anyInt());
+        verify(orderHandler).removeExpiredOpenOrders();
         verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
 
         // Verify Strategy.test is called exactly once for each strategy

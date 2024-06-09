@@ -1,7 +1,7 @@
 package com.vish.fno.technical.indicators;
 
 import com.vish.fno.model.Candle;
-import com.vish.fno.technical.util.CandleUtils;
+import com.vish.fno.util.CandleUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,7 +9,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.List;
 
-import static com.vish.fno.technical.util.CandleUtils.getBBData;
+import static com.vish.fno.util.CandleUtils.getBBData;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j

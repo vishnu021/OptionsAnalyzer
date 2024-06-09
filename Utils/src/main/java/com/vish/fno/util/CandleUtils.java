@@ -1,4 +1,4 @@
-package com.vish.fno.technical.util;
+package com.vish.fno.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

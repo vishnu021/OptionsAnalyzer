@@ -14,16 +14,17 @@ public interface ActiveOrder {
     double getBuyPrice();
     double getBuyThreshold();
     double getSellPrice();
+    void setStopLoss(double stopLoss);
     Task getTask();
     void setBuyOptionPrice(double buyOptionPrice);
     double getBuyOptionPrice();
     void setSellOptionPrice(double sellOptionPrice);
     void setSellPrice(double sellPrice);
     void setExitTimeStamp(int exitTimeStamp);
-    void setEntryTimeStamp(int entryTimeStamp);
-    void setEntryDatetime(Date entryDatetime);
-    void setExitDatetime(Date exitDatetime);
-    int getQuantity();
+    int getBuyQuantity();
+    int getLotSize();
+    int getSoldQuantity();
+    void setSoldQuantity(int soldQuantity);
     String getTag();
     boolean isActive();
     boolean isCallOrder();
@@ -31,7 +32,7 @@ public interface ActiveOrder {
     String toCSV();
     String orderLog();
     void setActive(boolean active);
-    void closeOrder(double closePrice, int timestamp);
+    void closeOrder(double closePrice, int timeIndex, String timestamp);
     Map<String, String> getExtraData();
     void appendExtraData(String key, String value);
 
