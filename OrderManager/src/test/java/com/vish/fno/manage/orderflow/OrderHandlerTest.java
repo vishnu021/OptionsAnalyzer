@@ -1,4 +1,4 @@
-package com.vish.fno.manage;
+package com.vish.fno.manage.orderflow;
 
 import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.manage.helper.EntryVerifier;
@@ -492,7 +492,7 @@ class OrderHandlerTest {
                 tick.getLastTradedPrice(), orderRequest.getQuantity(), orderRequest.getTag(), false);
     }
 
-        @Test
+    @Test
     void testGetActiveOrderToSellForStopLossHitForCall() {
         // Arrange
         String tickSymbol = "TEST_SYMBOL";
@@ -514,8 +514,8 @@ class OrderHandlerTest {
         orderHandler.getActiveOrderToSell(tickSymbol, tick, 115 ,activeOrders);
 
         // Assert
-            verify(kiteService, times(1)).sellOrder("TEST_OPTION_SYMBOL",
-                    tick.getLastTradedPrice(), orderRequest.getQuantity(), orderRequest.getTag(), false);
+        verify(kiteService, times(1)).sellOrder("TEST_OPTION_SYMBOL",
+                tick.getLastTradedPrice(), orderRequest.getQuantity(), orderRequest.getTag(), false);
     }
 
     @Test

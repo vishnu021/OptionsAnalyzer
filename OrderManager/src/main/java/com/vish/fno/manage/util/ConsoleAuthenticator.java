@@ -28,7 +28,7 @@ public class ConsoleAuthenticator {
             String authenticationToken = br.readLine();
             kiteService.authenticate(authenticationToken);
         } catch (IOException e) {
-            log.error("Exception while authenticating token",e);
+            log.error("Exception while authenticating token", e);
         }
     }
 }

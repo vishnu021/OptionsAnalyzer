@@ -3,24 +3,27 @@ package com.vish.fno.model.order;
 import com.vish.fno.model.Task;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.Objects;
 
 import static com.vish.fno.model.util.ModelUtils.*;
 
+@Slf4j
 @Getter
-@Setter
 public class ActiveIndexOrder extends AbstractActiveOrder {
     private static final int estimated_buffer_size = 125;
     private final Task task;
-    private String index;
-    private String optionSymbol;
+    private final String index;
+    private final String optionSymbol;
+    private final int lotSize;
+    private final boolean callOrder;
     private double buyOptionPrice;
+    @Setter
     private double sellOptionPrice;
-    private int lotSize;
+    @Setter
     private boolean isActive;
-    private boolean callOrder;
+    private double realisedProfit;
 
     public ActiveIndexOrder(IndexOrderRequest openOrder, double buyPrice, int timestampIndex, String timestamp) {
         super(openOrder.getTag(),
@@ -30,19 +33,15 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
                 buyPrice,
                 openOrder.getQuantity(),
                 openOrder.getTarget(),
-                openOrder.getStopLoss());
+                openOrder.getStopLoss(),
+                openOrder.getExtraData());
         this.index = openOrder.getIndex();
         this.optionSymbol = openOrder.getOptionSymbol();
-        this.date = openOrder.getDate();
-        this.entryTimeStamp = timestampIndex;
-        this.buyThreshold = openOrder.getBuyThreshold();
         this.callOrder = openOrder.isCallOrder();
-        this.extraData = openOrder.getExtraData();
         this.task = openOrder.getTask();
+        this.lotSize = openOrder.getLotSize();
         this.isActive = true;
-        if(this.extraData == null) {
-            this.extraData = new HashMap<>();
-        }
+        this.realisedProfit = 0f;
         this.extraData.put("entryDateTime", timestamp);
     }
 
@@ -55,9 +54,6 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
 
     @Override
     public void appendExtraData(String key, String value) {
-        if(extraData == null) {
-            extraData = new HashMap<>();
-        }
         extraData.put(key, value);
     }
 
@@ -69,12 +65,26 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
         }
     }
 
+    public void setBuyOptionPrice(double buyOptionPrice) {
+        this.buyOptionPrice = buyOptionPrice;
+        this.realisedProfit = -1 * (this.buyQuantity * this.buyOptionPrice);
+        log.info("initialising realised profit with: {} for order: {}", this.realisedProfit, this);
+    }
+
+    @Override
+    public void incrementSoldQuantity(int soldQuantity, double sellOptionPrice) {
+        this.soldQuantity += soldQuantity;
+        this.realisedProfit += soldQuantity * sellOptionPrice;
+        log.info("updating realised profit to: {} for order: {}", this.realisedProfit, this);
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder(estimated_buffer_size);
         sb.append("\nActiveOrder{")
-                .append("index='").append(index).append("'")
-                .append(", optionSymbol='").append(optionSymbol).append("'")
+                .append("index=").append(index)
+                .append(", tag=").append(tag)
+                .append(", optionSymbol=").append(optionSymbol)
                 .append(", buyPrice=").append(buyPrice)
                 .append(", target=").append(round(target))
                 .append(", stopLoss=").append(round(stopLoss))
@@ -111,48 +121,31 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
     public String toCSV() {
         final StringBuilder sb = new StringBuilder(estimated_buffer_size);
         sb.append(index)
-                .append(',')
-                .append(' ').append(getStringDate(date))
+                .append(',').append(' ').append(getStringDate(date))
                 .append(' ').append(entryTimeStamp)
-                .append(',')
-                .append(' ').append(getStringDate(date))
+                .append(',').append(' ').append(getStringDate(date))
                 .append(' ').append(exitTimeStamp)
-                .append(',')
-                .append(' ').append(round(buyThreshold))
-                .append(',')
-                .append(' ').append(round(buyPrice))
-                .append(',')
-                .append(' ').append(round(target))
-                .append(',')
-                .append(' ').append(round(sellPrice))
-                .append(',')
-                .append(' ').append(round(stopLoss))
-                .append(',')
-                .append(' ').append(round(getProfit()))
-                .append(',')
-                .append(' ').append(round(buyQuantity));
+                .append(',').append(' ').append(round(buyThreshold))
+                .append(',').append(' ').append(round(buyPrice))
+                .append(',').append(' ').append(round(target))
+                .append(',').append(' ').append(round(sellPrice))
+                .append(',').append(' ').append(round(stopLoss))
+                .append(',').append(' ').append(round(getProfit()))
+                .append(',').append(' ').append(round(buyQuantity));
 
         if (isCallOrder()) {
-            sb.append(',')
-                    .append(' ').append(round(target - buyThreshold));
+            sb.append(',').append(' ').append(round(target - buyThreshold));
         } else {
-            sb.append(',')
-                    .append(' ').append(round(buyThreshold - target));
+            sb.append(',').append(' ').append(round(buyThreshold - target));
         }
-
-        sb.append(',')
-                .append(' ').append(isCallOrder());
-
+        sb.append(',').append(' ').append(isCallOrder());
         if (extraData != null) {
             for (String key : extraData.keySet()) {
-                sb.append(',')
-                        .append(' ').append(extraData.get(key));
+                sb.append(',').append(' ').append(extraData.get(key));
             }
         }
-
         return sb.toString();
     }
-
 
     public String orderLog() {
         final StringBuilder sb = new StringBuilder(estimated_buffer_size);
@@ -186,11 +179,13 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
             return false;
         }
         ActiveIndexOrder that = (ActiveIndexOrder) o;
-        return Objects.equals(tag, that.tag) && Objects.equals(index, that.index);
+        return Objects.equals(tag, that.tag)
+                && Objects.equals(index, that.index)
+                && Objects.equals(callOrder, that.callOrder);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tag, index);
+        return Objects.hash(tag, index, callOrder);
     }
 }

@@ -36,7 +36,6 @@ public class DataCacheImpl implements DataCache {
     }
 
     public List<Candle> updateAndGetMinuteData(String symbol) {
-        // TODO: only if latest data not present
         updateIntradayCache(symbol);
         return minuteDataCache.get(symbol);
     }
@@ -85,17 +84,13 @@ public class DataCacheImpl implements DataCache {
     }
 
     private boolean isDataAvailable(String symbol) {
-        Candle latestCandle = minuteDataCache.getLatestCandle(symbol);
+        final Candle latestCandle = minuteDataCache.getLatestCandle(symbol);
         if(latestCandle == null) {
             return false;
         }
         int latestIndexOfTime = TimeUtils.getIndexOfTimeStamp(TimeUtils.getDateTimeForZonedDateString(latestCandle.getTime()));
         int currentIndexOfTime = timeProvider.currentTimeStampIndex();
-        if(latestIndexOfTime == currentIndexOfTime - 1) {
-            log.debug("data already present for {}, not updating. Timestamp in candle: {}, current time: {}", symbol, latestCandle.getTime(), timeProvider.getCurrentStringDateTime());
-            return true;
-        }
-        return false;
+        return latestIndexOfTime == currentIndexOfTime - 1;
     }
 
     private void updateHistoricCache(String date, String symbol) {

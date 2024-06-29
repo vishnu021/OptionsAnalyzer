@@ -10,21 +10,21 @@ import java.util.Map;
 @Getter
 public abstract class AbstractActiveOrder implements ActiveOrder {
     protected final String tag;
-    protected Date date;
-    protected int entryTimeStamp;
+    protected final Date date;
+    protected final int entryTimeStamp;
     @Setter
     protected int exitTimeStamp;
-    protected double buyThreshold;
+    protected final double buyThreshold;
     protected double buyPrice;
     protected int buyQuantity;
-    @Setter
     protected int soldQuantity;
     @Setter
     protected double sellPrice;
     protected double target;
     protected double stopLoss;
-    protected Map<String, String> extraData;
-    private int stopLossRevisionCount;
+    protected final Map<String, String> extraData;
+    protected int stopLossRevisionCount;
+    protected final Map<Integer, Double> stopLossRevision = new HashMap<>();
 
     public AbstractActiveOrder(String tag,
                                Date date,
@@ -33,7 +33,8 @@ public abstract class AbstractActiveOrder implements ActiveOrder {
                                double buyPrice,
                                int buyQuantity,
                                double target,
-                               double stopLoss) {
+                               double stopLoss,
+                               Map<String, String> extraData) {
         this.tag = tag;
         this.date = date;
         this.entryTimeStamp = entryTimeStamp;
@@ -43,12 +44,24 @@ public abstract class AbstractActiveOrder implements ActiveOrder {
         this.soldQuantity = 0;
         this.target = target;
         this.stopLoss = stopLoss;
-        this.extraData = new HashMap<>();
+        this.extraData = extraData == null ? new HashMap<>() : extraData;
         this.stopLossRevisionCount = 0;
     }
 
     public void setStopLoss(double stopLoss) {
-        this.extraData.put("previousStopLoss" + (++stopLossRevisionCount), String.valueOf(stopLoss));
+        if(this.isCallOrder()) {
+            if(this.stopLoss < stopLoss) {
+                updateStopLoss(stopLoss);
+            }
+        } else {
+            if(this.stopLoss > stopLoss) {
+                updateStopLoss(stopLoss);
+            }
+        }
+    }
+
+    private void updateStopLoss(double stopLoss) {
+        stopLossRevision.put(++stopLossRevisionCount, this.stopLoss);
         this.stopLoss = stopLoss;
     }
 }

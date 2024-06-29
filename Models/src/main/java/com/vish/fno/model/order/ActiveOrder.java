@@ -24,7 +24,7 @@ public interface ActiveOrder {
     int getBuyQuantity();
     int getLotSize();
     int getSoldQuantity();
-    void setSoldQuantity(int soldQuantity);
+    void incrementSoldQuantity(int soldQuantity, double sellOptionPrice);
     String getTag();
     boolean isActive();
     boolean isCallOrder();

@@ -54,6 +54,11 @@
                <version>${order.alalyzer.library.version}</version>
            </dependency>
            <dependency>
+               <groupId>com.vish.fno.sutils</groupId>
+               <artifactId>StrategyUtils</artifactId>
+               <version>${order.alalyzer.library.version}</version>
+           </dependency>
+           <dependency>
                <groupId>com.google.guava</groupId>
                <artifactId>guava</artifactId>
                <version>32.0.0-android</version>
@@ -101,6 +106,10 @@
             <groupId>com.vish.fno.util</groupId>
             <artifactId>Utils</artifactId>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.vish.fno.sutils</groupId>
+            <artifactId>StrategyUtils</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

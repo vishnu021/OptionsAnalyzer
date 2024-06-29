@@ -3,7 +3,11 @@ package com.vish.fno.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@SuppressWarnings("PMD.AvoidDecimalLiteralsInBigDecimalConstructor")
 public final class Utils {
 
     public static String getStringRoundedPrice(final double price) {
@@ -36,4 +40,13 @@ public final class Utils {
         return Math.round(price / 0.05) * 0.05;
     }
 
+    public static BigDecimal roundTo5Paise(double price) {
+        final BigDecimal value = new BigDecimal(price);
+        return roundToNearest(value, new BigDecimal("0.05"));
+    }
+
+    public static BigDecimal roundToNearest(final BigDecimal value, final BigDecimal increment) {
+        final BigDecimal divided = value.divide(increment, 0, RoundingMode.HALF_UP);
+        return divided.multiply(increment).setScale(2, RoundingMode.HALF_UP);
+    }
 }

@@ -1,4 +1,4 @@
-package com.vish.fno.manage;
+package com.vish.fno.manage.orderflow;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.vish.fno.manage.config.order.OrderConfiguration;
@@ -9,8 +9,8 @@ import com.vish.fno.util.FileUtils;
 import com.vish.fno.model.order.*;
 import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.TimeUtils;
+import com.vish.fno.util.helper.OrderManagerUtils;
 import com.vish.fno.util.orderflow.TargetAndStopLossStrategy;
-import com.zerodhatech.models.Depth;
 import com.zerodhatech.models.Order;
 import com.zerodhatech.models.Tick;
 import com.zerodhatech.ticker.OnOrderUpdate;
@@ -20,12 +20,13 @@ import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 import static com.vish.fno.manage.helper.EntryVerifier.ORDER_EXECUTED;
+import static com.vish.fno.manage.orderflow.OrderDetailsLogger.logMarketDepth;
 import static com.vish.fno.util.JsonUtils.getFormattedObject;
 
 @Slf4j
@@ -33,10 +34,7 @@ import static com.vish.fno.util.JsonUtils.getFormattedObject;
 @RequiredArgsConstructor
 @SuppressWarnings({"PMD.AvoidCatchingGenericException"})
 public class OrderHandler {
-    private static final int INTRADAY_EXIT_POSITION_TIME_INDEX = 368;
-    private static final String BUY = "BUY";
-    private static final String COMPLETE = "COMPLETE";
-    private static final String SELL = "SELL";
+    private static final String ORDER_EXIT_DETAILS = "orderExitDetails";
     private final KiteService kiteService;
     private final OrderConfiguration orderConfiguration;
     private final FileUtils fileUtils;
@@ -74,8 +72,15 @@ public class OrderHandler {
 
     public void appendOpenOrder(OrderRequest order) {
         // TODO: update to append open order if price movement has not passed
-        final String itmOptionSymbol = kiteService.getITMStock(order.getIndex(), order.getBuyThreshold(), order.isCallOrder());
-        order.setOptionSymbol(itmOptionSymbol);
+        final String otmOptionSymbol = kiteService.getITMStock(order.getIndex(), order.getBuyThreshold(), order.isCallOrder());
+
+        if(StringUtils.isNotEmpty(otmOptionSymbol)) {
+            order.setOptionSymbol(otmOptionSymbol);
+        } else {
+            log.warn("Unable to get OTM option symbol, finding ITM option symbol. open order: {}", order);
+            final String itmOptionSymbol = kiteService.getITMStock(order.getIndex(), order.getBuyThreshold(), order.isCallOrder());
+            order.setOptionSymbol(itmOptionSymbol);
+        }
 
         final Tick tick = latestTicks.get(order.getIndex());
         if(tick == null) {
@@ -121,28 +126,11 @@ public class OrderHandler {
         }
 
         for(ActiveOrder order : activeOrdersForTick) {
-            OrderSellDetailModel exitCondition = isExitCondition(tick.getLastTradedPrice(), timestampIndex, order);
+            OrderSellDetailModel exitCondition = OrderManagerUtils.isExitCondition(targetAndStopLossStrategy, tick.getLastTradedPrice(), timestampIndex, order);
             if(exitCondition.isSellOrder()) {
                 sellOrder(exitCondition, tick, order);
             }
         }
-    }
-
-    @VisibleForTesting
-    public OrderSellDetailModel isExitCondition(double ltp, int timestampIndex, ActiveOrder order) {
-        if(timestampIndex > INTRADAY_EXIT_POSITION_TIME_INDEX) {
-            int quantityToSell = order.getBuyQuantity() - order.getSoldQuantity();
-            log.info("Exit time reached, selling available {} quantity for symbol: {}, for order : {}",
-                    quantityToSell, order.getOptionSymbol(), order);
-            return new OrderSellDetailModel(true, quantityToSell, order);
-        }
-
-        OrderSellDetailModel orderSellDetailModel = targetAndStopLossStrategy.isTargetAchieved(order, ltp);
-        if(orderSellDetailModel.isSellOrder()) {
-            return orderSellDetailModel;
-        }
-
-        return targetAndStopLossStrategy.isStopLossHit(order, ltp);
     }
 
     void removeExpiredOpenOrders() {
@@ -165,44 +153,23 @@ public class OrderHandler {
         log.info("Order update complete : {}", getFormattedObject(order));
         try {
             String orderId = order.orderId;
-            List<ActiveOrder> activeOrdersForOrderId = getActiveOrdersByOrderId(orderId);
+            List<ActiveOrder> activeOrdersForOrderId = OrderDetailsLogger.getActiveOrdersByOrderId(activeOrders, orderId);
             log.info("Existing active order for order id: {}: {}", orderId, activeOrdersForOrderId);
-            logOrderLifeCycle(order, orderId);
+            OrderDetailsLogger.logOrderLifeCycle(activeOrders, buyCompletedOrders, completedOrders, order, orderId);
+
+            if(order.status.equals("REJECTED") && order.transactionType.equals("BUY")) {
+                log.warn("Order was rejected with statusMessage: {}, marking it as not complete", order.statusMessage);
+                activeOrders.stream().filter(a ->
+                        a.getOptionSymbol().equals(order.tradingSymbol) && a.getTag().substring(0,20).equals(order.tag)
+                ).forEach(a -> {
+                    log.info("marking order executed as false for order: {}", a);
+                    a.getExtraData().put(ORDER_EXECUTED, "false");
+                });
+            }
 
         } catch (Exception e) {
             log.error("Exception while finding active order for order update", e);
         }
-    }
-
-    private void logOrderLifeCycle(Order order, String orderId) {
-        if(BUY.contentEquals(order.transactionType)) {
-            if (COMPLETE.contentEquals(order.status)) {
-                List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(orderId);
-                log.info("Buy order completed for : {}", ordersForOrderId);
-                buyCompletedOrders.addAll(ordersForOrderId);
-            } else {
-                List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(orderId);
-                log.info("Buy order placed for : {}", ordersForOrderId);
-            }
-        }
-        if(SELL.contentEquals(order.transactionType)) {
-            if (COMPLETE.contentEquals(order.status)) {
-                List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(orderId);
-                log.info("Sell order completed for : {}", ordersForOrderId);
-                completedOrders.addAll(ordersForOrderId);
-            } else {
-                List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(orderId);
-                log.info("Sell order placed for : {}", ordersForOrderId);
-            }
-        }
-    }
-
-    @NotNull
-    private List<ActiveOrder> getActiveOrdersByOrderId(String orderId) {
-        return activeOrders
-                .stream()
-                .filter(o -> o.getExtraData() != null && o.getExtraData().get("kiteOrderId").contentEquals(orderId))
-                .toList();
     }
 
     private void addTokenToWebsocket(OrderRequest order) {
@@ -211,32 +178,33 @@ public class OrderHandler {
 
     private void sellOrder(OrderSellDetailModel exitCondition, Tick tick, ActiveOrder order) {
 
-        Optional<KiteOpenOrder> orderSoldOptional = kiteService.sellOrder(order.getOptionSymbol(),
+        final Optional<KiteOpenOrder> orderSoldOptional = kiteService.sellOrder(order.getOptionSymbol(),
                 tick.getLastTradedPrice(),
                 exitCondition.getQuantity(),
                 order.getTag(),
                 entryVerifier.isPlaceOrder(order, false));
 
         if(orderSoldOptional.isPresent() && orderSoldOptional.get().isOrderPlaced()) {
-            KiteOpenOrder soldOrder = orderSoldOptional.get();
-            log.info("Sold status : {}", getFormattedObject(soldOrder));
-
-            int totalSoldQuantity = order.getSoldQuantity() + exitCondition.getQuantity();
-            order.setSoldQuantity(totalSoldQuantity);
-            if(totalSoldQuantity == order.getSoldQuantity()) {
-                order.setActive(false);
-            }
-
             final Tick latestOptionTick = latestTicks.get(order.getOptionSymbol());
+            final double latestOptionLTP = latestOptionTick == null ? 0d : latestOptionTick.getLastTradedPrice();
+
+            final KiteOpenOrder soldOrder = orderSoldOptional.get();
+            log.info("Sold status: {}", getFormattedObject(soldOrder));
+            order.incrementSoldQuantity(exitCondition.getQuantity(), latestOptionLTP);
+            appendExtraData(exitCondition, tick, order);
+
             if(latestOptionTick != null) {
                 final String orderSellingTimestamp = TimeUtils.getStringDateTime(latestOptionTick.getTickTimestamp());
                 log.info("Setting sell option price: {} at: {} for symbol: {} in order: {}",
-                        latestOptionTick.getLastTradedPrice(), orderSellingTimestamp, order.getOptionSymbol(), order);
+                        latestOptionLTP, orderSellingTimestamp, order.getOptionSymbol(), order);
                 logMarketDepth(latestOptionTick);
-                order.setSellOptionPrice(latestOptionTick.getLastTradedPrice());
+                order.setSellOptionPrice(latestOptionLTP);
             }
-            order.closeOrder(tick.getLastTradedPrice(), timeProvider.currentTimeStampIndex(), TimeUtils.getStringDateTime(TimeUtils.currentTime()));
-            fileUtils.logCompletedOrder(order);
+
+            if(order.getSoldQuantity() == order.getBuyQuantity()) {
+                order.closeOrder(tick.getLastTradedPrice(), timeProvider.currentTimeStampIndex(), TimeUtils.getStringDateTime(TimeUtils.currentTime()));
+                fileUtils.logCompletedOrder(order);
+            }
         } else {
             log.error("########################################################");
             log.error("FAILED TO EXIT ORDER, PLEASE EXIT ORDER MANUALLY...");
@@ -250,28 +218,25 @@ public class OrderHandler {
         }
     }
 
-    private void logMarketDepth(Tick tick) {
-        Map<String, ArrayList<Depth>> marketDepth = tick.getMarketDepth();
-        if(marketDepth == null) {
-            return;
-        }
-        log.info("Market depth: {}", getFormattedObject(marketDepth));
-        if(marketDepth.containsKey("buy") && !marketDepth.get("buy").isEmpty()) {
-            ArrayList<Depth> buyMarketDepth = marketDepth.get("buy");
-            log.info("next buy price: {}", getFormattedObject(buyMarketDepth.get(0)));
-        }
-        if(marketDepth.containsKey("sell") && !marketDepth.get("sell").isEmpty()) {
-            ArrayList<Depth> sellMarketDepth = marketDepth.get("sell");
-            log.info("next sell price: {}", getFormattedObject(sellMarketDepth.get(0)));
+    private void appendExtraData(OrderSellDetailModel exitCondition, Tick tick, ActiveOrder order) {
+        try {
+            final Tick latestOptionTick = latestTicks.get(order.getOptionSymbol());
+            final double sellOptionPrice = latestOptionTick == null ? 0 : latestOptionTick.getLastTradedPrice();
+            final String existingExitOrderDetails = order.getExtraData().get(ORDER_EXIT_DETAILS);
+            final String exitOrderDetails = (existingExitOrderDetails == null ? "" : existingExitOrderDetails + ",") +
+                    Map.of("quantity", exitCondition.getQuantity(),
+                            "sellPrice", String.valueOf(tick.getLastTradedPrice()),
+                            "sellOptionPrice", String.valueOf(sellOptionPrice));
+            order.getExtraData().put(ORDER_EXIT_DETAILS, exitOrderDetails);
+        } catch (Exception e) {
+            log.error("failed to put data", e);
         }
     }
 
     // TODO: add an additional check to ensure order is not placed against wrong instrument.
-
     private void placeOrder(Tick tick, OrderRequest order) {
-        int timestampIndex = timeProvider.currentTimeStampIndex();
         final String orderEntryTimestamp = TimeUtils.getStringDateTime(tick.getTickTimestamp());
-        ActiveOrder activeOrder = createActiveOrder(order, tick, timestampIndex, orderEntryTimestamp);
+        ActiveOrder activeOrder = createActiveOrder(order, tick, orderEntryTimestamp);
         if(!activeOrders.contains(activeOrder)) {
             // getting null pointer if the tick didn't come
             if(latestTicks.containsKey(activeOrder.getOptionSymbol())) {
@@ -296,7 +261,7 @@ public class OrderHandler {
             if(orderPlacedOptional.isPresent() && orderPlacedOptional.get().isOrderPlaced()) {
                 KiteOpenOrder orderPlaced = orderPlacedOptional.get();
                 activeOrder.setActive(true);
-                if(orderPlaced != null && orderPlaced.getOrder() != null) {
+                if(orderPlaced.getOrder() != null) {
                     activeOrder.appendExtraData("kiteOrderId", orderPlaced.getOrder().orderId);
                 }
                 activeOrders.add(activeOrder);
@@ -314,7 +279,8 @@ public class OrderHandler {
         }
     }
 
-    private ActiveOrder createActiveOrder(OrderRequest orderRequest, Tick tick, int timestamp, String orderEntryTimestamp) {
+    private ActiveOrder createActiveOrder(OrderRequest orderRequest, Tick tick, String orderEntryTimestamp) {
+        final int timestamp = timeProvider.currentTimeStampIndex();
         return ActiveOrderFactory.createOrder(orderRequest, tick.getLastTradedPrice(), timestamp, orderEntryTimestamp);
     }
 }

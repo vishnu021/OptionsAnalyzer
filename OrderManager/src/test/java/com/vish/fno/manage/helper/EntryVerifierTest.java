@@ -674,7 +674,7 @@ class EntryVerifierTest {
         boolean isNotInActiveOrder = entryVerifier.isNotInActiveOrders(List.of(activeOrder), newOrderRequest);
 
         // Assert
-        assertFalse(isNotInActiveOrder);
+        assertTrue(isNotInActiveOrder);
     }
 
 

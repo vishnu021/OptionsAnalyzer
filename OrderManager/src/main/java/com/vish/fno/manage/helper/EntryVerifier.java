@@ -85,7 +85,7 @@ public final class EntryVerifier {
             if(extraData != null && extraData.containsKey(ORDER_EXECUTED)) {
                 boolean wasExecuted = Boolean.parseBoolean(extraData.get(ORDER_EXECUTED));
                 if(wasExecuted) {
-                    availableCash += order.getBuyOptionPrice() * order.getBuyQuantity(); // todo update to
+                    availableCash += order.getBuyOptionPrice() * order.getSoldQuantity();
                     log.info("Updating available cash back to {}, order : {}", availableCash, order);
                 }
                 return Boolean.parseBoolean(extraData.get(ORDER_EXECUTED));
@@ -129,9 +129,12 @@ public final class EntryVerifier {
     public boolean isNotInActiveOrders(List<ActiveOrder> activeOrders, OrderRequest tickOrderRequest) {
         boolean isNotInActiveOrder = activeOrders
                 .stream()
-                .noneMatch(a -> a.getTag().equalsIgnoreCase(tickOrderRequest.getTag()) && a.getIndex().equalsIgnoreCase(tickOrderRequest.getIndex()));
+                .noneMatch(a -> a.getTag().equalsIgnoreCase(tickOrderRequest.getTag())
+                        && a.getIndex().equalsIgnoreCase(tickOrderRequest.getIndex())
+                        && a.isCallOrder() == tickOrderRequest.isCallOrder());
         if(!isNotInActiveOrder) {
-            log.info("Already an active order present for symbol: {}, open order : {}", tickOrderRequest.getIndex(), tickOrderRequest);
+            log.info("Already an active order present for symbol: {}, open order: {}, call: {}",
+                    tickOrderRequest.getIndex(), tickOrderRequest, tickOrderRequest.isCallOrder());
         }
         return isNotInActiveOrder;
     }
@@ -140,13 +143,13 @@ public final class EntryVerifier {
 
         if(order.isCallOrder()) {
             if (tick.getLastTradedPrice() > order.getBuyThreshold()) {
-                log.info("tick ltp: {} is greater than buy threshold {}, placing order({}) : {}",
+                log.info("tick ltp: {} is greater than buy threshold {}, placing order request({}) : {}",
                         tick.getLastTradedPrice(), order.getBuyThreshold(), order.getOptionSymbol(), order);
                 return Optional.of(order);
             }
         } else {
             if (tick.getLastTradedPrice() < order.getBuyThreshold()) {
-                log.info("tick ltp: {} is lesser than buy threshold {}, placing order({}) : {}",
+                log.info("tick ltp: {} is lesser than buy threshold {}, placing order request({}) : {}",
                         tick.getLastTradedPrice(), order.getBuyThreshold(), order.getOptionSymbol(), order);
                 return Optional.of(order);
             }

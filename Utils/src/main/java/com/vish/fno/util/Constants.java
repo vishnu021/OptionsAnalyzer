@@ -6,6 +6,11 @@ public interface Constants {
     String NIFTY_BANK = "NIFTY BANK";
     String NIFTY_50 = "NIFTY 50";
     String NIFTY_FIN_SERVICE = "NIFTY FIN SERVICE";
+
+    String BAJFINANCE = "BAJFINANCE";
+    String HDFCBANK = "HDFCBANK";
+    String HINDUNILVR = "HINDUNILVR";
+    String RELIANCE = "RELIANCE";
     String directory = "instrument_cache";
     String tick_directory = "tick";
     String MINUTE = "minute";

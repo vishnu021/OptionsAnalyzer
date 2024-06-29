@@ -84,6 +84,10 @@ public class KiteService {
         return OptionPriceUtils.getITMStock(indexSymbol, price, isCall, instrumentCache.getInstruments());
     }
 
+    public String getOTMStock(String indexSymbol, double price, boolean isCall) {
+        return OptionPriceUtils.getOTMStock(indexSymbol, price, isCall, instrumentCache.getInstruments());
+    }
+
     public void setOnTickerArrivalListener(OnTicks onTickerArrivalListener) {
         if(onTickerArrivalListener == null) {
             return;
@@ -151,7 +155,7 @@ public class KiteService {
 
     // TODO: verify there is an existing order before placing a sell order
     public Optional<KiteOpenOrder> sellOrder(String symbol, double price, int orderSize, String tag, boolean isPlaceOrder) {
-        log.info("Creating sell order with quantity : {}, symbol : {}, price : {} ", orderSize, symbol, price);
+        log.info("Creating sell order with quantity: {}, symbol: {}, price: {}, tag: {}", orderSize, symbol, price, tag);
         logExistingOrdersAndPositions(symbol, tag);
         return placeOrder(symbol, orderSize, tag, Constants.TRANSACTION_TYPE_SELL, isPlaceOrder);
     }
@@ -224,7 +228,7 @@ public class KiteService {
                 List<String> indicesITMOptionSymbols = getITMIndexSymbols();
                 appendWebSocketSymbolsList(indicesITMOptionSymbols, false);
             } catch (Exception e) {
-                log.error("Failed to get the ITM option symbols", e);
+                log.error("Failed to get the ITM option symbols, appending : {}", itmOptionsAppended, e);
                 return;
             }
         }
@@ -248,6 +252,7 @@ public class KiteService {
         kiteConnect.setSessionExpiryHook(() -> log.info("session expired"));
         return kiteConnect;
     }
+
     private List<String> getITMIndexSymbols() {
         List<String> indexOptionSymbols = new ArrayList<>();
         HistoricalData niftyData = getEntireDayHistoricalData(getOpeningTime(), getClosingTime(), NIFTY_50, MINUTE);
@@ -261,6 +266,8 @@ public class KiteService {
         double openPrice = data.dataArrayList.get(0).open;
         indicesOptionSymbols.add(getITMStock(index, openPrice, true));
         indicesOptionSymbols.add(getITMStock(index, openPrice, false));
+        indicesOptionSymbols.add(getOTMStock(index, openPrice, true));
+        indicesOptionSymbols.add(getOTMStock(index, openPrice, false));
     }
 
     private void addSessionExpiryHook() {

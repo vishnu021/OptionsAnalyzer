@@ -32,6 +32,7 @@ final class OptionPriceUtils {
         return Optional.empty();
     }
 
+    // CPD-OFF
     public static String getITMStock(String indexSymbol, double price, boolean isCall, List<Instrument> instruments) {
         String symbolsName = getOptionPrefix(indexSymbol);
 
@@ -82,8 +83,59 @@ final class OptionPriceUtils {
         return itmSymbolValue;
     }
 
+    public static String getOTMStock(String indexSymbol, double price, boolean isCall, List<Instrument> instruments) {
+        String symbolsName = getOptionPrefix(indexSymbol);
+
+        String instrumentType = isCall ? CE : PE;
+
+        Optional<List<Instrument>> earliestExpiryInstrument = getEarliestExpiryInstrument(instruments, symbolsName, instrumentType);
+
+        AtomicReference<String> otmSymbol = new AtomicReference<>("");
+        earliestExpiryInstrument.ifPresent(expiryInstruments -> {
+
+            Map<Long, String> strikeToSymbolMap = expiryInstruments.stream()
+                    .collect(Collectors.toMap(
+                            instrument -> {
+                                try {
+                                    return Long.parseLong(instrument.getStrike());
+                                } catch (NumberFormatException e) {
+                                    log.error("NumberFormatException while parsing the strike price");
+                                    return null;
+                                }
+                            },
+                            Instrument::getTradingsymbol,
+                            (existing, replacement) -> existing,
+                            TreeMap::new
+                    ));
+
+            if(isCall) {
+                for(long strikePrice: strikeToSymbolMap.keySet()) {
+                    if(strikePrice > price) {
+                        otmSymbol.set(strikeToSymbolMap.get(strikePrice));
+                        break;
+                    }
+                }
+            } else {
+                for(long strikePrice: strikeToSymbolMap.keySet()) {
+                    if(strikePrice > price) {
+                        break;
+                    }
+                    otmSymbol.set(strikeToSymbolMap.get(strikePrice));
+                }
+            }
+        });
+
+        String otmSymbolValue = otmSymbol.get();
+
+        if (otmSymbolValue == null || otmSymbolValue.strip().length() == 0) {
+            log.error("Unable to find otmSymbol for index: {}, price: {}, call: {}", indexSymbol, price, isCall);
+        }
+        return otmSymbolValue;
+    }
+    // CPD-ON
+
     private static Optional<List<Instrument>> getEarliestExpiryInstrument(List<Instrument> instruments, String symbolsName, String instrumentType) {
-        Map<Date, List<Instrument>> indexSymbolsInstruments = instruments.stream()
+        final Map<Date, List<Instrument>> indexSymbolsInstruments = instruments.stream()
                 .filter(i -> i.getName().toUpperCase(Locale.ENGLISH).equalsIgnoreCase(symbolsName))
                 .filter(instrument -> instrument.exchange.equals("NFO"))
                 .filter(i -> i.getInstrument_type().equals(instrumentType))

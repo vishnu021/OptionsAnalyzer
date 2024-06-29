@@ -18,14 +18,17 @@ import java.util.*;
 public final class FileUtils implements Constants {
 
     private static final String CANDLESTICK_PATH = "data";
+    private static final String ORDER_LOG_FOLDER = "orderLog";
 
-    private final ObjectMapper indentedMapper = new ObjectMapper();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper indentedMapper;
+    private final ObjectMapper mapper;
     String filePath = Paths.get(".").normalize().toAbsolutePath() + "\\" + directory + "\\";
     String tickPath = Paths.get(".").normalize().toAbsolutePath() + "\\" + tick_directory + "\\";
     int bufferLength;
 
     public FileUtils() {
+        mapper = new ObjectMapper();
+        indentedMapper = new ObjectMapper();
         indentedMapper.enable(SerializationFeature.INDENT_OUTPUT);
         bufferLength = 0;
         createDirectoryIfNotExist(filePath);
@@ -94,16 +97,16 @@ public final class FileUtils implements Constants {
 
     public void logCompletedOrder(ActiveOrder order) {
         try {
-            String folder = "orderLog";
-            createDirectoryIfNotExist(folder);
-            ObjectMapper mapper = getMapper();
-            String orderJson = mapper.writeValueAsString(order);
-            String fileName = folder + "/" + order.getOptionSymbol() + TimeUtils.getTodayDate() + System.currentTimeMillis() + ".json";
-
+            createDirectoryIfNotExist(ORDER_LOG_FOLDER);
+            String fileName = String.format("%s/%s%s%d.json",
+                    ORDER_LOG_FOLDER,
+                    order.getOptionSymbol(),
+                    TimeUtils.getTodayDate(),
+                    System.currentTimeMillis());
             try (FileWriter fileWriter = new FileWriter(fileName, true);
                  BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
                  PrintWriter out = new PrintWriter(bufferedWriter)) {
-                out.println(orderJson);
+                out.println(indentedMapper.writeValueAsString(order));
             }
         } catch (Exception e) {
             try {
@@ -112,12 +115,5 @@ public final class FileUtils implements Constants {
                 log.error("Failed to convert order log to json.", e);
             }
         }
-    }
-
-    private ObjectMapper getMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.ENGLISH);
-        mapper.setDateFormat(dateFormat);
-        return mapper;
     }
 }
