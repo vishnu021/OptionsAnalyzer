@@ -23,7 +23,7 @@ public class OrderUtils {
         orderParams.validity = Constants.VALIDITY_DAY;
         orderParams.transactionType = transactionType;
         orderParams.triggerPrice = 0.0; // order type is market
-        orderParams.tag = tag.substring(0,20); // max tag length is 20
+        orderParams.tag = tag.length() > 20 ? tag.substring(0,20) : tag; // max tag length is 20
         return orderParams;
     }
 }

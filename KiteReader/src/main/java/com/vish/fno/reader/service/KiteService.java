@@ -203,7 +203,7 @@ public class KiteService {
         try {
             OrderParams orderParams = createMarketOrderWithParameters(symbol, orderSize, transactionType, tag);
             order = kiteSdk.placeOrder(orderParams, Constants.VARIETY_REGULAR);
-            log.debug("order placed successfully with id: {}", order.orderId);
+            log.info("order placed successfully with id: {}", order.orderId);
         } catch (KiteException e) {
             log.error("KiteException occurred while placing order, code: {}, message: {}", e.code, e.message);
             return Optional.of(KiteOpenOrder.builder()
@@ -297,5 +297,9 @@ public class KiteService {
         log.info("Existing orders for same symbol: {}", orders);
         log.info("Existing netPositions for same symbol: {}", netPositions);
         log.info("Existing dayPositions for same symbol: {}", dayPositions);
+    }
+
+    public List<Instrument> getInstruments() {
+        return instrumentCache.getInstruments();
     }
 }

@@ -42,7 +42,7 @@ public class KiteWebSocket {
 
     public void initialize(KiteConnect kiteSdk) {
         if(connectToWebSocket) {
-            log.debug("Initialising websocket...");
+            log.info("Initialising websocket...");
             this.tickerProvider = new KiteTicker(kiteSdk.getAccessToken(), kiteSdk.getApiKey());
             addWebSocketListeners(onTickerArrivalListener, onOrderUpdateListener);
             tickerProvider.connect();

@@ -2,10 +2,10 @@ package com.vish.fno.manage.helper;
 
 import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.manage.model.StrategyTasks;
-import com.vish.fno.model.order.ActiveOrder;
+import com.vish.fno.model.order.activeorder.ActiveOrder;
 import com.vish.fno.model.order.ActiveOrderFactory;
-import com.vish.fno.model.order.IndexOrderRequest;
-import com.vish.fno.model.order.OrderRequest;
+import com.vish.fno.model.order.orderrequest.IndexOrderRequest;
+import com.vish.fno.model.order.orderrequest.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.TimeUtils;
 import com.vish.fno.util.helper.TimeProvider;

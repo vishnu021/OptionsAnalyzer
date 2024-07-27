@@ -46,23 +46,27 @@ public class DataCacheImpl implements DataCache {
     }
 
     public List<Candle> getNCandles(final String symbol, final Date date, final int n) {
-        List<Candle> todaysCandles = minuteDataCache.get(symbol);
-        List<Candle> allCandles = new ArrayList<>();
+        final List<Candle> todaysCandles = minuteDataCache.get(symbol);
+        final List<Candle> allCandles = new ArrayList<>();
         int remainingCandles = n;
-
         Date currentDay = date;
+
         while (remainingCandles > 0) {
-            List<Candle> currentDayCandles = currentDay.equals(date) ? todaysCandles : updateAndGetHistoryMinuteData(todaysDate, symbol);
-            if (currentDayCandles.size() > remainingCandles) {
-                allCandles.addAll(0, currentDayCandles.subList(currentDayCandles.size() - remainingCandles, currentDayCandles.size()));
-                break;
-            } else {
-                allCandles.addAll(0, currentDayCandles);
-                remainingCandles -= currentDayCandles.size();
+            final List<Candle> currentDayCandles = currentDay.equals(date)
+                    ? todaysCandles
+                    : updateAndGetHistoryMinuteData(TimeUtils.getStringDate(currentDay), symbol);
+
+            int candlesToAdd = Math.min(remainingCandles, currentDayCandles.size());
+            allCandles.addAll(0, currentDayCandles.subList(currentDayCandles.size() - candlesToAdd, currentDayCandles.size()));
+
+            remainingCandles -= candlesToAdd;
+
+            if (remainingCandles > 0) {
+                currentDay = calendarService.getPreviousNonHolidayDate(currentDay);
             }
-            currentDay = calendarService.getPreviousNonHolidayDate(currentDay);
         }
-        return allCandles.subList(0, Math.min(allCandles.size(), n));
+
+        return allCandles;
     }
 
     @Override

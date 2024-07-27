@@ -1,4 +1,4 @@
-package com.vish.fno.model.order;
+package com.vish.fno.model.order.activeorder;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -63,5 +63,15 @@ public abstract class AbstractActiveOrder implements ActiveOrder {
     private void updateStopLoss(double stopLoss) {
         stopLossRevision.put(++stopLossRevisionCount, this.stopLoss);
         this.stopLoss = stopLoss;
+    }
+
+    @Override
+    public void appendExtraData(String key, String value) {
+        extraData.put(key, value);
+    }
+
+    @Override
+    public String getTag() {
+        return tag.replaceAll("[a-z]", "");
     }
 }

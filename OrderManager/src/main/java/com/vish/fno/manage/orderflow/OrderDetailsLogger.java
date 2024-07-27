@@ -1,6 +1,6 @@
 package com.vish.fno.manage.orderflow;
 
-import com.vish.fno.model.order.ActiveOrder;
+import com.vish.fno.model.order.activeorder.ActiveOrder;
 import com.zerodhatech.models.Depth;
 import com.zerodhatech.models.Order;
 import com.zerodhatech.models.Tick;
@@ -22,6 +22,7 @@ public final class OrderDetailsLogger {
     private static final String BUY = "BUY";
     private static final String COMPLETE = "COMPLETE";
     private static final String SELL = "SELL";
+    private static final String KITE_ORDER_ID = "kiteOrderId";
 
     static void logMarketDepth(Tick tick) {
         Map<String, ArrayList<Depth>> marketDepth = tick.getMarketDepth();
@@ -70,7 +71,9 @@ public final class OrderDetailsLogger {
     static List<ActiveOrder> getActiveOrdersByOrderId(List<ActiveOrder> activeOrders, String orderId) {
         return activeOrders
                 .stream()
-                .filter(o -> o.getExtraData() != null && o.getExtraData().get("kiteOrderId").contentEquals(orderId))
+                .filter(o -> o.getExtraData() != null
+                        && o.getExtraData().containsKey(KITE_ORDER_ID)
+                        && o.getExtraData().get(KITE_ORDER_ID).contentEquals(orderId))
                 .toList();
     }
 }

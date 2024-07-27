@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vish.fno.model.Candle;
-import com.vish.fno.model.order.ActiveOrder;
+import com.vish.fno.model.order.activeorder.ActiveOrder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -98,11 +98,12 @@ public final class FileUtils implements Constants {
     public void logCompletedOrder(ActiveOrder order) {
         try {
             createDirectoryIfNotExist(ORDER_LOG_FOLDER);
-            String fileName = String.format("%s/%s%s%d.json",
+            String fileName = String.format("%s/%s-%s-%s-%d.json",
                     ORDER_LOG_FOLDER,
-                    order.getOptionSymbol(),
+                    order.getTag(),
+                    order.getIndex(),
                     TimeUtils.getTodayDate(),
-                    System.currentTimeMillis());
+                    (System.currentTimeMillis() % 100_000));
             try (FileWriter fileWriter = new FileWriter(fileName, true);
                  BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
                  PrintWriter out = new PrintWriter(bufferedWriter)) {

@@ -1,6 +1,6 @@
 package com.vish.fno.util.orderflow;
 
-import com.vish.fno.model.order.ActiveOrder;
+import com.vish.fno.model.order.activeorder.ActiveOrder;
 import com.vish.fno.model.order.OrderSellDetailModel;
 
 public interface TargetAndStopLossStrategy {

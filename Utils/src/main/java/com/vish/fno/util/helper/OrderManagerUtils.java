@@ -1,7 +1,8 @@
 package com.vish.fno.util.helper;
 
-import com.vish.fno.model.order.ActiveOrder;
+import com.vish.fno.model.order.activeorder.ActiveOrder;
 import com.vish.fno.model.order.OrderSellDetailModel;
+import com.vish.fno.model.order.OrderSellReason;
 import com.vish.fno.util.orderflow.TargetAndStopLossStrategy;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -19,8 +20,8 @@ public final class OrderManagerUtils {
         if(timestampIndex > INTRADAY_EXIT_POSITION_TIME_INDEX) {
             final int quantityToSell = order.getBuyQuantity() - order.getSoldQuantity();
             log.info("Exit time reached, selling available {} quantity for symbol: {}, for order : {}",
-                    quantityToSell, order.getOptionSymbol(), order);
-            return new OrderSellDetailModel(true, quantityToSell, order);
+                    quantityToSell, order.getIndex(), order);
+            return new OrderSellDetailModel(true, quantityToSell, OrderSellReason.EXPIRY_TIME_REACHED, order);
         }
 
         final OrderSellDetailModel orderSellDetailModel = targetAndStopLossStrategy.isTargetAchieved(order, ltp);

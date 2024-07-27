@@ -2,8 +2,8 @@ package com.vish.fno.manage.helper;
 
 import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.model.Task;
-import com.vish.fno.model.order.ActiveOrder;
-import com.vish.fno.model.order.OrderRequest;
+import com.vish.fno.model.order.activeorder.ActiveOrder;
+import com.vish.fno.model.order.orderrequest.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.helper.TimeProvider;
 import com.zerodhatech.models.Tick;
@@ -59,7 +59,6 @@ public final class EntryVerifier {
             log.info("Expiry day orders is not enabled for task: {} ", order.getTask());
             return false;
         }
-
 
         if(!order.getTask().isEnabled()) {
             log.info("The following task({}) has not been enabled, not placing order: {}", order.getTask(), order);

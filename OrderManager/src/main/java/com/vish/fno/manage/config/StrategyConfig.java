@@ -1,15 +1,14 @@
 package com.vish.fno.manage.config;
 
 import com.vish.fno.manage.config.task.TaskConfig;
-import com.vish.fno.manage.helper.DataCacheImpl;
+import com.vish.fno.util.helper.DataCache;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
-import com.vish.fno.manage.OrderHandler;
+import com.vish.fno.manage.orderflow.OrderHandler;
 import com.vish.fno.model.Strategy;
-import com.vish.fno.manage.StrategyExecutor;
+import com.vish.fno.manage.orderflow.StrategyExecutor;
 import com.vish.fno.reader.service.KiteService;
-import com.vish.fno.util.orderflow.FixedTargetAndStopLossStrategy;
-import com.vish.fno.util.orderflow.TargetAndStopLossStrategy;
+import com.vish.fno.util.orderflow.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -32,7 +31,7 @@ public class StrategyConfig {
     @Bean
     public StrategyExecutor strategyExecutor(KiteService kiteService,
                                              OrderHandler orderHandler,
-                                             DataCacheImpl dataCacheImpl,
+                                             DataCache dataCache,
                                              TimeProvider timeProvider) {
         List<Strategy> activeStrategies = getStrategies();
         List<String> symbolList =  taskConfig.getTaskProperties().getList().stream()
@@ -40,7 +39,7 @@ public class StrategyConfig {
                 .distinct()
                 .collect(Collectors.toCollection(ArrayList::new));
         log.info("Initialising strategy executor with symbols: {}", symbolList);
-        return new StrategyExecutor(kiteService, orderHandler, dataCacheImpl, activeStrategies, symbolList, timeProvider);
+        return new StrategyExecutor(kiteService, orderHandler, dataCache, activeStrategies, symbolList, timeProvider);
     }
 
     private List<Strategy> getStrategies() {

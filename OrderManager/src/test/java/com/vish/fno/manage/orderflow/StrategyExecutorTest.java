@@ -1,16 +1,14 @@
 package com.vish.fno.manage.orderflow;
 
 import com.vish.fno.manage.helper.DataCacheImpl;
-import com.vish.fno.manage.orderflow.StrategyExecutor;
-import com.vish.fno.manage.orderflow.OrderHandler;
 import com.vish.fno.manage.service.CalendarService;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.service.CandlestickService;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.model.SymbolData;
-import com.vish.fno.model.order.ActiveOrder;
-import com.vish.fno.model.order.OrderRequest;
+import com.vish.fno.model.order.activeorder.ActiveOrder;
+import com.vish.fno.model.order.orderrequest.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +48,8 @@ class StrategyExecutorTest {
         when(mockStrategy2.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "NIFTY 50", false, false));
         CalendarService calendarService = mock(CalendarService.class);
         timeProvider = spy(TimeProvider.class);
+        when(timeProvider.currentTimeStampIndex()).thenReturn(1);
+
         DataCacheImpl candleStickCache = spy(new DataCacheImpl(candlestickService, calendarService, timeProvider));
 
         List<String> symbolList =  activeStrategies.stream().map(s -> s.getTask().getIndex())

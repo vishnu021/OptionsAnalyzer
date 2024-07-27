@@ -9,6 +9,8 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.Date;
 
+import static com.vish.fno.util.Utils.getTopNLines;
+
 @Slf4j
 @AllArgsConstructor
 class HistoricalDataService {
@@ -20,7 +22,6 @@ class HistoricalDataService {
     }
 
     HistoricalData getHistoricalData(Date from, Date to, String symbol, String interval, boolean continuous) {
-
         String instrument = getInstrumentToken(symbol);
         if (instrument == null) {
             return null;
@@ -32,10 +33,11 @@ class HistoricalDataService {
         }
 
         try {
-            log.debug("Collecting data for {} from: {}, to: {}, interval: {}", instrument, from, to, interval);
+            log.trace("Collecting data for {} from: {}, to: {}, interval: {}", instrument, from, to, interval);
             return kiteService.getKiteSdk().getHistoricalData(from, to, instrument, interval, continuous, true);
         } catch (JSONException | IOException | KiteException e) {
-            log.error("Error while requesting historical data (from: {}, to: {}, symbol: {})", from, to, instrument, e);
+            log.error("Error while requesting historical data (from: {}, to: {}, symbol: {}), errorMessage: {}\n{}",
+                    from, to, instrument, e.getMessage(), getTopNLines(e, 3));
         }
         return null;
     }

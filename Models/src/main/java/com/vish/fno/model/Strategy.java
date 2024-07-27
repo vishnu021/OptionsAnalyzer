@@ -1,6 +1,6 @@
 package com.vish.fno.model;
 
-import com.vish.fno.model.order.OrderRequest;
+import com.vish.fno.model.order.orderrequest.OrderRequest;
 
 import java.util.List;
 import java.util.Optional;

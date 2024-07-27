@@ -1,6 +1,7 @@
-package com.vish.fno.model.order;
+package com.vish.fno.model.order.activeorder;
 
 import com.vish.fno.model.Task;
+import com.vish.fno.model.order.orderrequest.IndexOrderRequest;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import java.util.Objects;
 
 import static com.vish.fno.model.util.ModelUtils.*;
 
+// CPD-OFF
 @Slf4j
 @Getter
 public class ActiveIndexOrder extends AbstractActiveOrder {
@@ -50,11 +52,6 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
         setExitTimeStamp(timeIndex);
         setSellPrice(closePrice);
         this.extraData.put("exitDateTime", timestamp);
-    }
-
-    @Override
-    public void appendExtraData(String key, String value) {
-        extraData.put(key, value);
     }
 
     public double getProfit() {
@@ -189,3 +186,4 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
         return Objects.hash(tag, index, callOrder);
     }
 }
+// CPD-ON

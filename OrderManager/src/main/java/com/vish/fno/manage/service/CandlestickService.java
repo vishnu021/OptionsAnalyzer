@@ -120,7 +120,7 @@ public class CandlestickService {
     @NotNull
     public Optional<SymbolData> getCandlesticksFromBroker(String symbol, String date, String interval) {
         if(calendarService.getHolidays().contains(date)) {
-            log.debug("{} is a holiday date", date);
+            log.info("{} is a holiday date", date);
             return Optional.empty();
         }
 

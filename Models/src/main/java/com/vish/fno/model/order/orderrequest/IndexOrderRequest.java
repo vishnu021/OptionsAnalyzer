@@ -1,4 +1,4 @@
-package com.vish.fno.model.order;
+package com.vish.fno.model.order.orderrequest;
 
 import com.vish.fno.model.Task;
 import lombok.Builder;
@@ -36,7 +36,7 @@ public class IndexOrderRequest implements OrderRequest {
                              int expirationTimestamp, double buyThreshold, double target, double stopLoss, int quantity,
                              boolean callOrder, Map<String, String> extraData, int lotSize) {
         this.task = task;
-        this.tag = tag;
+        this.tag = tag == null ? "" : tag.replaceAll("[a-z]", "");
         this.index = index;
         this.optionSymbol = optionSymbol;
         this.date = date;

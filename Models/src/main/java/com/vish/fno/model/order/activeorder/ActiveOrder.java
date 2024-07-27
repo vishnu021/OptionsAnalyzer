@@ -1,4 +1,4 @@
-package com.vish.fno.model.order;
+package com.vish.fno.model.order.activeorder;
 
 import com.vish.fno.model.Task;
 

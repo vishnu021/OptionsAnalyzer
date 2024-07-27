@@ -1,11 +1,10 @@
 package com.vish.fno.manage.orderflow;
 
-import com.vish.fno.manage.helper.DataCacheImpl;
-import com.vish.fno.manage.orderflow.OrderHandler;
+import com.vish.fno.util.helper.DataCache;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.model.Strategy;
-import com.vish.fno.model.order.ActiveOrder;
-import com.vish.fno.model.order.OrderRequest;
+import com.vish.fno.model.order.activeorder.ActiveOrder;
+import com.vish.fno.model.order.orderrequest.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,7 @@ public class StrategyExecutor {
 
     private final KiteService kiteService;
     private final OrderHandler orderHandler;
-    private final DataCacheImpl dataCacheImpl;
+    private final DataCache dataCacheImpl;
     private final List<Strategy> activeStrategies;
     @Getter
     private final List<String> symbolList;

@@ -66,7 +66,7 @@ public class CalendarService {
     private LocalDate findNextNonHolidayDate(final LocalDate date, final int increment) {
         LocalDate nextDate = date.plusDays(increment);
         while (isHolidayOrWeekend(nextDate)) {
-            nextDate = nextDate.plusDays(1);
+            nextDate = nextDate.plusDays(increment);
         }
         return nextDate;
     }

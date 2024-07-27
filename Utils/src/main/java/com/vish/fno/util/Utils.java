@@ -49,4 +49,16 @@ public final class Utils {
         final BigDecimal divided = value.divide(increment, 0, RoundingMode.HALF_UP);
         return divided.multiply(increment).setScale(2, RoundingMode.HALF_UP);
     }
+
+    public static String getTopNLines(Throwable throwable, int n) {
+        StackTraceElement[] stackTraceElements = throwable.getStackTrace();
+        int length = stackTraceElements.length;
+        StringBuilder topThreeLines = new StringBuilder();
+
+        for (int i = 0; i < Math.min(n, length); i++) {
+            topThreeLines.append(stackTraceElements[i].toString()).append("\n");
+        }
+
+        return topThreeLines.toString();
+    }
 }
