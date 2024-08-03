@@ -1,6 +1,7 @@
 package com.vish.fno.manage.config;
 
 import com.vish.fno.manage.config.task.TaskConfig;
+import com.vish.fno.manage.helper.OrderCache;
 import com.vish.fno.util.helper.DataCache;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
@@ -29,17 +30,18 @@ public class StrategyConfig {
     private final TaskConfig taskConfig;
 
     @Bean
-    public StrategyExecutor strategyExecutor(KiteService kiteService,
-                                             OrderHandler orderHandler,
-                                             DataCache dataCache,
-                                             TimeProvider timeProvider) {
+    public StrategyExecutor strategyExecutor(final KiteService kiteService,
+                                             final OrderHandler orderHandler,
+                                             final DataCache dataCache,
+                                             final OrderCache orderCache,
+                                             final TimeProvider timeProvider) {
         List<Strategy> activeStrategies = getStrategies();
         List<String> symbolList =  taskConfig.getTaskProperties().getList().stream()
                 .map(StrategyTasks::getIndex)
                 .distinct()
                 .collect(Collectors.toCollection(ArrayList::new));
         log.info("Initialising strategy executor with symbols: {}", symbolList);
-        return new StrategyExecutor(kiteService, orderHandler, dataCache, activeStrategies, symbolList, timeProvider);
+        return new StrategyExecutor(kiteService, orderHandler, dataCache, orderCache, activeStrategies, symbolList, timeProvider);
     }
 
     private List<Strategy> getStrategies() {

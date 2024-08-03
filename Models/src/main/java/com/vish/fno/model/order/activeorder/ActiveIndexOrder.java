@@ -1,6 +1,10 @@
 package com.vish.fno.model.order.activeorder;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vish.fno.model.Task;
+import com.vish.fno.model.Ticker;
+import com.vish.fno.model.order.OrderFlowHandler;
+import com.vish.fno.model.order.OrderSellDetailModel;
 import com.vish.fno.model.order.orderrequest.IndexOrderRequest;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +30,8 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
     @Setter
     private boolean isActive;
     private double realisedProfit;
+    @JsonIgnore
+    private final OrderFlowHandler orderFlowHandler;
 
     public ActiveIndexOrder(IndexOrderRequest openOrder, double buyPrice, int timestampIndex, String timestamp) {
         super(openOrder.getTag(),
@@ -45,6 +51,7 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
         this.isActive = true;
         this.realisedProfit = 0f;
         this.extraData.put("entryDateTime", timestamp);
+        this.orderFlowHandler = openOrder.getOrderFlowHandler();
     }
 
     public void closeOrder(double closePrice, int timeIndex, String timestamp) {
@@ -52,6 +59,11 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
         setExitTimeStamp(timeIndex);
         setSellPrice(closePrice);
         this.extraData.put("exitDateTime", timestamp);
+    }
+
+    @Override
+    public void sellOrder(OrderSellDetailModel exitCondition, Ticker tick) {
+        orderFlowHandler.sellOrder(exitCondition, tick, this);
     }
 
     public double getProfit() {

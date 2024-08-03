@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -35,6 +36,7 @@ public class KiteClientConfiguration {
     private KiteClientProperties kiteClientProperties;
 
     @Bean
+    @Profile("!test")
     @ConditionalOnProperty(prefix  = "kite", name = "serviceInCloud", havingValue = "false")
     public BrowserLauncher prepareBrowserLauncher() {
         return new BrowserLauncher(kiteClientProperties.isServiceInCloud(),
@@ -42,6 +44,7 @@ public class KiteClientConfiguration {
     }
 
     @Bean
+    @Profile("!test")
     @ConditionalOnProperty(prefix  = "kite", name = "serviceInCloud", havingValue = "true")
     public ConsoleAuthenticator prepareConsoleAuthenticator(KiteService kiteService) {
         return new ConsoleAuthenticator(kiteService, kiteClientProperties.getAuthenticationUrl());

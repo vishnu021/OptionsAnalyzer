@@ -1,13 +1,13 @@
 package com.vish.fno.manage.orderflow;
 
 import com.vish.fno.manage.helper.DataCacheImpl;
+import com.vish.fno.manage.helper.OrderCache;
 import com.vish.fno.manage.service.CalendarService;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.service.CandlestickService;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.model.SymbolData;
-import com.vish.fno.model.order.activeorder.ActiveOrder;
 import com.vish.fno.model.order.orderrequest.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,14 +49,16 @@ class StrategyExecutorTest {
         CalendarService calendarService = mock(CalendarService.class);
         timeProvider = spy(TimeProvider.class);
         when(timeProvider.currentTimeStampIndex()).thenReturn(1);
+        when(orderHandler.getOrderCache()).thenReturn(new OrderCache());
 
-        DataCacheImpl candleStickCache = spy(new DataCacheImpl(candlestickService, calendarService, timeProvider));
+        DataCacheImpl dataCache = spy(new DataCacheImpl(candlestickService, calendarService, timeProvider));
 
         List<String> symbolList =  activeStrategies.stream().map(s -> s.getTask().getIndex())
                 .collect(Collectors.toCollection(ArrayList::new));
         strategyExecutor = new StrategyExecutor(kiteService,
                 orderHandler,
-                candleStickCache,
+                dataCache,
+                new OrderCache(),
                 activeStrategies,
                 symbolList,
                 timeProvider);
@@ -180,7 +182,6 @@ class StrategyExecutorTest {
         // Arrange
         SymbolData mockSymbolData = mock(SymbolData.class);
         OrderRequest orderRequest = mock(OrderRequest.class);
-        ActiveOrder activeOrder = mock(ActiveOrder.class);
 
         LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
         when(timeProvider.now()).thenReturn(mockTime);
@@ -188,8 +189,6 @@ class StrategyExecutorTest {
         when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
         when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
         when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
-        when(orderHandler.getOrderRequests()).thenReturn(List.of(orderRequest));
-        when(orderHandler.getActiveOrders()).thenReturn(List.of(activeOrder));
 
         // Act
         strategyExecutor.update();

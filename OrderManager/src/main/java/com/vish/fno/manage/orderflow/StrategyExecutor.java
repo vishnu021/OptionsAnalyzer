@@ -1,10 +1,9 @@
 package com.vish.fno.manage.orderflow;
 
+import com.vish.fno.manage.helper.OrderCache;
 import com.vish.fno.util.helper.DataCache;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.model.Strategy;
-import com.vish.fno.model.order.activeorder.ActiveOrder;
-import com.vish.fno.model.order.orderrequest.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +23,7 @@ public class StrategyExecutor {
     private final KiteService kiteService;
     private final OrderHandler orderHandler;
     private final DataCache dataCacheImpl;
+    private final OrderCache orderCache;
     private final List<Strategy> activeStrategies;
     @Getter
     private final List<String> symbolList;
@@ -48,18 +48,7 @@ public class StrategyExecutor {
                 log.error("exception while running strategy : {}", strategy.getTask(), e);
             }
         }
-        logOpenOrders();
-    }
-
-    private void logOpenOrders() {
-        final List<OrderRequest> existingOrderRequests = orderHandler.getOrderRequests();
-        if(!existingOrderRequests.isEmpty()) {
-            log.info("list of open orders({}) : {}", existingOrderRequests.size(), existingOrderRequests);
-        }
-        final List<ActiveOrder> activeOrders = orderHandler.getActiveOrders();
-        if(!activeOrders.isEmpty()) {
-            log.info("list of active orders({}) : {}", activeOrders.size(), activeOrders);
-        }
+        orderCache.logOpenOrders();
     }
 
     private void testStrategies(Strategy strategy) {

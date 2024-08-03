@@ -23,7 +23,6 @@ public class TimeProvider {
         return TimeUtils.getIndexOfTimeStamp(new Date());
     }
 
-
     public String getTodaysDateString() {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
         return dateFormatter.format(TimeUtils.currentTime());

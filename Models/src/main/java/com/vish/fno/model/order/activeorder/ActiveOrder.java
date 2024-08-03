@@ -1,6 +1,8 @@
 package com.vish.fno.model.order.activeorder;
 
 import com.vish.fno.model.Task;
+import com.vish.fno.model.Ticker;
+import com.vish.fno.model.order.OrderSellDetailModel;
 
 import java.util.Date;
 import java.util.Map;
@@ -35,5 +37,5 @@ public interface ActiveOrder {
     void closeOrder(double closePrice, int timeIndex, String timestamp);
     Map<String, String> getExtraData();
     void appendExtraData(String key, String value);
-
+    void sellOrder(OrderSellDetailModel exitCondition, Ticker tick);
 }

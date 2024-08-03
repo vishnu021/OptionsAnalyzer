@@ -1,0 +1,35 @@
+spring:
+    mvc.pathmatch.matching-strategy: ant_path_matcher
+    view:
+        prefix: /static/
+        suffix: .html
+    main:
+        banner-mode: off
+        allow-bean-definition-overriding: true
+
+kite:
+    serviceInCloud: true
+
+
+order:
+    symbolsPath: ind_nifty100list.csv
+    additionalSymbols: NIFTY, NIFTY 50, BANKNIFTY, NIFTY BANK, FINNIFTY, NIFTY FIN SERVICE
+    webSocketDefaultSymbols: NIFTY BANK, NIFTY 50, BAJFINANCE, HINDUNILVR, HDFCBANK
+    maximumOrderCount: 1
+    availableCash: 24000
+    connectToWebSocket: false
+    placeOrders: true
+    putOrders: true
+    callOrders: true
+    tradeInLastHour: true
+    orderSize: 100
+    maximumBuyPrice: 500.0
+    minimumBuyPrice: 100.0
+    slmDeltaPrice: 10
+
+strategies:
+    list:
+        - strategyName: Hammer
+          index: NIFTY 50
+          enabled: false
+          expiryDayOrders: false

@@ -29,6 +29,7 @@ public final class FileUtils implements Constants {
     public FileUtils() {
         mapper = new ObjectMapper();
         indentedMapper = new ObjectMapper();
+        indentedMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         indentedMapper.enable(SerializationFeature.INDENT_OUTPUT);
         bufferLength = 0;
         createDirectoryIfNotExist(filePath);
@@ -43,8 +44,6 @@ public final class FileUtils implements Constants {
             log.error("Failed to save candlestick data", e);
         }
     }
-
-
 
     public void createDirectoryIfNotExist(String path) {
         try {

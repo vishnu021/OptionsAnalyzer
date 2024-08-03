@@ -1,6 +1,8 @@
 package com.vish.fno.model.order.orderrequest;
 
 import com.vish.fno.model.Task;
+import com.vish.fno.model.Ticker;
+import com.vish.fno.model.order.OrderFlowHandler;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +10,7 @@ import lombok.Setter;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.vish.fno.model.util.ModelUtils.round;
 
@@ -30,11 +33,13 @@ public class IndexOrderRequest implements OrderRequest {
     private boolean callOrder;
     private Map<String, String> extraData;
     private int lotSize;
+    @Setter
+    private OrderFlowHandler orderFlowHandler;
 
     @Builder(builderMethodName = "builder")
     public IndexOrderRequest(Task task, String tag, String index, String optionSymbol, Date date, int timestamp,
                              int expirationTimestamp, double buyThreshold, double target, double stopLoss, int quantity,
-                             boolean callOrder, Map<String, String> extraData, int lotSize) {
+                             boolean callOrder, Map<String, String> extraData, int lotSize, OrderFlowHandler orderFlowHandler) {
         this.task = task;
         this.tag = tag == null ? "" : tag.replaceAll("[a-z]", "");
         this.index = index;
@@ -49,10 +54,40 @@ public class IndexOrderRequest implements OrderRequest {
         this.callOrder = callOrder;
         this.extraData = extraData;
         this.lotSize = lotSize;
+        this.orderFlowHandler = orderFlowHandler;
     }
 
     public static IndexOrderRequestBuilder builder(String tag, String index, Task task) {
         return new IndexOrderRequestBuilder().tag(tag).index(index).task(task);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final IndexOrderRequest that = (IndexOrderRequest) o;
+        return Objects.equals(tag, that.tag)
+                && Objects.equals(index, that.index)
+                && Objects.equals(callOrder, that.callOrder);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tag, index, callOrder);
+    }
+
+    @Override
+    public void placeOrder(Ticker ticker) {
+        orderFlowHandler.placeOrder(ticker, this);
+    }
+
+    @Override
+    public Optional<OrderRequest> verifyBuyThreshold(Ticker tick) {
+        return orderFlowHandler.verifyBuyThreshold(tick, this);
     }
 
     @Override
@@ -78,24 +113,5 @@ public class IndexOrderRequest implements OrderRequest {
         sb.append(", CE=").append(isCallOrder())
                 .append('}');
         return sb.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        final IndexOrderRequest that = (IndexOrderRequest) o;
-        return Objects.equals(tag, that.tag)
-                && Objects.equals(index, that.index)
-                && Objects.equals(callOrder, that.callOrder);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(tag, index, callOrder);
     }
 }

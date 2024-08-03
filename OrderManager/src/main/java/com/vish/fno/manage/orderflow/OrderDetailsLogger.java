@@ -1,15 +1,13 @@
 package com.vish.fno.manage.orderflow;
 
+import com.vish.fno.model.Ticker;
 import com.vish.fno.model.order.activeorder.ActiveOrder;
-import com.zerodhatech.models.Depth;
 import com.zerodhatech.models.Order;
-import com.zerodhatech.models.Tick;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,18 +22,18 @@ public final class OrderDetailsLogger {
     private static final String SELL = "SELL";
     private static final String KITE_ORDER_ID = "kiteOrderId";
 
-    static void logMarketDepth(Tick tick) {
-        Map<String, ArrayList<Depth>> marketDepth = tick.getMarketDepth();
+    static void logMarketDepth(Ticker tick) {
+        Map<String, List<Ticker.Depth>> marketDepth = tick.getMarketDepth();
         if(marketDepth == null) {
             return;
         }
         log.info("Market depth: {}", getNonFormattedObject(marketDepth));
         if(marketDepth.containsKey("buy") && !marketDepth.get("buy").isEmpty()) {
-            ArrayList<Depth> buyMarketDepth = marketDepth.get("buy");
+            List<Ticker.Depth> buyMarketDepth = marketDepth.get("buy");
             log.info("next buy price: {}", getFormattedObject(buyMarketDepth.get(0)));
         }
         if(marketDepth.containsKey("sell") && !marketDepth.get("sell").isEmpty()) {
-            ArrayList<Depth> sellMarketDepth = marketDepth.get("sell");
+            List<Ticker.Depth> sellMarketDepth = marketDepth.get("sell");
             log.info("next sell price: {}", getFormattedObject(sellMarketDepth.get(0)));
         }
     }
@@ -68,7 +66,7 @@ public final class OrderDetailsLogger {
     }
 
     @NotNull
-    static List<ActiveOrder> getActiveOrdersByOrderId(List<ActiveOrder> activeOrders, String orderId) {
+    public static List<ActiveOrder> getActiveOrdersByOrderId(List<ActiveOrder> activeOrders, String orderId) {
         return activeOrders
                 .stream()
                 .filter(o -> o.getExtraData() != null
