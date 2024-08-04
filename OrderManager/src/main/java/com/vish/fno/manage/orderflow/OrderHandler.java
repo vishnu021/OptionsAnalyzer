@@ -2,20 +2,22 @@ package com.vish.fno.manage.orderflow;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.vish.fno.manage.config.order.OrderConfiguration;
-import com.vish.fno.manage.helper.EntryVerifier;
 import com.vish.fno.manage.helper.IndexEntryVerifier;
-import com.vish.fno.manage.helper.OrderCache;
+import com.vish.fno.model.helper.EntryVerifier;
+import com.vish.fno.model.helper.OrderCache;
 import com.vish.fno.manage.helper.TickMapper;
 import com.vish.fno.model.Ticker;
 import com.vish.fno.model.order.activeorder.ActiveOrder;
 import com.vish.fno.model.order.orderrequest.IndexOrderRequest;
 import com.vish.fno.model.order.orderrequest.OrderRequest;
+import com.vish.fno.util.JsonUtils;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.model.order.*;
 import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.helper.OrderManagerUtils;
 import com.vish.fno.util.orderflow.TargetAndStopLossStrategy;
+import com.zerodhatech.models.Order;
 import com.zerodhatech.ticker.OnOrderUpdate;
 import com.zerodhatech.ticker.OnTicks;
 import jakarta.annotation.PostConstruct;
@@ -32,6 +34,8 @@ import java.util.*;
 @RequiredArgsConstructor
 @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.PrematureDeclaration"})
 public class OrderHandler {
+    public static final String REJECTED = "REJECTED";
+    public static final String BUY = "BUY";
     private final KiteService kiteService;
     private final OrderConfiguration orderConfiguration;
     private final FileUtils fileUtils;
@@ -48,11 +52,36 @@ public class OrderHandler {
                 handleTicks(tickers);
             }
         };
-        final OnOrderUpdate onOrderUpdateListener = (order) -> orderCache.onOrderUpdate(order);
+        final OnOrderUpdate onOrderUpdateListener = this::onOrderUpdate;
         kiteService.setOnTickerArrivalListener(onTickerArrivalListener);
         kiteService.setOnOrderUpdateListener(onOrderUpdateListener);
         final List<String> initialSymbols = Arrays.stream(orderConfiguration.getWebSocketDefaultSymbols()).toList();
         kiteService.appendWebSocketSymbolsList(initialSymbols, true);
+    }
+
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
+    public void onOrderUpdate(Order order) {
+        final List<ActiveOrder> activeOrders = orderCache.getActiveOrders();
+
+        log.info("Order update complete : {}", JsonUtils.getFormattedObject(order));
+        try {
+            String orderId = order.orderId;
+            List<ActiveOrder> activeOrdersForOrderId = OrderDetailsLogger.getActiveOrdersByOrderId(activeOrders, orderId);
+            log.info("Existing active order for order id: {}: {}", orderId, activeOrdersForOrderId);
+            OrderDetailsLogger.logOrderLifeCycle(activeOrders, orderCache.getBuyCompletedOrders(), orderCache.getCompletedOrders(), order, orderId);
+
+            if(order.status.equals(REJECTED) && order.transactionType.equals(BUY)) {
+                log.warn("Order was rejected with statusMessage: {}, marking it as not complete", order.statusMessage);
+                activeOrders.stream().filter(a ->
+                        a.getOptionSymbol().equals(order.tradingSymbol) && a.getTag().substring(0,20).equals(order.tag)
+                ).forEach(a -> {
+                    log.info("marking order executed as false for order: {}", a);
+                    a.getExtraData().put(EntryVerifier.ORDER_EXECUTED, "false");
+                });
+            }
+        } catch (Exception e) {
+            log.error("Exception while finding active order for order update", e);
+        }
     }
 
     @VisibleForTesting
@@ -84,8 +113,7 @@ public class OrderHandler {
         final Map<String, Ticker> latestTicks = orderCache.getLatestTicks();
 
         if(order instanceof IndexOrderRequest) {
-            IndexEntryVerifier indexEntryVerifier = new IndexEntryVerifier(kiteService, timeProvider);
-            ((IndexOrderRequest) order).setOrderFlowHandler(new IndexOrderFlowHandler(kiteService, indexEntryVerifier, timeProvider, this, fileUtils));
+            ((IndexOrderRequest) order).setOrderFlowHandler(new IndexOrderFlowHandler(kiteService, timeProvider, this, fileUtils));
         }
         // TODO: update to append open order if price movement has not passed
         final String otmOptionSymbol = kiteService.getITMStock(order.getIndex(), order.getBuyThreshold(), order.isCallOrder());
@@ -151,6 +179,5 @@ public class OrderHandler {
     private void addTokenToWebsocket(OrderRequest order) {
         kiteService.appendWebSocketSymbolsList(List.of(order.getIndex(), order.getOptionSymbol()), false);
     }
-
     // TODO: add an additional check to ensure order is not placed against wrong instrument.
 }

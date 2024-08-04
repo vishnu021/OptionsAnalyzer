@@ -13,19 +13,17 @@ import com.vish.fno.util.FileUtils;
 import com.vish.fno.model.order.OrderFlowHandler;
 import com.vish.fno.util.TimeUtils;
 import com.vish.fno.util.helper.TimeProvider;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.vish.fno.manage.helper.AbstractEntryVerifier.ORDER_EXECUTED;
 import static com.vish.fno.manage.orderflow.OrderDetailsLogger.logMarketDepth;
+import static com.vish.fno.model.helper.EntryVerifier.ORDER_EXECUTED;
 import static com.vish.fno.util.JsonUtils.getFormattedObject;
 
 @Slf4j
-@RequiredArgsConstructor
 public class IndexOrderFlowHandler implements OrderFlowHandler {
     private static final String ORDER_EXIT_DETAILS = "orderExitDetails";
     private final KiteService kiteService;
@@ -33,6 +31,14 @@ public class IndexOrderFlowHandler implements OrderFlowHandler {
     private final TimeProvider timeProvider;
     private final OrderHandler orderHandler;
     private final FileUtils fileUtils;
+
+    public IndexOrderFlowHandler(KiteService kiteService, TimeProvider timeProvider, OrderHandler orderHandler, FileUtils fileUtils) {
+        this.kiteService = kiteService;
+        this.timeProvider = timeProvider;
+        this.orderHandler = orderHandler;
+        this.fileUtils = fileUtils;
+        this.entryVerifier = new IndexEntryVerifier();
+    }
 
     public void placeOrder(Ticker tick, OrderRequest order) {
         final List<ActiveOrder> activeOrders = orderHandler.getOrderCache().getActiveOrders();
@@ -58,10 +64,11 @@ public class IndexOrderFlowHandler implements OrderFlowHandler {
 
             log.debug("Placing an order for index: {}, symbol: {}, at buyThreshold: {}", order.getIndex(), order.getOptionSymbol(), order.getBuyThreshold());
 
+            boolean isExpiryDayForOption = kiteService.isExpiryDayForOption(order.getOptionSymbol(), timeProvider.todayDate());
             Optional<KiteOpenOrder> orderPlacedOptional = kiteService.buyOrder(order.getOptionSymbol(),
                     order.getQuantity(),
                     order.getTag(),
-                    entryVerifier.isPlaceOrder(activeOrder, true, null, orderHandler.getOrderCache()));
+                    entryVerifier.isPlaceOrder(activeOrder, true, null, orderHandler.getOrderCache(), isExpiryDayForOption));
             if(orderPlacedOptional.isPresent() && orderPlacedOptional.get().isOrderPlaced()) {
                 KiteOpenOrder orderPlaced = orderPlacedOptional.get();
                 activeOrder.setActive(true);
@@ -86,11 +93,12 @@ public class IndexOrderFlowHandler implements OrderFlowHandler {
     public void sellOrder(OrderSellDetailModel exitCondition, Ticker tick, ActiveOrder order) {
         final List<ActiveOrder> activeOrders = orderHandler.getOrderCache().getActiveOrders();
         final Map<String, Ticker> latestTicks = orderHandler.getOrderCache().getLatestTicks();
+        boolean isExpiryDayForOption = kiteService.isExpiryDayForOption(order.getOptionSymbol(), timeProvider.todayDate());
         final Optional<KiteOpenOrder> orderSoldOptional = kiteService.sellOrder(order.getOptionSymbol(),
                 tick.getLastTradedPrice(),
                 exitCondition.getQuantity(),
                 order.getTag(),
-                entryVerifier.isPlaceOrder(order, false, exitCondition, orderHandler.getOrderCache()));
+                entryVerifier.isPlaceOrder(order, false, exitCondition, orderHandler.getOrderCache(), isExpiryDayForOption));
 
         if(orderSoldOptional.isPresent() && orderSoldOptional.get().isOrderPlaced()) {
             final Ticker latestOptionTick = latestTicks.get(order.getOptionSymbol());

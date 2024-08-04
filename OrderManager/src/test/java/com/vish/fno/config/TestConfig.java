@@ -4,7 +4,7 @@ import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.manage.config.order.OrderProperties;
 import com.vish.fno.manage.config.task.TaskConfig;
 import com.vish.fno.manage.helper.DataCacheImpl;
-import com.vish.fno.manage.helper.OrderCache;
+import com.vish.fno.model.helper.OrderCache;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.orderflow.OrderHandler;
 import com.vish.fno.manage.orderflow.StrategyExecutor;

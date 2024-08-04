@@ -1,30 +1,27 @@
 package com.vish.fno.manage.helper;
 
-import com.vish.fno.manage.config.order.OrderConfiguration;
+import com.vish.fno.model.helper.EntryVerifier;
+import com.vish.fno.model.helper.OrderCache;
 import com.vish.fno.model.Task;
 import com.vish.fno.model.order.OrderSellDetailModel;
 import com.vish.fno.model.order.activeorder.ActiveOrder;
 import com.vish.fno.model.order.orderrequest.OrderRequest;
-import com.vish.fno.reader.service.KiteService;
-import com.vish.fno.util.helper.TimeProvider;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class IndexEntryVerifier extends AbstractEntryVerifier {
-
-    public IndexEntryVerifier(KiteService kiteService, TimeProvider timeProvider) {
-        super(kiteService, timeProvider);
-    }
+@NoArgsConstructor
+public class IndexEntryVerifier implements EntryVerifier {
 
     // TODO: dont stop sell order by price (but the condition is only for buyPrice :thinking)
-    public boolean isPlaceOrder(ActiveOrder order, boolean isBuy, OrderSellDetailModel exitCondition, OrderCache orderCache) {
+    public boolean isPlaceOrder(ActiveOrder order, boolean isBuy, OrderSellDetailModel exitCondition, OrderCache orderCache, boolean isExpiryDayForOption) {
         // check if the strategy is enabled for expiry day
         Task task = order.getTask();
         // TODO: add test case
-        if(!task.isExpiryDayOrders() && kiteService.isExpiryDayForOption(order.getOptionSymbol(), timeProvider.todayDate())) {
+        if(!task.isExpiryDayOrders() && isExpiryDayForOption) {
             log.info("Expiry day orders is not enabled for task: {} ", order.getTask());
             return false;
         }
@@ -66,7 +63,6 @@ public class IndexEntryVerifier extends AbstractEntryVerifier {
         }
         return false;
     }
-
 
     @Override
     public boolean hasMoveAlreadyHappened(double ltp, OrderRequest order) {

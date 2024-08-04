@@ -1,7 +1,7 @@
 package com.vish.fno.manage.orderflow;
 
 import com.vish.fno.manage.helper.DataCacheImpl;
-import com.vish.fno.manage.helper.OrderCache;
+import com.vish.fno.model.helper.OrderCache;
 import com.vish.fno.manage.service.CalendarService;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
@@ -42,6 +42,7 @@ class StrategyExecutorTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        OrderCache orderCache = new OrderCache(0L);
         activeStrategies = List.of(mockStrategy1, mockStrategy2);
 
         when(mockStrategy1.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "BANK NIFTY", true, true));
@@ -49,7 +50,7 @@ class StrategyExecutorTest {
         CalendarService calendarService = mock(CalendarService.class);
         timeProvider = spy(TimeProvider.class);
         when(timeProvider.currentTimeStampIndex()).thenReturn(1);
-        when(orderHandler.getOrderCache()).thenReturn(new OrderCache());
+        when(orderHandler.getOrderCache()).thenReturn(orderCache);
 
         DataCacheImpl dataCache = spy(new DataCacheImpl(candlestickService, calendarService, timeProvider));
 
@@ -58,7 +59,7 @@ class StrategyExecutorTest {
         strategyExecutor = new StrategyExecutor(kiteService,
                 orderHandler,
                 dataCache,
-                new OrderCache(),
+                orderCache,
                 activeStrategies,
                 symbolList,
                 timeProvider);

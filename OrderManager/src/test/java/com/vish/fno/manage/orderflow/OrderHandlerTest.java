@@ -2,7 +2,7 @@ package com.vish.fno.manage.orderflow;
 
 import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.manage.helper.IndexEntryVerifier;
-import com.vish.fno.manage.helper.OrderCache;
+import com.vish.fno.model.helper.OrderCache;
 import com.vish.fno.model.Ticker;
 import com.vish.fno.model.order.activeorder.ActiveOrder;
 import com.vish.fno.model.order.orderrequest.IndexOrderRequest;
@@ -45,7 +45,7 @@ class OrderHandlerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        orderHandler = new OrderHandler(kiteService, orderConfiguration, fileUtils, timeProvider, targetAndStopLossStrategy, new OrderCache());
+        orderHandler = new OrderHandler(kiteService, orderConfiguration, fileUtils, timeProvider, targetAndStopLossStrategy, new OrderCache(0L));
     }
 
     @Test
@@ -111,7 +111,7 @@ class OrderHandlerTest {
                 .buyThreshold(100)
                 .stopLoss(60)
                 .callOrder(true)
-                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, new IndexEntryVerifier(kiteService, timeProvider), timeProvider, orderHandler, fileUtils))
+                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, timeProvider, orderHandler, fileUtils))
                 .build();
         OrderRequest orderRequest2 = IndexOrderRequest.builder("TestStrategyTag", "TEST_SYMBOL2", new StrategyTasks())
                 .optionSymbol("TEST_OPTION_SYMBOL2")
@@ -119,7 +119,7 @@ class OrderHandlerTest {
                 .buyThreshold(100)
                 .stopLoss(60)
                 .callOrder(true)
-                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, new IndexEntryVerifier(kiteService, timeProvider), timeProvider, orderHandler, fileUtils))
+                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, timeProvider, orderHandler, fileUtils))
                 .build();
 
         Ticker ticker = Ticker.builder().lastTradedPrice(101).build();
@@ -249,7 +249,7 @@ class OrderHandlerTest {
                 .callOrder(true)
                 .target(99)
                 .quantity(10)
-                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, new IndexEntryVerifier(kiteService, timeProvider), timeProvider, orderHandler, fileUtils))
+                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, timeProvider, orderHandler, fileUtils))
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, 1d, 1, TimeUtils.getTodayDate());
         orderHandler.getOrderCache().getActiveOrders().add(activeOrder);
@@ -278,7 +278,7 @@ class OrderHandlerTest {
                 .callOrder(false)
                 .target(101)
                 .quantity(10)
-                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, new IndexEntryVerifier(kiteService, timeProvider), timeProvider, orderHandler, fileUtils))
+                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, timeProvider, orderHandler, fileUtils))
                 .build();
         ActiveOrder activeOrder = ActiveOrderFactory.createOrder(orderRequest, 1d, 1, TimeUtils.getTodayDate());
         orderHandler.getOrderCache().getActiveOrders().add(activeOrder);
@@ -472,7 +472,7 @@ class OrderHandlerTest {
                 .stopLoss(90)
                 .target(105)
                 .quantity(1)
-                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, new IndexEntryVerifier(kiteService, timeProvider), timeProvider, orderHandler, fileUtils))
+                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, timeProvider, orderHandler, fileUtils))
                 .build();
 
         List<ActiveOrder> activeOrders = List.of(ActiveOrderFactory.createOrder(orderRequest, 0d, 1, TimeUtils.getTodayDate()));
@@ -498,7 +498,7 @@ class OrderHandlerTest {
                 .target(105)
                 .stopLoss(90)
                 .quantity(1)
-                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, new IndexEntryVerifier(kiteService, timeProvider), timeProvider, orderHandler, fileUtils))
+                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, timeProvider, orderHandler, fileUtils))
                 .build();
 
         List<ActiveOrder> activeOrders = List.of(ActiveOrderFactory.createOrder(orderRequest, 0d, 1, TimeUtils.getTodayDate()));
@@ -546,7 +546,7 @@ class OrderHandlerTest {
                 .buyThreshold(100)
                 .stopLoss(115)
                 .target(90)
-                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, new IndexEntryVerifier(kiteService, timeProvider), timeProvider, orderHandler, fileUtils))
+                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, timeProvider, orderHandler, fileUtils))
                 .build();
 
         List<ActiveOrder> activeOrders = List.of(ActiveOrderFactory.createOrder(orderRequest, 0d, 1, TimeUtils.getTodayDate()));
@@ -571,7 +571,7 @@ class OrderHandlerTest {
                 .buyThreshold(100)
                 .target(85)
                 .stopLoss(110)
-                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, new IndexEntryVerifier(kiteService, timeProvider), timeProvider, orderHandler, fileUtils))
+                .orderFlowHandler(new IndexOrderFlowHandler(kiteService, timeProvider, orderHandler, fileUtils))
                 .build();
 
         List<ActiveOrder> activeOrders = List.of(ActiveOrderFactory.createOrder(orderRequest, 0d, 1, TimeUtils.getTodayDate()));

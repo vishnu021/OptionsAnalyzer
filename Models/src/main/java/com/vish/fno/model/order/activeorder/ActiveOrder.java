@@ -38,4 +38,5 @@ public interface ActiveOrder {
     Map<String, String> getExtraData();
     void appendExtraData(String key, String value);
     void sellOrder(OrderSellDetailModel exitCondition, Ticker tick);
+
 }

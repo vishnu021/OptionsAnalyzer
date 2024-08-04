@@ -1,7 +1,7 @@
 package com.vish.fno.manage.config;
 
 import com.vish.fno.manage.config.task.TaskConfig;
-import com.vish.fno.manage.helper.OrderCache;
+import com.vish.fno.model.helper.OrderCache;
 import com.vish.fno.util.helper.DataCache;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
