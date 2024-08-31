@@ -61,7 +61,8 @@ public abstract class MovingAverage extends AbstractIndicator {
     private double getLastSMA(List<Double> candles) {
         SimpleMovingAverage sma = new SimpleMovingAverage(duration);
         List<Double> sma14 = sma.calculateFromClosedPrice(candles);
-        return sma14.get(duration-1);
+        int smaListSize = Math.min(duration, sma14.size());
+        return sma14.get(smaListSize - 1);
     }
 
     private boolean skipPresetValues(double lastMA, List<Double> ma, int i) {

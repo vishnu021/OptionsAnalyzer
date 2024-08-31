@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 @Slf4j
 class InstrumentCacheTest {
+    private static final String INSTRUMENT_CACHE_FILE = "/src/test/java/resources/instrument_cache/instruments_2024-07-04.json";
 
     @Mock private KiteService kiteService;
 
@@ -38,8 +39,7 @@ class InstrumentCacheTest {
 
     @SneakyThrows
     private List<Instrument> mockInstrumentCache() {
-        File instrumentCacheFile = new File(System.getProperty("user.dir")
-                + "/src/test/java/resources/instrument_cache/instruments_2023-12-26.json");
+        final File instrumentCacheFile = new File(System.getProperty("user.dir") + INSTRUMENT_CACHE_FILE);
         return mapper.readValue(instrumentCacheFile,
                     mapper.getTypeFactory().constructCollectionType(List.class, Instrument.class));
     }
@@ -68,10 +68,10 @@ class InstrumentCacheTest {
             //Arrange
             mockedStatic.when(() -> InstrumentFileUtils.saveInstrumentCache(any())).thenAnswer(invocationOnMock -> null);
             mockedStatic.when(() -> InstrumentFileUtils.saveFilteredInstrumentCache(any())).thenAnswer(invocationOnMock -> null);
-            String optionSymbol = "NIFTY23DEC25000PE";
+            String optionSymbol = "NIFTY24JUL25000PE";
 
             Calendar calendar = Calendar.getInstance();
-            calendar.set(2023, Calendar.DECEMBER, 28, 0, 0, 0);
+            calendar.set(2024, Calendar.JULY, 25, 0, 0, 0);
             Date date = calendar.getTime();
             // Act
             boolean isExpiryDayForOption = underTest.isExpiryDayForOption(optionSymbol, date);
@@ -86,10 +86,10 @@ class InstrumentCacheTest {
             //Arrange
             mockedStatic.when(() -> InstrumentFileUtils.saveInstrumentCache(any())).thenAnswer(invocationOnMock -> null);
             mockedStatic.when(() -> InstrumentFileUtils.saveFilteredInstrumentCache(any())).thenAnswer(invocationOnMock -> null);
-            String optionSymbol = "NIFTY23DEC25000PE";
+            String optionSymbol = "NIFTY24JUL25000PE";
 
             Calendar calendar = Calendar.getInstance();
-            calendar.set(2023, Calendar.DECEMBER, 27, 0, 0, 0);
+            calendar.set(2024, Calendar.JULY, 27, 0, 0, 0);
 
             Date date = calendar.getTime();
             // Act

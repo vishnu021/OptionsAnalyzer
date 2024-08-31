@@ -1,7 +1,8 @@
 package com.vish.fno.manage.config;
 
 import com.vish.fno.manage.config.task.TaskConfig;
-import com.vish.fno.model.helper.OrderCache;
+import com.vish.fno.model.cache.OrderCache;
+import com.vish.fno.sutils.orderflow.PartialRevisingStopLoss;
 import com.vish.fno.util.helper.DataCache;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
@@ -16,8 +17,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,28 +36,26 @@ public class StrategyConfig {
                                              final DataCache dataCache,
                                              final OrderCache orderCache,
                                              final TimeProvider timeProvider) {
-        List<Strategy> activeStrategies = getStrategies();
-        List<String> symbolList =  taskConfig.getTaskProperties().getList().stream()
-                .map(StrategyTasks::getIndex)
-                .distinct()
-                .collect(Collectors.toCollection(ArrayList::new));
-        log.info("Initialising strategy executor with symbols: {}", symbolList);
-        return new StrategyExecutor(kiteService, orderHandler, dataCache, orderCache, activeStrategies, symbolList, timeProvider);
+        List<Strategy> indexStrategies = getStrategies(taskConfig.getTaskProperties().getIndexStrategyList());
+        List<Strategy> optionStrategies = getStrategies(taskConfig.getTaskProperties().getOptionStrategyList());
+        return new StrategyExecutor(kiteService, orderHandler, dataCache, orderCache, indexStrategies, optionStrategies, timeProvider);
     }
 
-    private List<Strategy> getStrategies() {
-        List<Strategy> strategyList = new ArrayList<>();
-        for(StrategyTasks task: taskConfig.getTaskProperties().getList()) {
-            log.info("Adding strategy: {} for symbol: {} (enabled={}) to the active strategies", task.getStrategyName(), task.getIndex(), task.isEnabled());
-            Strategy strategy = context.getBean(task.getStrategyName(), Strategy.class);
-            strategy.initialise(task);
-            strategyList.add(strategy);
-        }
-        return strategyList;
+    private List<Strategy> getStrategies(List<StrategyTasks> strategyTasks) {
+        return Optional.ofNullable(strategyTasks)
+                .orElse(List.of())
+                .stream()
+                .map(task -> {
+                    log.info("Adding task: {} to strategies", task);
+                    Strategy strategy = context.getBean(task.getStrategyName(), Strategy.class);
+                    strategy.initialise(task);
+                    return strategy;
+                })
+                .collect(Collectors.toList());
     }
 
     @Bean
-    public TargetAndStopLossStrategy targetHandler() {
-        return new FixedTargetAndStopLossStrategy();
+    public TargetAndStopLossStrategy targetHandler(DataCache dataCache) {
+        return new PartialRevisingStopLoss(dataCache);
     }
 }

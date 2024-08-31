@@ -1,14 +1,15 @@
 package com.vish.fno.model.helper;
 
-import com.vish.fno.model.order.OrderSellDetailModel;
+import com.vish.fno.model.Ticker;
 import com.vish.fno.model.order.activeorder.ActiveOrder;
 import com.vish.fno.model.order.orderrequest.OrderRequest;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EntryVerifier {
     String ORDER_EXECUTED = "orderExecuted";
-    boolean hasMoveAlreadyHappened(double lastTradedPrice, OrderRequest order);
-    boolean isNotInActiveOrders(List<ActiveOrder> activeOrders, OrderRequest order);
-    boolean isPlaceOrder(ActiveOrder activeOrder, boolean b, OrderSellDetailModel exitCondition, OrderCache orderCache, boolean isExpiryDayForOption);
+    boolean isPlaceOrder(OrderRequest activeOrder, double ltp, boolean isExpiryDayForOption, double availableCash);
+    boolean hasMoveAlreadyHappened(double ltp, OrderRequest order);
+    Optional<OrderRequest> verifyBuyThreshold(Ticker tick, OrderRequest orderRequest);
 }

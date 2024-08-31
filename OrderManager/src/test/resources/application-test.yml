@@ -28,7 +28,7 @@ order:
     slmDeltaPrice: 10
 
 strategies:
-    list:
+    indexStrategyList:
         - strategyName: Hammer
           index: NIFTY 50
           enabled: false

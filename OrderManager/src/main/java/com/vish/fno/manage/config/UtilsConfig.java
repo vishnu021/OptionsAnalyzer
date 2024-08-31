@@ -3,7 +3,7 @@ package com.vish.fno.manage.config;
 import com.vish.fno.manage.helper.DataCacheImpl;
 import com.vish.fno.manage.service.CalendarService;
 import com.vish.fno.manage.service.CandlestickService;
-import com.vish.fno.model.helper.OrderCache;
+import com.vish.fno.model.cache.OrderCache;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.util.helper.TimeProvider;
 import org.springframework.beans.factory.annotation.Value;

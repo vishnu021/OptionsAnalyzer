@@ -46,19 +46,9 @@ public class CandlestickService {
         Date fromDate = TimeUtils.appendOpeningTimeToDate(TimeUtils.getDateObject(from));
         Date toDate = TimeUtils.appendClosingTimeToDate(TimeUtils.getDateObject(to));
         HistoricalData data =  kiteService.getHistoricalData(fromDate, toDate, symbol, interval, false);
-        try {
-            log.info("hist data : {}", new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(data));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-
         List<Candle> value = data.dataArrayList.stream()
                 .map(h -> new Candle(h.timeStamp, h.open, h.high, h.low, h.close, h.volume, h.oi))
                 .toList();
-
-        log.info("fromDate: {}, toDate: {}", fromDate, toDate);
-        log.info("hist data value: {}", value);
-
         return Optional.of(value);
     }
 

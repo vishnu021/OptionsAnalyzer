@@ -1,19 +1,24 @@
 package com.vish.fno.technical.indicators.ma;
 
 import com.vish.fno.technical.indicators.AbstractIndicator;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.stream.IntStream;
 
 @Slf4j
-@NoArgsConstructor
-@AllArgsConstructor
 public class SimpleMovingAverage extends AbstractIndicator {
 
-    private int duration = 14;
+    private final int duration;
+
+
+    public SimpleMovingAverage() {
+        this.duration = 14;
+    }
+
+    public SimpleMovingAverage(int duration) {
+        this.duration = duration;
+    }
 
     public List<Double> calculateFromClosedPrice(List<Double> candles) {
         return IntStream

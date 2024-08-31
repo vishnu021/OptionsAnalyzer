@@ -2,8 +2,6 @@ package com.vish.fno.technical.indicators;
 
 import com.vish.fno.technical.indicators.ma.SmoothedMovingAverage;
 import com.vish.fno.model.Candle;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -12,11 +10,17 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Slf4j
-@NoArgsConstructor
-@AllArgsConstructor
 public class RelativeStrengthIndex extends AbstractIndicator {
 
-    private int duration = 14;
+    private final int duration;
+
+    public RelativeStrengthIndex() {
+        this.duration = 14;
+    }
+
+    public RelativeStrengthIndex(int duration) {
+        this.duration = duration;
+    }
 
     public List<Double> getClosedPrices(List<Candle> candles) {
         return candles.stream().map(Candle::getClose).collect(Collectors.toList());

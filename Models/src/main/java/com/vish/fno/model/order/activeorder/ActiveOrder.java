@@ -1,8 +1,6 @@
 package com.vish.fno.model.order.activeorder;
 
 import com.vish.fno.model.Task;
-import com.vish.fno.model.Ticker;
-import com.vish.fno.model.order.OrderSellDetailModel;
 
 import java.util.Date;
 import java.util.Map;
@@ -10,17 +8,12 @@ import java.util.Map;
 public interface ActiveOrder {
     String getIndex();
     Date getDate();
-    String getOptionSymbol();
     double getTarget();
     double getStopLoss();
     double getBuyPrice();
-    double getBuyThreshold();
     double getSellPrice();
     void setStopLoss(double stopLoss);
     Task getTask();
-    void setBuyOptionPrice(double buyOptionPrice);
-    double getBuyOptionPrice();
-    void setSellOptionPrice(double sellOptionPrice);
     void setSellPrice(double sellPrice);
     void setExitTimeStamp(int exitTimeStamp);
     int getBuyQuantity();
@@ -29,7 +22,6 @@ public interface ActiveOrder {
     void incrementSoldQuantity(int soldQuantity, double sellOptionPrice);
     String getTag();
     boolean isActive();
-    boolean isCallOrder();
     String csvHeader();
     String toCSV();
     String orderLog();
@@ -37,6 +29,8 @@ public interface ActiveOrder {
     void closeOrder(double closePrice, int timeIndex, String timestamp);
     Map<String, String> getExtraData();
     void appendExtraData(String key, String value);
-    void sellOrder(OrderSellDetailModel exitCondition, Ticker tick);
-
+    String getTradingSymbol();
+    boolean isTargetAchieved(double ltp);
+    boolean isStopLossHit(double ltp);
+    double getProfit();
 }

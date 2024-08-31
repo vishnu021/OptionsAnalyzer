@@ -1,11 +1,12 @@
 package com.vish.fno.manage.orderflow;
 
-import com.vish.fno.model.helper.OrderCache;
+import com.vish.fno.model.Candle;
+import com.vish.fno.model.OptionBasedStrategy;
+import com.vish.fno.model.cache.OrderCache;
 import com.vish.fno.util.helper.DataCache;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.model.Strategy;
 import com.vish.fno.reader.service.KiteService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,9 +25,8 @@ public class StrategyExecutor {
     private final OrderHandler orderHandler;
     private final DataCache dataCacheImpl;
     private final OrderCache orderCache;
-    private final List<Strategy> activeStrategies;
-    @Getter
-    private final List<String> symbolList;
+    private final List<Strategy> indexStrategies;
+    private final List<Strategy> optionStrategies;
     private final TimeProvider timeProvider;
 
     private static final LocalTime START_TRADING_HOUR = LocalTime.of(9, 16);
@@ -40,27 +40,74 @@ public class StrategyExecutor {
         }
 
         kiteService.appendIndexITMOptions();
-        orderHandler.removeExpiredOpenOrders();
-        for(Strategy strategy: activeStrategies) {
-            try {
-                testStrategies(strategy);
-            } catch (Exception e) {
-                log.error("exception while running strategy : {}", strategy.getTask(), e);
-            }
-        }
+        orderCache.removeExpiredOpenOrders(timeProvider.currentTimeStampIndex());
+
+        indexStrategies.forEach(this::executeStrategy);
+        optionStrategies.forEach(this::executeOptionStrategy);
         orderCache.logOpenOrders();
     }
 
-    private void testStrategies(Strategy strategy) {
-        final String symbol = strategy.getTask().getIndex();
-        if(symbol == null) {
-            log.error("symbol is null for strategy: {}", strategy);
-            return;
+    private void executeStrategy(Strategy strategy) {
+        try {
+            final String symbol = strategy.getTask().getIndex();
+            processSymbolData(symbol, strategy);
+        } catch (Exception e) {
+            log.error("Failed to execute strategy: {}", strategy, e);
         }
+    }
+
+    @SuppressWarnings("PMD.PrematureDeclaration")
+    private void executeOptionStrategy(Strategy strategy) {
+        try {
+            String indexOptionValue = strategy.getTask().getIndex();
+
+            String[] symbolOptionPair = indexOptionValue.split("\\|");
+            if (symbolOptionPair.length < 2) {
+                log.error("Invalid index option value: {} for strategy: {}", indexOptionValue, strategy);
+                return;
+            }
+
+            String index = symbolOptionPair[0];
+            String optionDetail = symbolOptionPair[1];
+
+            List<Candle> indexData = dataCacheImpl.updateAndGetMinuteData(index);
+            if (indexData == null || indexData.isEmpty()) {
+                log.error("Index data is null or empty for index: {} in strategy: {}", index, strategy);
+                return;
+            }
+
+            double lastPrice = indexData.get(indexData.size() - 1).getClose();
+            processOptionData((OptionBasedStrategy)strategy, index, lastPrice, optionDetail);
+        } catch (Exception e) {
+            log.error("Failed to execute option strategy: {}", strategy, e);
+        }
+    }
+
+// better create 2 strategies for 1 option strategy
+    private void processOptionData(OptionBasedStrategy strategy, String index, double lastPrice, String optionDetail) {
+        final String callSymbol = getOptionSymbol(index, lastPrice, optionDetail, true);
+        final String putSymbol = getOptionSymbol(index, lastPrice, optionDetail, false);
+        strategy.setSymbol(callSymbol);
+        processSymbolData(callSymbol, strategy);
+        strategy.setSymbol(putSymbol);
+        processSymbolData(putSymbol, strategy);
+    }
+
+    private String getOptionSymbol(String index, double lastPrice, String optionDetail, boolean isCall) {
+        if ("ITM".equals(optionDetail)) {
+            return kiteService.getITMStock(index, lastPrice, isCall);
+        } else {
+            return kiteService.getOTMStock(index, lastPrice, isCall);
+        }
+    }
+
+    private void processSymbolData(String symbol, Strategy strategy) {
         Optional.ofNullable(dataCacheImpl.updateAndGetMinuteData(symbol))
                 .ifPresentOrElse(
-                        data -> strategy.test(data, timeProvider.currentTimeStampIndex()).ifPresent(orderHandler::appendOpenOrder),
-                        () -> log.error("data is null for symbol: {}, strategy: {}", symbol, strategy));
+                        data -> strategy.test(data, timeProvider.currentTimeStampIndex())
+                                .ifPresent(orderHandler::appendOpenOrder),
+                        () -> log.error("Data is null for symbol: {}, strategy: {}", symbol, strategy)
+                );
     }
 
     boolean isWithinTradingHours(LocalDateTime now) {

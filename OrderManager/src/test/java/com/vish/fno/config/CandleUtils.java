@@ -3,8 +3,9 @@ package com.vish.fno.config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vish.fno.model.Candle;
-import com.vish.fno.model.Ticker;
 import com.zerodhatech.models.Instrument;
+import com.zerodhatech.models.Tick;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -15,23 +16,25 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+@Slf4j
 public class CandleUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static List<Ticker> parseTickerFile(String filePath) throws IOException {
-        List<Ticker> tickers = new ArrayList<>();
+    public static List<Tick> parseTickerFile(String filePath) throws IOException {
+        List<Tick> tickers = new ArrayList<>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                Ticker ticker = objectMapper.readValue(line, Ticker.class);
-                tickers.add(ticker);
+                Tick ticker = objectMapper.readValue(line, Tick.class);
+                if(ticker != null && ticker.getTickTimestamp() != null) {
+                    tickers.add(ticker);
+                }
             }
         }
 
         // Sort the list of tickers by tickTimestamp in increasing order
-        tickers.sort(Comparator.comparing(Ticker::getTickTimestamp));
-
+        tickers.sort(Comparator.comparing(Tick::getTickTimestamp));
         return tickers;
     }
 

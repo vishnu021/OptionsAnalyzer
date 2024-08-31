@@ -11,6 +11,9 @@ import com.vish.fno.util.helper.CandleStickCache;
 import com.vish.fno.util.helper.TimeProvider;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -64,9 +67,20 @@ public class DataCacheImpl implements DataCache {
             if (remainingCandles > 0) {
                 currentDay = calendarService.getPreviousNonHolidayDate(currentDay);
             }
+
+            LocalDate localDate1 = convertToLocalDate(currentDay);
+            LocalDate localDate2 = convertToLocalDate(date);
+            long daysBetween = ChronoUnit.DAYS.between(localDate1, localDate2);
+            if(daysBetween > 5) {
+                break;
+            }
         }
 
         return allCandles;
+    }
+
+    private static LocalDate convertToLocalDate(Date date) {
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
     @Override
@@ -79,7 +93,7 @@ public class DataCacheImpl implements DataCache {
             return;
         }
 
-        log.info("updating intraday cache for: {} ", symbol);
+        log.info("updating intraday cache for: {}", symbol);
         Optional<SymbolData> data = candlestickService.getEntireDayHistoryData(todaysDate, symbol);
         data.ifPresent(d -> {
             minuteDataCache.clear(symbol);

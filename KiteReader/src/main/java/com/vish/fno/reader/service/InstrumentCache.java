@@ -39,7 +39,7 @@ class InstrumentCache {
 
         filteredInstruments = allInstruments.stream()
                 .filter(i -> i.getName() != null)
-                .filter(i -> i.getExchange().contentEquals(NSE) || i.getExchange().contentEquals(NFO) && i.expiry != null)
+                .filter(i -> i.getExchange().contentEquals(NSE) || (i.getExchange().contentEquals(NFO) && i.expiry != null))
                 .filter(i ->  nifty100Symbols.contains(i.getTradingsymbol())
                                 || nifty100Symbols.contains(i.getName()))
                 .toList();

@@ -112,7 +112,7 @@ public final class CandleUtils {
         try {
             String smaValues = readFile(filePath);
             return Arrays.stream(smaValues.split("\n"))
-                    .filter(s -> s.trim().length() > 0)
+                    .filter(s -> !s.isBlank())
                     .map(Double::parseDouble)
                     .collect(Collectors.toList());
         } catch (IOException e) {

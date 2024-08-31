@@ -1,7 +1,7 @@
 package com.vish.fno.manage.orderflow;
 
 import com.vish.fno.manage.helper.DataCacheImpl;
-import com.vish.fno.model.helper.OrderCache;
+import com.vish.fno.model.cache.OrderCache;
 import com.vish.fno.manage.service.CalendarService;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
@@ -15,10 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -33,8 +31,11 @@ class StrategyExecutorTest {
     @Mock private OrderHandler orderHandler;
     @Mock private Strategy mockStrategy1;
     @Mock private Strategy mockStrategy2;
+    @Mock private Strategy mockStrategy3;
     private TimeProvider timeProvider;
-    List<Strategy> activeStrategies;
+    List<Strategy> indexStratgies;
+    List<Strategy> optionStrategies;
+    OrderCache orderCache;
     @InjectMocks
     private StrategyExecutor strategyExecutor;
 
@@ -42,26 +43,25 @@ class StrategyExecutorTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        OrderCache orderCache = new OrderCache(0L);
-        activeStrategies = List.of(mockStrategy1, mockStrategy2);
+        orderCache = spy(new OrderCache(0L));
+        indexStratgies = List.of(mockStrategy1, mockStrategy2);
+        optionStrategies = List.of(mockStrategy3);
 
         when(mockStrategy1.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "BANK NIFTY", true, true));
         when(mockStrategy2.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "NIFTY 50", false, false));
+        when(mockStrategy3.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "NIFTY 50", false, false));
         CalendarService calendarService = mock(CalendarService.class);
         timeProvider = spy(TimeProvider.class);
         when(timeProvider.currentTimeStampIndex()).thenReturn(1);
         when(orderHandler.getOrderCache()).thenReturn(orderCache);
 
         DataCacheImpl dataCache = spy(new DataCacheImpl(candlestickService, calendarService, timeProvider));
-
-        List<String> symbolList =  activeStrategies.stream().map(s -> s.getTask().getIndex())
-                .collect(Collectors.toCollection(ArrayList::new));
         strategyExecutor = new StrategyExecutor(kiteService,
                 orderHandler,
                 dataCache,
                 orderCache,
-                activeStrategies,
-                symbolList,
+                indexStratgies,
+                optionStrategies,
                 timeProvider);
     }
 
@@ -73,7 +73,7 @@ class StrategyExecutorTest {
 
         strategyExecutor.update();
 
-        verify(orderHandler, never()).removeExpiredOpenOrders();
+        verify(orderCache, never()).removeExpiredOpenOrders(anyInt());
     }
 
     @Test
@@ -84,7 +84,7 @@ class StrategyExecutorTest {
 
         strategyExecutor.update();
 
-        verify(orderHandler, never()).removeExpiredOpenOrders();
+        verify(orderCache, never()).removeExpiredOpenOrders(anyInt());
     }
 
     @Test
@@ -95,9 +95,7 @@ class StrategyExecutorTest {
 
         strategyExecutor.update();
 
-        verify(orderHandler).removeExpiredOpenOrders();
-        verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
-        for (Strategy strategy :activeStrategies) {
+        for (Strategy strategy : indexStratgies) {
             verify(strategy, times(0)).test(anyList(), anyInt());
         }
     }
@@ -115,11 +113,8 @@ class StrategyExecutorTest {
 
         strategyExecutor.update();
 
-        verify(orderHandler).removeExpiredOpenOrders();
-        verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
-
         // Verify Strategy.test is called exactly once for each strategy
-        for (Strategy strategy :activeStrategies) {
+        for (Strategy strategy : indexStratgies) {
             verify(strategy, times(1)).test(anyList(), anyInt());
         }
     }
@@ -141,14 +136,10 @@ class StrategyExecutorTest {
         strategyExecutor.update();
 
         // Assert
-        verify(orderHandler).removeExpiredOpenOrders();
-        verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
-
-        // Verify Strategy.test is called exactly once for each strategy
-        for (Strategy strategy : activeStrategies) {
+        for (Strategy strategy : indexStratgies) {
             verify(strategy, times(1)).test(anyList(), anyInt());
         }
-            verify(orderHandler, times(1)).appendOpenOrder(any());
+        verify(orderHandler, times(1)).appendOpenOrder(any());
     }
 
     @Test
@@ -169,10 +160,7 @@ class StrategyExecutorTest {
         strategyExecutor.update();
 
         // Assert
-        verify(orderHandler).removeExpiredOpenOrders();
-        verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
-        // Verify Strategy.test is called exactly once for each strategy
-        for (Strategy strategy : activeStrategies) {
+        for (Strategy strategy : indexStratgies) {
             verify(strategy, times(1)).test(anyList(), anyInt());
         }
         verify(orderHandler, times(2)).appendOpenOrder(any());
@@ -195,11 +183,7 @@ class StrategyExecutorTest {
         strategyExecutor.update();
 
         // Assert
-        verify(orderHandler).removeExpiredOpenOrders();
-        verify(candlestickService, times(strategyExecutor.getSymbolList().size())).getEntireDayHistoryData(anyString(), anyString());
-
-        // Verify Strategy.test is called exactly once for each strategy
-        for (Strategy strategy : activeStrategies) {
+        for (Strategy strategy : indexStratgies) {
             verify(strategy, times(1)).test(anyList(), anyInt());
         }
         verify(orderHandler, times(2)).appendOpenOrder(any());

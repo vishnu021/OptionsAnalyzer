@@ -19,7 +19,7 @@ server:
         enabled: true
         key-store-password:
         key-store:
-        key-store-type: PKCS12
+        key-store-type:
 
 logging:
     level:
@@ -58,14 +58,25 @@ management:
         step: 30s
 
 strategies:
-    list:
-        - strategyName: Strategy1
-          index: index1
-          enabled: true
-          expiryDayOrders: false
-        - strategyName: Strategy2
-          index: index2
+    indexStrategyList:
+      - strategyName: Hammer
+        index: NIFTY 50
+        enabled: false
+        expiryDayOrders: false
+    optionStrategyList:
+        - strategyName: BasicHammerWithTrendInOption
+          index: NIFTY 50|ITM
           enabled: false
+          expiryDayOrders: false
+
+order:
+    symbolsPath: ind_nifty100list.csv
+    additionalSymbols: NIFTY, NIFTY 50, BANKNIFTY, NIFTY BANK, FINNIFTY, NIFTY FIN SERVICE
+    webSocketDefaultSymbols: NIFTY BANK, NIFTY 50, BAJFINANCE, HINDUNILVR, HDFCBANK, ICICIBANK, SBIN,RELIANCE
+    maximumOrderCount: 1
+    availableCash: 24000
+    placeOrders: true
+    connectToWebSocket: true
 
 kite:
     baseuri: https://kite.trade
@@ -74,12 +85,3 @@ kite:
     apiSecret:
     authenticationUrl: ${kite.baseuri}/connect/login?api_key=${kite.apiKey}&v=3
     serviceInCloud: false
-
-order:
-    symbolsPath: ind_nifty100list.csv
-    additionalSymbols: NIFTY, NIFTY 50, BANKNIFTY, NIFTY BANK, FINNIFTY, NIFTY FIN SERVICE
-    webSocketDefaultSymbols: NIFTY BANK, NIFTY 50, BAJFINANCE, HINDUNILVR, HDFCBANK
-    maximumOrderCount: 1
-    availableCash: 24000
-    placeOrders: false
-    connectToWebSocket: false

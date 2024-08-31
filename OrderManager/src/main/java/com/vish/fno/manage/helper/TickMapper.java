@@ -10,15 +10,11 @@ import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TickMapper {
-    public static List<Ticker> mapTicks(List<Tick> ticks) {
-        return Optional.ofNullable(ticks)
-                .orElse(Collections.emptyList())
-                .stream()
-                .map(TickMapper::mapTick)
-                .collect(Collectors.toList());
+    public static Ticker mapTick(Tick tick, String tickSymbol) {
+        return mapTicker(tick, tickSymbol);
     }
 
-    private static Ticker mapTick(Tick tick) {
+    private static Ticker mapTicker(Tick tick, String tickSymbol) {
         Map<String, List<Ticker.Depth>> marketDepth = Optional.ofNullable(tick.getMarketDepth())
                 .orElse(Collections.emptyMap())
                 .entrySet()
@@ -37,6 +33,7 @@ public final class TickMapper {
                 ));
 
         return Ticker.builder()
+                .instrumentSymbol(tickSymbol)
                 .mode(Optional.ofNullable(tick.getMode()).orElse(""))
                 .instrumentToken(Optional.ofNullable(tick.getInstrumentToken()).orElse(0L))
                 .lastTradedPrice(Optional.ofNullable(tick.getLastTradedPrice()).orElse(0.0))
@@ -48,10 +45,10 @@ public final class TickMapper {
                 .totalSellQuantity(Optional.ofNullable(tick.getTotalSellQuantity()).orElse(0.0))
                 .lastTradedTime(Optional.ofNullable(tick.getLastTradedTime()).orElse(new Date(0)))
                 .oi(Optional.ofNullable(tick.getOi()).orElse(0.0))
-                .oiDayHigh(Optional.ofNullable(tick.getOpenInterestDayHigh()).orElse(0.0))
-                .oiDayLow(Optional.ofNullable(tick.getOpenInterestDayLow()).orElse(0.0))
+                .openInterestDayHigh(Optional.ofNullable(tick.getOpenInterestDayHigh()).orElse(0.0))
+                .openInterestDayLow(Optional.ofNullable(tick.getOpenInterestDayLow()).orElse(0.0))
                 .tickTimestamp(Optional.ofNullable(tick.getTickTimestamp()).orElse(new Date(0)))
-                .marketDepth(marketDepth)
+                .depth(marketDepth)
                 .build();
     }
 }

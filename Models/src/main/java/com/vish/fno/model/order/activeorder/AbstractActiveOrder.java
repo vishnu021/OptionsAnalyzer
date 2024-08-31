@@ -48,19 +48,7 @@ public abstract class AbstractActiveOrder implements ActiveOrder {
         this.stopLossRevisionCount = 0;
     }
 
-    public void setStopLoss(double stopLoss) {
-        if(this.isCallOrder()) {
-            if(this.stopLoss < stopLoss) {
-                updateStopLoss(stopLoss);
-            }
-        } else {
-            if(this.stopLoss > stopLoss) {
-                updateStopLoss(stopLoss);
-            }
-        }
-    }
-
-    private void updateStopLoss(double stopLoss) {
+    protected void updateStopLoss(double stopLoss) {
         stopLossRevision.put(++stopLossRevisionCount, this.stopLoss);
         this.stopLoss = stopLoss;
     }

@@ -2,7 +2,9 @@ package com.vish.fno.model.order;
 
 import com.vish.fno.model.order.activeorder.ActiveIndexOrder;
 import com.vish.fno.model.order.activeorder.ActiveOrder;
+import com.vish.fno.model.order.activeorder.OptionBasedActiveOrder;
 import com.vish.fno.model.order.orderrequest.IndexOrderRequest;
+import com.vish.fno.model.order.orderrequest.OptionBasedOrderRequest;
 import com.vish.fno.model.order.orderrequest.OrderRequest;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -15,6 +17,10 @@ public final class ActiveOrderFactory {
 
         if(orderRequest instanceof IndexOrderRequest indexOrder) {
             order = new ActiveIndexOrder(indexOrder, ltp, timestamp, orderEntryTimestamp);
+        }
+
+        if(orderRequest instanceof OptionBasedOrderRequest optionBasedOrderRequest) {
+            order = new OptionBasedActiveOrder(optionBasedOrderRequest, ltp, timestamp, orderEntryTimestamp);
         }
         return order;
     }

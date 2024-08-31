@@ -4,7 +4,7 @@ import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.manage.config.order.OrderProperties;
 import com.vish.fno.manage.config.task.TaskConfig;
 import com.vish.fno.manage.helper.DataCacheImpl;
-import com.vish.fno.model.helper.OrderCache;
+import com.vish.fno.model.cache.OrderCache;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.orderflow.OrderHandler;
 import com.vish.fno.manage.orderflow.StrategyExecutor;
@@ -28,9 +28,10 @@ import org.springframework.context.annotation.Bean;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.vish.fno.manage.IntegrationTest.TEST_DATE;
 import static org.mockito.Mockito.when;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.when;
 public class TestConfig {
     @Autowired
     private ApplicationContext context;
-    private static final LocalDateTime startTime = LocalDateTime.of(2024, 8, 2, 9, 15);
+    private static final LocalDateTime startTime = LocalDateTime.of(2024, 8, 30, 9, 15);
 
     @Bean
     public TimeProvider timeProvider() {
@@ -66,7 +67,7 @@ public class TestConfig {
     }
 
     @Bean
-    public DataCache dataCache(CandlestickService candlestickService, CalendarService calendarService, TimeProvider timeProvider) {
+    public DataCache candleStickCache(CandlestickService candlestickService, CalendarService calendarService, TimeProvider timeProvider) {
         return new DataCacheImpl(candlestickService, calendarService, timeProvider);
     }
 
@@ -87,18 +88,22 @@ public class TestConfig {
                                                  OrderCache orderCache,
                                                  TimeProvider timeProvider,
                                                  TaskConfig taskConfig) {
-        List<Strategy> activeStrategies = getStrategies(taskConfig);
-        List<String> symbolList = activeStrategies.stream().map(s -> s.getTask().getIndex()).toList();
-        return new StrategyExecutor(kiteService, testOrderHandler, dataCache, orderCache, activeStrategies, symbolList, timeProvider);
+        List<Strategy> indexStrategies = getStrategies(taskConfig.getTaskProperties().getIndexStrategyList());
+        List<Strategy> optionStrategies = getStrategies(taskConfig.getTaskProperties().getOptionStrategyList());
+        return new StrategyExecutor(kiteService, testOrderHandler, dataCache, orderCache, indexStrategies, optionStrategies, timeProvider);
     }
-    private List<Strategy> getStrategies(TaskConfig taskConfig) {
-        List<Strategy> strategyList = new ArrayList<>();
-        for(StrategyTasks task: taskConfig.getTaskProperties().getList()) {
-            log.info("Adding strategy: {} for symbol: {} (enabled={}) to the active strategies", task.getStrategyName(), task.getIndex(), task.isEnabled());
-            Strategy strategy = context.getBean(task.getStrategyName(), Strategy.class);
-            strategy.initialise(task);
-            strategyList.add(strategy);
-        }
-        return strategyList;
+
+    private List<Strategy> getStrategies(List<StrategyTasks> strategyTasks) {
+        return Optional.ofNullable(strategyTasks)
+                .orElse(List.of())
+                .stream()
+                .map(task -> {
+                    log.info("Adding strategy: {} for symbol: {} (enabled={}) to strategies",
+                            task.getStrategyName(), task.getIndex(), task.isEnabled());
+                    Strategy strategy = context.getBean(task.getStrategyName(), Strategy.class);
+                    strategy.initialise(task);
+                    return strategy;
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -23,11 +23,11 @@ public final class OrderDetailsLogger {
     private static final String KITE_ORDER_ID = "kiteOrderId";
 
     static void logMarketDepth(Ticker tick) {
-        Map<String, List<Ticker.Depth>> marketDepth = tick.getMarketDepth();
+        Map<String, List<Ticker.Depth>> marketDepth = tick.getDepth();
         if(marketDepth == null) {
             return;
         }
-        log.info("Market depth: {}", getNonFormattedObject(marketDepth));
+        log.info("Market depth({}): {}", tick, getNonFormattedObject(marketDepth));
         if(marketDepth.containsKey("buy") && !marketDepth.get("buy").isEmpty()) {
             List<Ticker.Depth> buyMarketDepth = marketDepth.get("buy");
             log.info("next buy price: {}", getFormattedObject(buyMarketDepth.get(0)));
@@ -39,15 +39,12 @@ public final class OrderDetailsLogger {
     }
 
     public static void logOrderLifeCycle(List<ActiveOrder> activeOrders,
-                                          List<ActiveOrder> buyCompletedOrders,
-                                          List<ActiveOrder> completedOrders,
                                           Order order,
                                           String orderId) {
         if(BUY.contentEquals(order.transactionType)) {
             if (COMPLETE.contentEquals(order.status)) {
                 List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(activeOrders, orderId);
                 log.info("Buy order completed for : {}", ordersForOrderId);
-                buyCompletedOrders.addAll(ordersForOrderId);
             } else {
                 List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(activeOrders, orderId);
                 log.info("Buy order placed for : {}", ordersForOrderId);
@@ -57,7 +54,6 @@ public final class OrderDetailsLogger {
             if (COMPLETE.contentEquals(order.status)) {
                 List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(activeOrders, orderId);
                 log.info("Sell order completed for : {}", ordersForOrderId);
-                completedOrders.addAll(ordersForOrderId);
             } else {
                 List<ActiveOrder> ordersForOrderId = getActiveOrdersByOrderId(activeOrders, orderId);
                 log.info("Sell order placed for : {}", ordersForOrderId);

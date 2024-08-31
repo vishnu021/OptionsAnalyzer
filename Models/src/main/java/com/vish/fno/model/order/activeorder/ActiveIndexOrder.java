@@ -2,10 +2,9 @@ package com.vish.fno.model.order.activeorder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vish.fno.model.Task;
-import com.vish.fno.model.Ticker;
-import com.vish.fno.model.order.OrderFlowHandler;
-import com.vish.fno.model.order.OrderSellDetailModel;
+import com.vish.fno.model.helper.EntryVerifier;
 import com.vish.fno.model.order.orderrequest.IndexOrderRequest;
+import com.vish.fno.model.util.ModelUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,7 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
     private boolean isActive;
     private double realisedProfit;
     @JsonIgnore
-    private final OrderFlowHandler orderFlowHandler;
+    private final EntryVerifier entryVerifier;
 
     public ActiveIndexOrder(IndexOrderRequest openOrder, double buyPrice, int timestampIndex, String timestamp) {
         super(openOrder.getTag(),
@@ -51,7 +50,19 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
         this.isActive = true;
         this.realisedProfit = 0f;
         this.extraData.put("entryDateTime", timestamp);
-        this.orderFlowHandler = openOrder.getOrderFlowHandler();
+        this.entryVerifier = openOrder.getEntryVerifier();
+    }
+
+    public void setStopLoss(double stopLoss) {
+        if(this.isCallOrder()) {
+            if(this.stopLoss < stopLoss) {
+                updateStopLoss(stopLoss);
+            }
+        } else {
+            if(this.stopLoss > stopLoss) {
+                updateStopLoss(stopLoss);
+            }
+        }
     }
 
     public void closeOrder(double closePrice, int timeIndex, String timestamp) {
@@ -62,8 +73,23 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
     }
 
     @Override
-    public void sellOrder(OrderSellDetailModel exitCondition, Ticker tick) {
-        orderFlowHandler.sellOrder(exitCondition, tick, this);
+    public String getTradingSymbol() {
+        return this.getOptionSymbol();
+    }
+
+    @Override
+    @SuppressWarnings("PMD.SimplifyBooleanReturns")
+    public boolean isTargetAchieved(double ltp) {
+        if(isCallOrder() && getTarget() < ltp) {
+            return true;
+        }
+        return !isCallOrder() && getTarget() > ltp;
+    }
+
+    @Override
+    public boolean isStopLossHit(double ltp) {
+        return (this.isCallOrder() && this.getStopLoss() > ltp)
+                || (!this.isCallOrder() && this.getStopLoss() < ltp);
     }
 
     public double getProfit() {
@@ -77,33 +103,37 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
     public void setBuyOptionPrice(double buyOptionPrice) {
         this.buyOptionPrice = buyOptionPrice;
         this.realisedProfit = -1 * (this.buyQuantity * this.buyOptionPrice);
-        log.info("initialising realised profit with: {} for order: {}", this.realisedProfit, this);
+        log.info("Initialising realised profit with: {}, buyOptionPrice: {} for order: {}", this.realisedProfit, buyOptionPrice, this);
     }
 
     @Override
     public void incrementSoldQuantity(int soldQuantity, double sellOptionPrice) {
         this.soldQuantity += soldQuantity;
         this.realisedProfit += soldQuantity * sellOptionPrice;
-        log.info("updating realised profit to: {} for order: {}", this.realisedProfit, this);
+        this.sellOptionPrice = sellOptionPrice;
+        log.info("Updating realised profit to: {}, sellOptionPrice: {} for order: {}", this.realisedProfit, sellOptionPrice, this);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder(estimated_buffer_size);
-        sb.append("\nActiveOrder{")
+        sb.append(INDENTED_TAB)
+                .append("ActiveIndexOrder{")
                 .append("index=").append(index)
                 .append(", tag=").append(tag)
                 .append(", optionSymbol=").append(optionSymbol)
                 .append(", buyPrice=").append(buyPrice)
-                .append(", target=").append(round(target))
-                .append(", stopLoss=").append(round(stopLoss))
+                .append(", target=").append(roundTo5Paise(target))
+                .append(", stopLoss=").append(roundTo5Paise(stopLoss))
+                .append(", buyQ=").append(buyQuantity)
+                .append(", soldQ=").append(soldQuantity)
                 .append("}");
 
         return sb.toString();
     }
 
     public String csvHeader() {
-        final int estimatedBufferSize = 250; // Adjust based on expected number of columns and length of extraData keys
+        final int estimatedBufferSize = 250;
         final StringBuilder sb = new StringBuilder(estimatedBufferSize);
 
         sb.append("symbol").append(",")
@@ -134,18 +164,18 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
                 .append(' ').append(entryTimeStamp)
                 .append(',').append(' ').append(getStringDate(date))
                 .append(' ').append(exitTimeStamp)
-                .append(',').append(' ').append(round(buyThreshold))
-                .append(',').append(' ').append(round(buyPrice))
-                .append(',').append(' ').append(round(target))
-                .append(',').append(' ').append(round(sellPrice))
-                .append(',').append(' ').append(round(stopLoss))
-                .append(',').append(' ').append(round(getProfit()))
-                .append(',').append(' ').append(round(buyQuantity));
+                .append(',').append(' ').append(roundTo5Paise(buyThreshold))
+                .append(',').append(' ').append(roundTo5Paise(buyPrice))
+                .append(',').append(' ').append(roundTo5Paise(target))
+                .append(',').append(' ').append(roundTo5Paise(sellPrice))
+                .append(',').append(' ').append(roundTo5Paise(stopLoss))
+                .append(',').append(' ').append(roundTo5Paise(getProfit()))
+                .append(',').append(' ').append(roundTo5Paise(buyQuantity));
 
         if (isCallOrder()) {
-            sb.append(',').append(' ').append(round(target - buyThreshold));
+            sb.append(',').append(' ').append(roundTo5Paise(target - buyThreshold));
         } else {
-            sb.append(',').append(' ').append(round(buyThreshold - target));
+            sb.append(',').append(' ').append(roundTo5Paise(buyThreshold - target));
         }
         sb.append(',').append(' ').append(isCallOrder());
         if (extraData != null) {
@@ -163,9 +193,9 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
                 .append(",\ttag=").append(tag)
                 .append(",\tentry=").append(getStringDateTime(date))
                 .append(",\texit=").append(exitTimeStamp)
-                .append(",\tbuy=").append(round(buyPrice))
-                .append(",\ttarget=").append(round(target))
-                .append(",\tsell=").append(round(sellPrice))
+                .append(",\tbuy=").append(roundTo5Paise(buyPrice))
+                .append(",\ttarget=").append(roundTo5Paise(target))
+                .append(",\tsell=").append(roundTo5Paise(sellPrice))
                 .append(",\tcall=").append(isCallOrder());
 
         if (getProfit() > 0) {
@@ -174,7 +204,7 @@ public class ActiveIndexOrder extends AbstractActiveOrder {
             sb.append(",\tloss=");
         }
 
-        sb.append(round(getProfit())).append("}");
+        sb.append(roundTo5Paise(getProfit())).append("}");
 
         return sb.toString();
     }

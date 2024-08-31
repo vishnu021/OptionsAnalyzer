@@ -154,9 +154,9 @@ public class KiteService {
     }
 
     // TODO: verify there is an existing order before placing a sell order
-    public Optional<KiteOpenOrder> sellOrder(String symbol, double price, int orderSize, String tag, boolean isPlaceOrder) {
-        log.info("Creating sell order with quantity: {}, symbol: {}, price: {}, tag: {}", orderSize, symbol, price, tag);
+    public Optional<KiteOpenOrder> sellOrder(String symbol, int orderSize, String tag, boolean isPlaceOrder) {
         logExistingOrdersAndPositions(symbol, tag);
+        log.info("Creating sell order with quantity: {}, symbol: {}, tag: {}, isPlaceOrder: {}", orderSize, symbol, tag, isPlaceOrder);
         return placeOrder(symbol, orderSize, tag, Constants.TRANSACTION_TYPE_SELL, isPlaceOrder);
     }
 

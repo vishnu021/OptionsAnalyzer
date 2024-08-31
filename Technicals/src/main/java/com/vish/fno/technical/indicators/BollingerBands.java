@@ -2,20 +2,26 @@ package com.vish.fno.technical.indicators;
 
 import com.vish.fno.model.Candle;
 import com.vish.fno.technical.indicators.ma.SimpleMovingAverage;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
-@NoArgsConstructor
-@AllArgsConstructor
 public class BollingerBands extends AbstractIndicator {
 
-    private int duration = 20;
-    private double MULTIPLIER = 2.0;
+    private final int duration;
+    private final double MULTIPLIER;
+
+    public BollingerBands() {
+        this.duration = 20;
+        this.MULTIPLIER = 2.0;
+    }
+
+    public BollingerBands(int duration, double MULTIPLIER) {
+        this.duration = duration;
+        this.MULTIPLIER = MULTIPLIER;
+    }
 
     @Override
     public List<Double> calculate(List<Candle> candles) {

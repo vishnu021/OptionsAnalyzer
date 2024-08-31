@@ -26,14 +26,16 @@ public final class InstrumentFileUtils {
 
     public static void saveInstrumentCache(List<Instrument> instruments) {
         try {
-            mapper.writeValue(new File(filePath + getInstrumentFileName(0)), instruments);
+            final String instrumentFilePath = filePath + getInstrumentFileName(0);
+            mapper.writeValue(new File(instrumentFilePath), instruments);
         } catch (IOException e) {
             log.error("Exception occurred while saving Instrument cache", e);
         }
     }
     public static void saveFilteredInstrumentCache(Object instruments) {
         try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath + "filtered_" + getInstrumentFileName(0)), instruments);
+            final String instrumentFilePath = filePath + "filtered_" + getInstrumentFileName(0);
+            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(instrumentFilePath), instruments);
         } catch (IOException e) {
             log.error("Failed to save instrument cache.", e);
         }

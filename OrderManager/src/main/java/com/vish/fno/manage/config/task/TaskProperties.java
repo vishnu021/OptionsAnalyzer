@@ -9,5 +9,6 @@ import java.util.List;
 @Data
 @ConfigurationProperties("strategies")
 public class TaskProperties {
-    private List<StrategyTasks> list;
+    private List<StrategyTasks> indexStrategyList;
+    private List<StrategyTasks> optionStrategyList;
 }
