@@ -18,9 +18,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.vish.fno.reader.util.OrderUtils.createMarketOrderWithParameters;
-import static com.vish.fno.util.Constants.NIFTY_50;
-import static com.vish.fno.util.Constants.NIFTY_BANK;
-import static com.vish.fno.util.Constants.MINUTE;
+import static com.vish.fno.util.Constants.*;
 import static com.vish.fno.util.JsonUtils.getFormattedObject;
 import static com.vish.fno.util.TimeUtils.getClosingTime;
 import static com.vish.fno.util.TimeUtils.getOpeningTime;
@@ -28,8 +26,10 @@ import static com.vish.fno.util.TimeUtils.getOpeningTime;
 @Slf4j
 @SuppressWarnings({"PMD.LooseCoupling", "PMD.TooManyStaticImports"})
 public class KiteService {
-
+    private final static List<String> defaultIndices = List.of(NIFTY_50, NIFTY_BANK, BANKEX, SENSEX);
     private static final String EQUITY = "equity";
+    private static final String NET = "net";
+    private static final String DAY = "day";
 
     @Getter(AccessLevel.PACKAGE)
     private final KiteConnect kiteSdk;
@@ -182,8 +182,6 @@ public class KiteService {
         return Map.of();
     }
 
-    // TODO: Return optional of order or order.id
-    // or send error code with failure reason to wait(kite not initialised) or trigger a different type of order(MARKET/LIMIT)
     private Optional<KiteOpenOrder> placeOrder(String symbol, int orderSize, String tag, String transactionType, boolean isPlaceOrder) {
         if(!isInitialised()) {
             log.warn("Not placing order as the kite service is not initialized yet.");
@@ -225,7 +223,7 @@ public class KiteService {
     public void appendIndexITMOptions() {
         if(kiteWebSocket.isConnectToWebSocket() && !itmOptionsAppended) {
             try {
-                List<String> indicesITMOptionSymbols = getITMIndexSymbols();
+                List<String> indicesITMOptionSymbols = getDefaultOptionSymbols();
                 appendWebSocketSymbolsList(indicesITMOptionSymbols, false);
             } catch (Exception e) {
                 log.error("Failed to get the ITM option symbols, appending : {}", itmOptionsAppended, e);
@@ -253,16 +251,20 @@ public class KiteService {
         return kiteConnect;
     }
 
-    private List<String> getITMIndexSymbols() {
+    private List<String> getDefaultOptionSymbols() {
         List<String> indexOptionSymbols = new ArrayList<>();
-        HistoricalData niftyData = getEntireDayHistoricalData(getOpeningTime(), getClosingTime(), NIFTY_50, MINUTE);
-        HistoricalData bnfData = getEntireDayHistoricalData(getOpeningTime(), getClosingTime(), NIFTY_BANK, MINUTE);
-        getITMOptionSymbols(niftyData, indexOptionSymbols, NIFTY_50);
-        getITMOptionSymbols(bnfData, indexOptionSymbols, NIFTY_BANK);
+        for(String index: defaultIndices) {
+            identifyStrikePriceAndAppend(indexOptionSymbols, index);
+        }
         return indexOptionSymbols;
     }
 
-    private void getITMOptionSymbols(HistoricalData data, List<String> indicesOptionSymbols, String index) {
+    private void identifyStrikePriceAndAppend(List<String> indexOptionSymbols, String index) {
+        HistoricalData niftyData = getEntireDayHistoricalData(getOpeningTime(), getClosingTime(), index, MINUTE);
+        appendOptionSymbols(niftyData, indexOptionSymbols, index);
+    }
+
+    private void appendOptionSymbols(HistoricalData data, List<String> indicesOptionSymbols, String index) {
         double openPrice = data.dataArrayList.get(0).open;
         indicesOptionSymbols.add(getITMStock(index, openPrice, true));
         indicesOptionSymbols.add(getITMStock(index, openPrice, false));
@@ -282,13 +284,13 @@ public class KiteService {
                 .map(JsonUtils::getFormattedObject)
                 .toList();
 
-        List<String> netPositions = getPositions().get("net")
+        List<String> netPositions = getPositions().get(NET)
                 .stream()
                 .filter(o -> o.tradingSymbol.equals(symbol))
                 .map(JsonUtils::getFormattedObject)
                 .toList();
 
-        List<String> dayPositions = getPositions().get("day")
+        List<String> dayPositions = getPositions().get(DAY)
                 .stream()
                 .filter(o -> o.tradingSymbol.equals(symbol))
                 .map(JsonUtils::getFormattedObject)

@@ -1,11 +1,12 @@
 package com.vish.fno.manage.orderflow;
 
 import com.vish.fno.model.Candle;
-import com.vish.fno.model.OptionBasedStrategy;
+import com.vish.fno.model.strategy.MinuteStrategy;
+import com.vish.fno.model.strategy.OptionBasedStrategy;
 import com.vish.fno.model.cache.OrderCache;
 import com.vish.fno.util.helper.DataCache;
 import com.vish.fno.util.helper.TimeProvider;
-import com.vish.fno.model.Strategy;
+import com.vish.fno.model.strategy.Strategy;
 import com.vish.fno.reader.service.KiteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +26,8 @@ public class StrategyExecutor {
     private final OrderHandler orderHandler;
     private final DataCache dataCacheImpl;
     private final OrderCache orderCache;
-    private final List<Strategy> indexStrategies;
-    private final List<Strategy> optionStrategies;
+    private final List<MinuteStrategy> indexStrategies;
+    private final List<MinuteStrategy> optionStrategies;
     private final TimeProvider timeProvider;
 
     private static final LocalTime START_TRADING_HOUR = LocalTime.of(9, 16);
@@ -47,7 +48,7 @@ public class StrategyExecutor {
         orderCache.logOpenOrders();
     }
 
-    private void executeStrategy(Strategy strategy) {
+    private void executeStrategy(MinuteStrategy strategy) {
         try {
             final String symbol = strategy.getTask().getIndex();
             processSymbolData(symbol, strategy);
@@ -101,7 +102,7 @@ public class StrategyExecutor {
         }
     }
 
-    private void processSymbolData(String symbol, Strategy strategy) {
+    private void processSymbolData(String symbol, MinuteStrategy strategy) {
         Optional.ofNullable(dataCacheImpl.updateAndGetMinuteData(symbol))
                 .ifPresentOrElse(
                         data -> strategy.test(data, timeProvider.currentTimeStampIndex())

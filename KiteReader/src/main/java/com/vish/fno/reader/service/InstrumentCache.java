@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 class InstrumentCache {
     private final static String NSE = "NSE";
     private final static String NFO = "NFO";
+    private final static String BFO = "BFO";
+    private final static String BSE = "BSE";
 
     private final KiteService kiteService;
     private final List<String> nifty100Symbols;
@@ -39,7 +41,10 @@ class InstrumentCache {
 
         filteredInstruments = allInstruments.stream()
                 .filter(i -> i.getName() != null)
-                .filter(i -> i.getExchange().contentEquals(NSE) || (i.getExchange().contentEquals(NFO) && i.expiry != null))
+                .filter(i -> i.getExchange().contentEquals(NSE)
+                        || (i.getExchange().contentEquals(NFO) && i.expiry != null)
+                        || i.getExchange().contentEquals(BSE)
+                        || (i.getExchange().contentEquals(BFO) && i.expiry != null))
                 .filter(i ->  nifty100Symbols.contains(i.getTradingsymbol())
                                 || nifty100Symbols.contains(i.getName()))
                 .toList();

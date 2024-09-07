@@ -6,6 +6,8 @@ public interface Constants {
     String NIFTY_BANK = "NIFTY BANK";
     String NIFTY_50 = "NIFTY 50";
     String NIFTY_FIN_SERVICE = "NIFTY FIN SERVICE";
+    String BANKEX = "BANKEX";
+    String SENSEX = "SENSEX";
 
     String BAJFINANCE = "BAJFINANCE";
     String HDFCBANK = "HDFCBANK";

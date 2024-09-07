@@ -10,7 +10,8 @@ import com.vish.fno.manage.orderflow.OrderHandler;
 import com.vish.fno.manage.orderflow.StrategyExecutor;
 import com.vish.fno.manage.service.CalendarService;
 import com.vish.fno.manage.service.CandlestickService;
-import com.vish.fno.model.Strategy;
+import com.vish.fno.model.strategy.MinuteStrategy;
+import com.vish.fno.model.strategy.Strategy;
 import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.util.TimeUtils;
@@ -88,19 +89,19 @@ public class TestConfig {
                                                  OrderCache orderCache,
                                                  TimeProvider timeProvider,
                                                  TaskConfig taskConfig) {
-        List<Strategy> indexStrategies = getStrategies(taskConfig.getTaskProperties().getIndexStrategyList());
-        List<Strategy> optionStrategies = getStrategies(taskConfig.getTaskProperties().getOptionStrategyList());
+        List<MinuteStrategy> indexStrategies = getStrategies(taskConfig.getTaskProperties().getIndexStrategyList());
+        List<MinuteStrategy> optionStrategies = getStrategies(taskConfig.getTaskProperties().getOptionStrategyList());
         return new StrategyExecutor(kiteService, testOrderHandler, dataCache, orderCache, indexStrategies, optionStrategies, timeProvider);
     }
 
-    private List<Strategy> getStrategies(List<StrategyTasks> strategyTasks) {
+    private List<MinuteStrategy> getStrategies(List<StrategyTasks> strategyTasks) {
         return Optional.ofNullable(strategyTasks)
                 .orElse(List.of())
                 .stream()
                 .map(task -> {
                     log.info("Adding strategy: {} for symbol: {} (enabled={}) to strategies",
                             task.getStrategyName(), task.getIndex(), task.isEnabled());
-                    Strategy strategy = context.getBean(task.getStrategyName(), Strategy.class);
+                    MinuteStrategy strategy = context.getBean(task.getStrategyName(), MinuteStrategy.class);
                     strategy.initialise(task);
                     return strategy;
                 })

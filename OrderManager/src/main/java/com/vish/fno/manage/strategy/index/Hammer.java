@@ -1,7 +1,7 @@
-package com.vish.fno.manage.strategy;
+package com.vish.fno.manage.strategy.index;
 
 import com.vish.fno.model.Candle;
-import com.vish.fno.model.IndexBasedStrategy;
+import com.vish.fno.model.strategy.IndexBasedStrategy;
 import com.vish.fno.model.Task;
 import com.vish.fno.model.order.orderrequest.IndexOrderRequest;
 import com.vish.fno.model.order.orderrequest.OrderRequest;

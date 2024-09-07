@@ -71,7 +71,7 @@ final class OptionPriceUtils {
                         itmSymbol.set(strikeToSymbolMap.get(strikePrice));
                         break;
                     }
-                }
+                 }
             }
         });
 
@@ -137,7 +137,7 @@ final class OptionPriceUtils {
     private static Optional<List<Instrument>> getEarliestExpiryInstrument(List<Instrument> instruments, String symbolsName, String instrumentType) {
         final Map<Date, List<Instrument>> indexSymbolsInstruments = instruments.stream()
                 .filter(i -> i.getName().toUpperCase(Locale.ENGLISH).equalsIgnoreCase(symbolsName))
-                .filter(instrument -> instrument.exchange.equals("NFO"))
+                .filter(instrument -> instrument.exchange.equals("NFO") || instrument.exchange.equals("BFO"))
                 .filter(i -> i.getInstrument_type().equals(instrumentType))
                 .collect(Collectors.groupingBy(Instrument::getExpiry));
 

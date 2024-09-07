@@ -3,10 +3,10 @@ package com.vish.fno.manage.orderflow;
 import com.vish.fno.manage.helper.DataCacheImpl;
 import com.vish.fno.model.cache.OrderCache;
 import com.vish.fno.manage.service.CalendarService;
+import com.vish.fno.model.strategy.MinuteStrategy;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.service.CandlestickService;
-import com.vish.fno.model.Strategy;
 import com.vish.fno.model.SymbolData;
 import com.vish.fno.model.order.orderrequest.OrderRequest;
 import com.vish.fno.reader.service.KiteService;
@@ -29,12 +29,12 @@ class StrategyExecutorTest {
     @Mock private KiteService kiteService;
     @Mock private CandlestickService candlestickService;
     @Mock private OrderHandler orderHandler;
-    @Mock private Strategy mockStrategy1;
-    @Mock private Strategy mockStrategy2;
-    @Mock private Strategy mockStrategy3;
+    @Mock private MinuteStrategy mockStrategy1;
+    @Mock private MinuteStrategy mockStrategy2;
+    @Mock private MinuteStrategy mockStrategy3;
     private TimeProvider timeProvider;
-    List<Strategy> indexStratgies;
-    List<Strategy> optionStrategies;
+    List<MinuteStrategy> indexStratgies;
+    List<MinuteStrategy> optionStrategies;
     OrderCache orderCache;
     @InjectMocks
     private StrategyExecutor strategyExecutor;
@@ -95,7 +95,7 @@ class StrategyExecutorTest {
 
         strategyExecutor.update();
 
-        for (Strategy strategy : indexStratgies) {
+        for (MinuteStrategy strategy : indexStratgies) {
             verify(strategy, times(0)).test(anyList(), anyInt());
         }
     }
@@ -114,7 +114,7 @@ class StrategyExecutorTest {
         strategyExecutor.update();
 
         // Verify Strategy.test is called exactly once for each strategy
-        for (Strategy strategy : indexStratgies) {
+        for (MinuteStrategy strategy : indexStratgies) {
             verify(strategy, times(1)).test(anyList(), anyInt());
         }
     }
@@ -136,7 +136,7 @@ class StrategyExecutorTest {
         strategyExecutor.update();
 
         // Assert
-        for (Strategy strategy : indexStratgies) {
+        for (MinuteStrategy strategy : indexStratgies) {
             verify(strategy, times(1)).test(anyList(), anyInt());
         }
         verify(orderHandler, times(1)).appendOpenOrder(any());
@@ -160,7 +160,7 @@ class StrategyExecutorTest {
         strategyExecutor.update();
 
         // Assert
-        for (Strategy strategy : indexStratgies) {
+        for (MinuteStrategy strategy : indexStratgies) {
             verify(strategy, times(1)).test(anyList(), anyInt());
         }
         verify(orderHandler, times(2)).appendOpenOrder(any());
@@ -183,7 +183,7 @@ class StrategyExecutorTest {
         strategyExecutor.update();
 
         // Assert
-        for (Strategy strategy : indexStratgies) {
+        for (MinuteStrategy strategy : indexStratgies) {
             verify(strategy, times(1)).test(anyList(), anyInt());
         }
         verify(orderHandler, times(2)).appendOpenOrder(any());

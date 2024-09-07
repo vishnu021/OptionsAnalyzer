@@ -13,10 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 public final class OrderManagerUtils {
     private static final int INTRADAY_EXIT_POSITION_TIME_INDEX = 368;
 
-    public static OrderSellDetailModel isExitCondition(TargetAndStopLossStrategy targetAndStopLossStrategy,
-                                                       double ltp,
-                                                       int timestampIndex,
-                                                       ActiveOrder order) {
+    public static OrderSellDetailModel isExitCondition(final TargetAndStopLossStrategy targetAndStopLossStrategy,
+                                                       final double ltp,
+                                                       final int timestampIndex,
+                                                       final ActiveOrder order) {
         if(timestampIndex > INTRADAY_EXIT_POSITION_TIME_INDEX) {
             final int quantityToSell = order.getBuyQuantity() - order.getSoldQuantity();
             log.info("Exit time reached, selling available {} quantity for symbol: {}, for order : {}",
@@ -24,11 +24,11 @@ public final class OrderManagerUtils {
             return new OrderSellDetailModel(true, quantityToSell, OrderSellReason.EXPIRY_TIME_REACHED, order);
         }
 
-        final OrderSellDetailModel orderSellDetailModel = targetAndStopLossStrategy.isTargetAchieved(order, ltp);
+        final OrderSellDetailModel orderSellDetailModel = targetAndStopLossStrategy.isStopLossHit(order, ltp);
         if(orderSellDetailModel.isSellOrder()) {
             return orderSellDetailModel;
         }
 
-        return targetAndStopLossStrategy.isStopLossHit(order, ltp);
+        return targetAndStopLossStrategy.isTargetAchieved(order, ltp);
     }
 }
