@@ -6,7 +6,6 @@ import com.vish.fno.model.strategy.OptionBasedStrategy;
 import com.vish.fno.model.cache.OrderCache;
 import com.vish.fno.util.helper.DataCache;
 import com.vish.fno.util.helper.TimeProvider;
-import com.vish.fno.model.strategy.Strategy;
 import com.vish.fno.reader.service.KiteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +25,7 @@ public class StrategyExecutor {
     private final OrderHandler orderHandler;
     private final DataCache dataCacheImpl;
     private final OrderCache orderCache;
-    private final List<MinuteStrategy> indexStrategies;
-    private final List<MinuteStrategy> optionStrategies;
+    private final List<MinuteStrategy> strategies;
     private final TimeProvider timeProvider;
 
     private static final LocalTime START_TRADING_HOUR = LocalTime.of(9, 16);
@@ -43,22 +41,24 @@ public class StrategyExecutor {
         kiteService.appendIndexITMOptions();
         orderCache.removeExpiredOpenOrders(timeProvider.currentTimeStampIndex());
 
-        indexStrategies.forEach(this::executeStrategy);
-        optionStrategies.forEach(this::executeOptionStrategy);
+        strategies.forEach(this::executeStrategy);
         orderCache.logOpenOrders();
     }
 
     private void executeStrategy(MinuteStrategy strategy) {
         try {
-            final String symbol = strategy.getTask().getIndex();
-            processSymbolData(symbol, strategy);
+            if (strategy instanceof OptionBasedStrategy) {
+                executeOptionStrategy((OptionBasedStrategy) strategy);
+            } else {
+                processSymbolData(strategy.getTask().getIndex(), strategy);
+            }
         } catch (Exception e) {
             log.error("Failed to execute strategy: {}", strategy, e);
         }
     }
 
     @SuppressWarnings("PMD.PrematureDeclaration")
-    private void executeOptionStrategy(Strategy strategy) {
+    private void executeOptionStrategy(OptionBasedStrategy strategy) {
         try {
             String indexOptionValue = strategy.getTask().getIndex();
 
@@ -78,7 +78,7 @@ public class StrategyExecutor {
             }
 
             double lastPrice = indexData.get(indexData.size() - 1).getClose();
-            processOptionData((OptionBasedStrategy)strategy, index, lastPrice, optionDetail);
+            processOptionData(strategy, index, lastPrice, optionDetail);
         } catch (Exception e) {
             log.error("Failed to execute option strategy: {}", strategy, e);
         }

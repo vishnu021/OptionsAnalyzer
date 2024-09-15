@@ -11,4 +11,5 @@ import java.util.List;
 public class TaskProperties {
     private List<StrategyTasks> indexStrategyList;
     private List<StrategyTasks> optionStrategyList;
+    private List<StrategyTasks> tickStrategyList;
 }

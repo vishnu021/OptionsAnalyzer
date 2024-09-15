@@ -28,4 +28,5 @@ public interface Constants {
     String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
     String DATE_FORMAT = "yyyy-MM-dd";
     String TIME_FORMAT = "HH:mm";
+    String YEAR_FORMAT = "yy";
 }

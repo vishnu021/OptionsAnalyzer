@@ -27,14 +27,12 @@ import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 import static com.vish.fno.model.helper.EntryVerifier.ORDER_EXECUTED;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.PrematureDeclaration"})
 public class OrderHandler {
@@ -48,6 +46,7 @@ public class OrderHandler {
     private final TargetAndStopLossStrategy targetAndStopLossStrategy;
     @Getter
     private final OrderCache orderCache;
+    private final TickStrategyExecutor tickStrategyExecutor;
 
     @PostConstruct
     public void initialiseWebSocket() {
@@ -78,6 +77,7 @@ public class OrderHandler {
 
     private void applyOrderFlow(final Tick tick, final String tickSymbol) {
         final Ticker ticker = TickMapper.mapTick(tick, tickSymbol);
+        tickStrategyExecutor.update(ticker);
         orderCache.appendTick(tickSymbol, ticker);
         getActiveOrderToSell(tickSymbol, ticker);
         orderCache.checkEntryInOpenOrders(ticker, tickSymbol)
@@ -173,26 +173,25 @@ public class OrderHandler {
         return ticker;
     }
 
-    public void appendOpenOrder(OrderRequest order) {
-        final List<ActiveOrder> activeOrders = orderCache.getActiveOrders();
+    public void appendOpenOrder(OrderRequest orderRequest) {
 
-        if(order instanceof IndexOrderRequest indexOrderRequest) {
-            String optionSymbol = kiteService.getITMStock(order.getIndex(), order.getBuyThreshold(), indexOrderRequest.isCallOrder());
+        if(orderRequest instanceof IndexOrderRequest indexOrderRequest) {
+            String optionSymbol = kiteService.getITMStock(orderRequest.getIndex(), orderRequest.getBuyThreshold(), indexOrderRequest.isCallOrder());
             indexOrderRequest.setOptionSymbol(optionSymbol);
         }
 
-        final Ticker tick = orderCache.getLatestTick(order.getIndex());
+        final Ticker tick = orderCache.getLatestTick(orderRequest.getIndex());
         if(tick == null) {
-            log.info("Not appending order request : {}, as tick is null. Appending {} to websocket", order, order.getIndex());
+            log.info("Not appending order request : {}, as tick is null. Appending {} to websocket", orderRequest, orderRequest.getIndex());
             // TODO: but order is missed here
-            kiteService.appendWebSocketSymbolsList(List.of(order.getIndex()), false);
+            kiteService.appendWebSocketSymbolsList(List.of(orderRequest.getIndex()), false);
             return;
         }
 
         // TODO, make hasMoveAlreadyHappened check before placing and creating active order and add the OrderRequest even after tick null is found
-        if(orderCache.isNotInActiveOrders(activeOrders, order) && !order.hasMoveAlreadyHappened(tick.getLastTradedPrice())) {
-            orderCache.addOrderRequest(order);
-            addTokenToWebsocket(order);
+        if(orderCache.isNotInActiveOrders(orderRequest) && !orderRequest.hasMoveAlreadyHappened(tick.getLastTradedPrice())) {
+            orderCache.addOrderRequest(orderRequest);
+            addTokenToWebsocket(orderRequest);
         }
     }
 

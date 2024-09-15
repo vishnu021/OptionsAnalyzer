@@ -59,7 +59,7 @@ public class OrderCache {
 
         List<OrderRequest> tickSymbolOrders = orderRequests
                 .stream()
-                .filter(e -> e.getIndex().contentEquals(tickSymbol) && isNotInActiveOrders(activeOrders, e))
+                .filter(e -> e.getIndex().contentEquals(tickSymbol) && isNotInActiveOrders(e))
                 .toList();
 
         for (OrderRequest order : tickSymbolOrders) {
@@ -71,7 +71,7 @@ public class OrderCache {
         return Optional.empty();
     }
 
-    public boolean isNotInActiveOrders(List<ActiveOrder> activeOrders, OrderRequest tickOrderRequest) {
+    public boolean isNotInActiveOrders(OrderRequest tickOrderRequest) {
         boolean isNotInActiveOrder = activeOrders
                 .stream()
                 .noneMatch(a -> a.getTag().equalsIgnoreCase(tickOrderRequest.getTag())

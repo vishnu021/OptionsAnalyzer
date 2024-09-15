@@ -9,7 +9,6 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.vish.fno.reader</groupId>
     <artifactId>KiteReader</artifactId>
 
     <properties>
@@ -36,7 +35,7 @@
             <version>20230227</version>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno.util</groupId>
+            <groupId>com.vish.fno</groupId>
             <artifactId>Utils</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>

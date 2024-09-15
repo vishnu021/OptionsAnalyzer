@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.vish.fno.util.Constants.*;
 
@@ -174,6 +175,63 @@ public final class TimeUtils {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         return calendar.getTime();
+    }
+
+    public static Date getPreviousWorkDay(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+
+        if(calendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
+            calendar.add(Calendar.DATE, -3);
+        } else {
+            calendar.add(Calendar.DATE, -1);
+        }
+        return calendar.getTime();
+    }
+
+    public static List<Date> getDatesBetween(Date startDate, Date endDate) {
+        List<Date> dates = new ArrayList<>();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+
+        while (!calendar.getTime().after(endDate)) {
+            if(calendar.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY
+                    && calendar.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY){
+                dates.add(calendar.getTime());
+            }
+            calendar.add(Calendar.DATE, 1);
+        }
+
+        log.debug("startDate={}, endDate={}, returning {}", startDate, endDate, dates);
+        return dates;
+    }
+
+    public static String getStringYear(Date date) {
+        if(date==null) {
+            return "";
+        }
+        SimpleDateFormat dateFormatter = new SimpleDateFormat(YEAR_FORMAT, Locale.ENGLISH);
+        return dateFormatter.format(date);
+    }
+
+    public static String getTimeElapsed(long milliseconds) {
+        long millis = milliseconds % 1000;
+        long seconds = (milliseconds/1000) % 60;
+        long minutes = (milliseconds/(60 * 1000));
+        return String.format("%s minutes, %s seconds, %s milliseconds", minutes, seconds, millis);
+    }
+
+    public static Date getNDaysBefore(long n) {
+        return new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(n));
+    }
+
+    public static Date getNDaysBefore(Date date, long n) {
+        return new Date(date.getTime() - TimeUnit.DAYS.toMillis(n));
+    }
+
+    public static String getTime() {
+        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
+        return timeFormatter.format(currentTime());
     }
 
     private static String toTimeValue(int timeVal) {

@@ -9,7 +9,6 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.vish.fno.manage</groupId>
     <artifactId>OrderManager</artifactId>
 
     <properties>
@@ -34,27 +33,27 @@
                <version>1.3.2</version>
            </dependency>
            <dependency>
-               <groupId>com.vish.fno.reader</groupId>
+               <groupId>com.vish.fno</groupId>
                <artifactId>KiteReader</artifactId>
                <version>${order.alalyzer.library.version}</version>
            </dependency>
            <dependency>
-               <groupId>com.vish.fno.model</groupId>
+               <groupId>com.vish.fno</groupId>
                <artifactId>Models</artifactId>
                <version>${order.alalyzer.library.version}</version>
            </dependency>
            <dependency>
-               <groupId>com.vish.fno.technical</groupId>
+               <groupId>com.vish.fno</groupId>
                <artifactId>Technicals</artifactId>
                <version>${order.alalyzer.library.version}</version>
            </dependency>
            <dependency>
-               <groupId>com.vish.fno.util</groupId>
+               <groupId>com.vish.fno</groupId>
                <artifactId>Utils</artifactId>
                <version>${order.alalyzer.library.version}</version>
            </dependency>
            <dependency>
-               <groupId>com.vish.fno.sutils</groupId>
+               <groupId>com.vish.fno</groupId>
                <artifactId>StrategyUtils</artifactId>
                <version>${order.alalyzer.library.version}</version>
            </dependency>
@@ -88,27 +87,23 @@
             <artifactId>javax.annotation-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno.reader</groupId>
+            <groupId>com.vish.fno</groupId>
             <artifactId>KiteReader</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno.model</groupId>
+            <groupId>com.vish.fno</groupId>
             <artifactId>Models</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno.technical</groupId>
+            <groupId>com.vish.fno</groupId>
             <artifactId>Technicals</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno.util</groupId>
+            <groupId>com.vish.fno</groupId>
             <artifactId>Utils</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno.sutils</groupId>
+            <groupId>com.vish.fno</groupId>
             <artifactId>StrategyUtils</artifactId>
         </dependency>
         <dependency>

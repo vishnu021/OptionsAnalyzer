@@ -4,6 +4,7 @@ import com.vish.fno.manage.config.order.OrderConfiguration;
 import com.vish.fno.manage.config.order.OrderProperties;
 import com.vish.fno.manage.config.task.TaskConfig;
 import com.vish.fno.manage.helper.DataCacheImpl;
+import com.vish.fno.manage.orderflow.TickStrategyExecutor;
 import com.vish.fno.model.cache.OrderCache;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.orderflow.OrderHandler;
@@ -11,7 +12,7 @@ import com.vish.fno.manage.orderflow.StrategyExecutor;
 import com.vish.fno.manage.service.CalendarService;
 import com.vish.fno.manage.service.CandlestickService;
 import com.vish.fno.model.strategy.MinuteStrategy;
-import com.vish.fno.model.strategy.Strategy;
+import com.vish.fno.model.strategy.TickBasedStrategy;
 import com.vish.fno.reader.service.KiteService;
 import com.vish.fno.util.FileUtils;
 import com.vish.fno.util.TimeUtils;
@@ -33,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.vish.fno.manage.IntegrationTest.TEST_DATE;
 import static org.mockito.Mockito.when;
@@ -77,9 +79,20 @@ public class TestConfig {
         return new FixedTargetAndStopLossStrategy();
     }
 
+
     @Bean
-    public OrderHandler testOrderHandler(KiteService kiteService, OrderConfiguration testOrderConfiguration, OrderCache orderCache, TimeProvider timeProvider) {
-        return new OrderHandler(kiteService, testOrderConfiguration, new FileUtils(), timeProvider, new FixedTargetAndStopLossStrategy(), orderCache);
+    public TickStrategyExecutor tickStrategyExecutor(final TimeProvider timeProvider) {
+        List<TickBasedStrategy> strategies = getTickStrategies(List.of());
+        return new TickStrategyExecutor(strategies, timeProvider);
+    }
+
+    @Bean
+    public OrderHandler testOrderHandler(KiteService kiteService,
+                                         OrderConfiguration testOrderConfiguration,
+                                         OrderCache orderCache,
+                                         TimeProvider timeProvider,
+                                         TickStrategyExecutor tickStrategyExecutor) {
+        return new OrderHandler(kiteService, testOrderConfiguration, new FileUtils(), timeProvider, new FixedTargetAndStopLossStrategy(), orderCache, tickStrategyExecutor);
     }
 
     @Bean
@@ -89,9 +102,16 @@ public class TestConfig {
                                                  OrderCache orderCache,
                                                  TimeProvider timeProvider,
                                                  TaskConfig taskConfig) {
-        List<MinuteStrategy> indexStrategies = getStrategies(taskConfig.getTaskProperties().getIndexStrategyList());
-        List<MinuteStrategy> optionStrategies = getStrategies(taskConfig.getTaskProperties().getOptionStrategyList());
-        return new StrategyExecutor(kiteService, testOrderHandler, dataCache, orderCache, indexStrategies, optionStrategies, timeProvider);
+        List<MinuteStrategy> strategies = Stream.concat(
+                getStrategies(taskConfig.getTaskProperties().getIndexStrategyList()).stream(),
+                getStrategies(taskConfig.getTaskProperties().getOptionStrategyList()).stream()
+        ).collect(Collectors.toList());
+
+        return new StrategyExecutor(kiteService, testOrderHandler, dataCache, orderCache, strategies, timeProvider);
+    }
+
+    private List<TickBasedStrategy> getTickStrategies(List<StrategyTasks> strategyTasks) {
+        return List.of();
     }
 
     private List<MinuteStrategy> getStrategies(List<StrategyTasks> strategyTasks) {

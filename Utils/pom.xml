@@ -9,7 +9,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.vish.fno.util</groupId>
+    <groupId>com.vish.fno</groupId>
     <artifactId>Utils</artifactId>
 
     <properties>
@@ -25,7 +25,7 @@
             <version>2.14.0-rc1</version>
         </dependency>
         <dependency>
-            <groupId>com.vish.fno.model</groupId>
+            <groupId>com.vish.fno</groupId>
             <artifactId>Models</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>

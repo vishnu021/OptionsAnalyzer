@@ -1,9 +1,13 @@
 package com.vish.fno.manage.orderflow;
 
 import com.vish.fno.manage.helper.DataCacheImpl;
+import com.vish.fno.model.Candle;
 import com.vish.fno.model.cache.OrderCache;
 import com.vish.fno.manage.service.CalendarService;
+import com.vish.fno.model.strategy.IndexBasedStrategy;
 import com.vish.fno.model.strategy.MinuteStrategy;
+import com.vish.fno.model.strategy.OptionBasedStrategy;
+import com.vish.fno.util.helper.DataCache;
 import com.vish.fno.util.helper.TimeProvider;
 import com.vish.fno.manage.model.StrategyTasks;
 import com.vish.fno.manage.service.CandlestickService;
@@ -15,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,13 +34,13 @@ class StrategyExecutorTest {
     @Mock private KiteService kiteService;
     @Mock private CandlestickService candlestickService;
     @Mock private OrderHandler orderHandler;
-    @Mock private MinuteStrategy mockStrategy1;
-    @Mock private MinuteStrategy mockStrategy2;
-    @Mock private MinuteStrategy mockStrategy3;
+    @Mock private IndexBasedStrategy mockStrategy1;
+    @Mock private IndexBasedStrategy mockStrategy2;
+    @Mock private OptionBasedStrategy mockStrategy3;
     private TimeProvider timeProvider;
-    List<MinuteStrategy> indexStratgies;
-    List<MinuteStrategy> optionStrategies;
-    OrderCache orderCache;
+    private List<MinuteStrategy> strategies;
+    private OrderCache orderCache;
+    private DataCache dataCache;
     @InjectMocks
     private StrategyExecutor strategyExecutor;
 
@@ -44,24 +49,22 @@ class StrategyExecutorTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         orderCache = spy(new OrderCache(0L));
-        indexStratgies = List.of(mockStrategy1, mockStrategy2);
-        optionStrategies = List.of(mockStrategy3);
+        strategies = List.of(mockStrategy1, mockStrategy2, mockStrategy3);
 
         when(mockStrategy1.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "BANK NIFTY", true, true));
         when(mockStrategy2.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "NIFTY 50", false, false));
-        when(mockStrategy3.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "NIFTY 50", false, false));
+        when(mockStrategy3.getTask()).thenReturn(new StrategyTasks(TEST_STRATEGY, "NIFTY 50|ITM", false, false));
         CalendarService calendarService = mock(CalendarService.class);
         timeProvider = spy(TimeProvider.class);
         when(timeProvider.currentTimeStampIndex()).thenReturn(1);
         when(orderHandler.getOrderCache()).thenReturn(orderCache);
 
-        DataCacheImpl dataCache = spy(new DataCacheImpl(candlestickService, calendarService, timeProvider));
+        this.dataCache = spy(new DataCacheImpl(candlestickService, calendarService, timeProvider));
         strategyExecutor = new StrategyExecutor(kiteService,
                 orderHandler,
-                dataCache,
+                this.dataCache,
                 orderCache,
-                indexStratgies,
-                optionStrategies,
+                strategies,
                 timeProvider);
     }
 
@@ -95,7 +98,7 @@ class StrategyExecutorTest {
 
         strategyExecutor.update();
 
-        for (MinuteStrategy strategy : indexStratgies) {
+        for (MinuteStrategy strategy : strategies) {
             verify(strategy, times(0)).test(anyList(), anyInt());
         }
     }
@@ -104,19 +107,20 @@ class StrategyExecutorTest {
     public void testUpdate_WithinTradingHours_StrategiesTested() {
         // Arrange
         SymbolData mockSymbolData = mock(SymbolData.class);
-
         LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
 
         when(timeProvider.now()).thenReturn(mockTime);
         when(kiteService.isInitialised()).thenReturn(true);
+        when(kiteService.getITMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("NIFTY_ITM");
+        when(kiteService.getOTMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("NIFTY_OTM");
         when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
+        when(dataCache.updateAndGetMinuteData(anyString())).thenReturn(List.of(mock(Candle.class)));
 
         strategyExecutor.update();
 
-        // Verify Strategy.test is called exactly once for each strategy
-        for (MinuteStrategy strategy : indexStratgies) {
-            verify(strategy, times(1)).test(anyList(), anyInt());
-        }
+        verify(mockStrategy1, times(1)).test(anyList(), anyInt());
+        verify(mockStrategy2, times(1)).test(anyList(), anyInt());
+        verify(mockStrategy3, times(2)).test(anyList(), anyInt());
     }
 
     @Test
@@ -129,16 +133,20 @@ class StrategyExecutorTest {
 
         when(timeProvider.now()).thenReturn(mockTime);
         when(kiteService.isInitialised()).thenReturn(true);
+        when(kiteService.getITMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("NIFTY_ITM");
+        when(kiteService.getOTMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("NIFTY_OTM");
         when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
         when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
+        when(dataCache.updateAndGetMinuteData(anyString())).thenReturn(List.of(mock(Candle.class)));
 
         // Act
         strategyExecutor.update();
 
         // Assert
-        for (MinuteStrategy strategy : indexStratgies) {
-            verify(strategy, times(1)).test(anyList(), anyInt());
-        }
+        verify(mockStrategy1, times(1)).test(anyList(), anyInt());
+        verify(mockStrategy2, times(1)).test(anyList(), anyInt());
+        verify(mockStrategy3, times(2)).test(anyList(), anyInt());
+
         verify(orderHandler, times(1)).appendOpenOrder(any());
     }
 
@@ -152,17 +160,21 @@ class StrategyExecutorTest {
 
         when(timeProvider.now()).thenReturn(mockTime);
         when(kiteService.isInitialised()).thenReturn(true);
+        when(kiteService.getITMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("NIFTY_ITM");
+        when(kiteService.getOTMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("NIFTY_OTM");
         when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
         when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
         when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
+        when(dataCache.updateAndGetMinuteData(anyString())).thenReturn(List.of(mock(Candle.class)));
 
         // Act
         strategyExecutor.update();
 
         // Assert
-        for (MinuteStrategy strategy : indexStratgies) {
-            verify(strategy, times(1)).test(anyList(), anyInt());
-        }
+        verify(mockStrategy1, times(1)).test(anyList(), anyInt());
+        verify(mockStrategy2, times(1)).test(anyList(), anyInt());
+        verify(mockStrategy3, times(2)).test(anyList(), anyInt());
+
         verify(orderHandler, times(2)).appendOpenOrder(any());
     }
 
@@ -175,17 +187,21 @@ class StrategyExecutorTest {
         LocalDateTime mockTime = LocalDateTime.of(2024, 1, 24, 11, 0);
         when(timeProvider.now()).thenReturn(mockTime);
         when(kiteService.isInitialised()).thenReturn(true);
+        when(kiteService.getITMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("NIFTY_ITM");
+        when(kiteService.getOTMStock(anyString(), anyDouble(), anyBoolean())).thenReturn("NIFTY_OTM");
         when(candlestickService.getEntireDayHistoryData(anyString(), anyString())).thenReturn(Optional.of(mockSymbolData));
         when(mockStrategy1.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
         when(mockStrategy2.test(anyList(), anyInt())).thenReturn(Optional.of(orderRequest));
+        when(dataCache.updateAndGetMinuteData(anyString())).thenReturn(List.of(mock(Candle.class)));
 
         // Act
         strategyExecutor.update();
 
         // Assert
-        for (MinuteStrategy strategy : indexStratgies) {
-            verify(strategy, times(1)).test(anyList(), anyInt());
-        }
+        verify(mockStrategy1, times(1)).test(anyList(), anyInt());
+        verify(mockStrategy2, times(1)).test(anyList(), anyInt());
+        verify(mockStrategy3, times(2)).test(anyList(), anyInt());
+
         verify(orderHandler, times(2)).appendOpenOrder(any());
     }
 
